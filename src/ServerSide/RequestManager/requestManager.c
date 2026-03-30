@@ -27,6 +27,6 @@ void addRequest(int id)
 void exportData(ExportData data)
 {
     //Pack ExportData to file
-    File file = packExportData(data);
-    returnExportData(file); //somehow
+    string stringifiedData = packExportData(data);
+    returnExportData(stringifiedData); //somehow
 }

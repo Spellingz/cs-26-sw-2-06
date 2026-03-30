@@ -6,9 +6,9 @@ typedef struct ExportData ExportData;
 
 //somehow transfer server file to the client
 
-File packExportData(ExportData data)
+string packExportData(ExportData data)
 {
     // Pack ExportData to file
-    File file;
-    return file;
+    string stringifiedData = "no";
+    return stringifiedData;
 }

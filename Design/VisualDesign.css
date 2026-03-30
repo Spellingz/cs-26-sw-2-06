@@ -30,3 +30,47 @@ p2{
     
 }
 
+
+
+:root {
+    background-color: #f0efeb;
+    border: #000047;
+}
+
+#toggle-more{
+    display: none;
+}
+.open-panel,
+.close-panel {
+    padding: 10px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    border: 3px solid;
+    border-image-slice: 1;
+    border-width: 3px;
+    transition: all 0.3s ease;
+}
+.open-panel {
+    border-radius: linear-gradient(45deg, blue, yellow);
+    color: #000047;
+    border-image-source: var(--accent-gradient);
+}
+.open-panel:hover {
+    background: linear-gradient(45deg, blue, yellow);
+        color: #f0efeb;
+        transform: scale(1.05);
+}
+.side-panel {
+    position: fixed;
+    right: -90%;
+    top: 0;
+    height: 100%;
+    width: 380px;
+    max-width: 80%;
+    padding: 28px;
+    overflow: auto;
+}
+#toggle-more:checked + .open-panel + .side-panel {
+    right: 0;
+}

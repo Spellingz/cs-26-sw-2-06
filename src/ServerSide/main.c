@@ -2,44 +2,41 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+// #include "generateMaze.h"
+// #include "requestManger.h"
 #pragma pack(1)
 
-typedef struct Cell Cell;
+bool _isActive = true;
 
-typedef struct Point {unsigned short x,y;} Point;
-
-typedef enum {
-    UP = 0,
-    DOWN = 1,
-    LEFT = 2,
-    RIGHT = 3
-} Direction;
-
-typedef enum {
-	AIR = 0,
-	WALL = 1,
-} Type;
-
-typedef struct Cell {
-	char type;
-	char dir;
-	Point pos;
-	Cell* parent;
-} Cell;
-
-typedef struct Path {
-	char dir;
-	Point start;
-	Point end;
-	Cell* cells;
-} Path;
-
-short mazeSize = 5;
-
-Cell **maze; 
+typedef struct Data Data;
+typedef struct ExportData ExportData;
 
 int main(void)
 {
-	maze = malloc(mazeSize * mazeSize * sizeof(Cell));
+	while (_isActive)
+	{
+		bool isRequest = checkRequests();
+		if (!isRequest) continue;
 
+		Data data = getTopRequest();
+
+		ExportData dataToExport;
+
+		switch(data.type)
+		{
+			case "generation":
+				dataToExport = generateMaze(data);
+				break;
+			case "alteration":
+				dataToExport = alterMaze(data);
+				break;
+			default;
+			Printf("Reject Request - no type");
+				break;
+		}
+
+		exportData(dataToExport);
+	}
+
+	return 0;
 }

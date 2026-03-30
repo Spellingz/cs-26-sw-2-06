@@ -15,13 +15,19 @@ int main(void)
 {
 	while (_isActive)
 	{
-		bool isRequest = checkRequests();
-		if (!isRequest) continue;
+		// Is there any request?
+		bool _isRequest = checkRequests();
 
+		// No? go back
+		if (!_isRequest) continue;
+
+		// Get the request and save it into 'data'
 		Data data = getTopRequest();
 
+		// make temporary data variable to recieve processed data
 		ExportData dataToExport;
 
+		// which type of data want's to be processed?
 		switch(data.type)
 		{
 			case "generation":
@@ -30,11 +36,12 @@ int main(void)
 			case "alteration":
 				dataToExport = alterMaze(data);
 				break;
-			default;
-			Printf("Reject Request - no type");
+			default; //Fallback
+			printf("Reject Request - no type");
 				break;
 		}
 
+		// Send processed data back to client
 		exportData(dataToExport);
 	}
 

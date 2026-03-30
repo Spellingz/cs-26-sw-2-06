@@ -9,9 +9,22 @@
 <body>
     <p1>
         <div style="background-color: #000047; padding: 10px; width: 100%;">
-            <button id="GoBackToPrevious" style="height: 30px; background-color: white; border: none;">GO BACK</button>
+            <p id="GoBackToPrevious" style="color: #f0efeb; font-size: 10px;">MAZE GENERATOR</p>
 
-            <button id="morepagbutton" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">MORE</button>
+
+            <input id="toggle-more" type="checkbox"  />
+            <label class="Open-more" for="toggle-more" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">MORE</label>
+            <aside class="side-panel" role="dialog" arial-modal="true">
+                <h2>MORE</h2>
+                <p3>Here you can read more about the maze generator</p3>
+
+            </aside>
+
+
+            <button id="morepagbutton" 
+                style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;"
+                onclick="location.href='More.html'"
+                >MORE</button>
             <button id="aboutpagebutton" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">ABOUT</button>
             <button id="homepagebutton" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">HOME</button>
         </div>

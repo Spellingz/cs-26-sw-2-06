@@ -4,7 +4,7 @@
     "y_size": 55,
   "branches": 1.7,
   "loops": 2.5,
-  "straightness": 1.1,
+  "straightness": 1.1
 }
 
 //Json filerne SKAL se præcis sådan her ud. Ellers falder mit kode sammen.

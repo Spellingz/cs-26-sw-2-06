@@ -13,10 +13,10 @@ typedef struct Wall Wall;
 typedef struct Point {unsigned short x,y;} Point;
 
 typedef enum {
-    DOWN = 0,
-    UP = 1,
-    RIGHT = 0,
-    LEFT = 1,
+    UP = 0,
+    DOWN = 1,
+    LEFT = 0,
+    RIGHT = 1,
 } Direction;
 
 typedef enum {
@@ -28,14 +28,14 @@ typedef struct Wall {
 	bool type;
 	bool direction;
     bool isLoop;
-    bool isFrontier;
+    char closedSides;
 } Wall;
 
 Wall defaultWall = {
     .type = 1,
     .direction = 0,
     .isLoop = 0,
-    .isFrontier = 0
+    .closedSides = 0,
 };
 
 typedef struct Path {
@@ -81,54 +81,77 @@ mazeStruct *fillWalls(mazeWallSize wallSize)
 
 
 
-int getHorizontalArrPos(Point pos, mazeSize size)
+int getHorizontalArrIndex(Point pos, mazeSize size)
 {
     if (pos.x == size.x || pos.y == size.y)
-        return 0;
+        return -1;
 
-    int index = pos.x + pos.y*(size.x-1)+1;
-
-    return index;
+    return pos.x + pos.y*(size.x-1)+1;
 }
 
-int getVerticalArrPos(Point pos, mazeSize size)
+int getVerticalArrIndex(Point pos, mazeSize size)
 {
 
-    int index;
-    
-    return index;
+    if (pos.x == size.x || pos.y == size.y)
+        return -1;
+
+    return pos.x + pos.y*(size.x-1)+1;
 }
 
-void addNeighbourFrontiers(Wall **frontier, int frontierSize, mazeStruct *maze, mazeSize size, Point pos)
+
+Wall **getNeighbourWalls(mazeStruct *maze, mazeSize size, Point pos)
 {
-    // Put this into other function (getting the 4 walls) to make them into frontiers
-    // Put this into other function (getting the 4 walls) to make them into frontiers
-    // Put this into other function (getting the 4 walls) to make them into frontiers
-    // Put this into other function (getting the 4 walls) to make them into frontiers
+    Wall **neighbourWalls = malloc(sizeof(Wall)*4);
 
     int index[4] = {
-        getHorizontalArrPos((Point){pos.x, pos.y}, size),
-        getHorizontalArrPos((Point){pos.x-1, pos.y-1}, size),
-        getVerticalArrPos((Point){pos.x, pos.y}, size),
-        getVerticalArrPos((Point){pos.x-1, pos.y-1}, size),
+        getHorizontalArrIndex((Point){pos.x, pos.y}, size),
+        getHorizontalArrIndex((Point){pos.x-1, pos.y}, size),
+        getVerticalArrIndex((Point){pos.x, pos.y}, size),
+        getVerticalArrIndex((Point){pos.x, pos.y-1}, size),
     };
         
-    int walls;
+    int walls = 0;
     for (int i = 0; i < 4; i++)
     {
-        if (index[i] == -1) continue;
+        if (index[i] == -1) 
+        {
+            neighbourWalls[i] = NULL;
+        };
 
         if (i<2) 
-        {
-            maze->horizontalArr[index[i]].isFrontier = true;;
-            walls++;
-            frontier[frontierSize+walls] = &maze->horizontalArr[index[i]];
-        } else {
-            maze->verticalArr[index[i]].isFrontier = true;
-            walls++;
-            frontier[frontierSize+walls] = &maze->verticalArr[index[i]];
-        }
+            neighbourWalls[i] = &maze->horizontalArr[index[i]];
+        else
+            neighbourWalls[i] = &maze->verticalArr[index[i]];
     }
+    return neighbourWalls;
+}
+
+
+void addNeighbourFrontiers(Wall **frontier, int *frontierSize, mazeStruct *maze, mazeSize size, Point pos)
+{
+        
+    Wall **neighbourWalls = getNeighbourWalls(maze, size, pos);
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (neighbourWalls[i] == NULL || neighbourWalls[i]->closedSides++ > 0) continue;
+
+        neighbourWalls[i]->direction = (i+1)%2;
+        frontier[(*frontierSize)++] = neighbourWalls[i];
+    }
+}
+
+
+Wall *popRandomFrontier(Wall **frontier, int *frontierSize)
+{
+    Wall *poppedFrontier;
+
+    int rndIndex = (rand() % *frontierSize); 
+
+    poppedFrontier = frontier[rndIndex];
+    frontier[rndIndex] = frontier[*(--frontierSize)];
+
+    return poppedFrontier;
 }
 
 ExportData generateMaze(Data data)
@@ -145,5 +168,12 @@ ExportData generateMaze(Data data)
         );
     
     Point startPos = {1,1};
-    addNeighbourFrontiers(frontiers, frontierSize, &*maze, size, startPos);
+    addNeighbourFrontiers(frontiers, &frontierSize, &*maze, size, startPos);
+
+    while (frontierSize>0)
+    {
+        Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize);
+        if (rndFrontier->closedSides >= 2) continue;
+        rndFrontier->type = AIR;
+    }
 }

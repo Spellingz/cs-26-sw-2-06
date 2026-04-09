@@ -188,25 +188,25 @@ ExportData generateMaze(Data data)
 
     int frontierSize = 0;
     Wall** frontiers = malloc(
-        sizeof(Wall)*maze->wallSize.horizontal+
-        sizeof(Wall)*maze->wallSize.vertical
+        sizeof(Wall*)*maze->wallSize.horizontal+
+        sizeof(Wall*)*maze->wallSize.vertical
         );
     
     Point startPos = {1,1};
-    addNeighbourFrontiers(frontiers, &frontierSize, &*maze, size, startPos);
+    addNeighbourFrontiers(frontiers, &frontierSize, maze, size, startPos);
 
     while (frontierSize>0)
     {
         Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize);
         if (rndFrontier->closedSides >= 2) continue;
         
-        ArrIndexResult arrIndex = getArrayIndex(&*maze, rndFrontier);
+        ArrIndexResult arrIndex = getArrayIndex(maze, rndFrontier);
         if (arrIndex.index == -1) continue;
 
         // frontierPos = Index + direction
         Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index + rndFrontier->direction, size);
 
-        addNeighbourFrontiers(frontiers, &frontierSize, &*maze, size, frontierPos);
+        addNeighbourFrontiers(frontiers, &frontierSize, maze, size, frontierPos);
 
         rndFrontier->type = AIR;
     }

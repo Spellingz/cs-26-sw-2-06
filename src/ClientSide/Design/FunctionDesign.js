@@ -52,3 +52,5 @@ function StraightnessParameter() {
     `;
     document.getElementById("output").innerHTML = html;
 }
+
+//functions for the heat-map buttons

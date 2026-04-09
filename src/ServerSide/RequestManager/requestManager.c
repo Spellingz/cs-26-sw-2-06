@@ -1,18 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <fileUnpacker.h>
+
 // #include "requestDataTypes.h"
 
-typedef struct Data Data;
+typedef struct requestQueue {
+
+int queue[1000];
+int id;
+int front;
+int back;
+int size;
+
+}requestQueue;
+
 typedef struct ExportData ExportData;
 
-void checkRequests()
+
+requestQueue myQueue;
+
+bool checkRequests()
 {
-    //Check queue for requests
-}
+
+    if (myQueue.size<=0){
+        printf("Queue is empty\n");
+        return false;
+    } else {
+        printf("there are %d requests in the queue", myQueue.size);
+        return true;
+        }
+
+    }
 
 Data getTopRequest()
 {
-    id = 0; // get top id of queue
+
+    int id = myQueue.queue[0];
 
     Data data = unpackFile(id);
 
@@ -21,6 +45,9 @@ Data getTopRequest()
 
 void addRequest(int id)
 {
+
+
+
     //Add a request to queue
 }
 

@@ -5,19 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CreateMaze</title>
     <link rel="stylesheet" href="VisualDesign.css">
+    <script src="FunctionDesign.js" defer></script> 
 </head>
 <body>
     <p1>
-        <div style="background-color: #000047; padding: 10px; width: 100%;">
-            <button onclick="location.href='Frontpage.html'" id="GoBackToPrevious" style="height: 30px; background-color: white; border: none;">GO BACK</button>
+        <div style="background-color: #000047; padding: 10px; width: 90%; height: 30px; border-radius: 12px;">
+            <button onclick="location.href='Frontpage.html'" id="GoBackToPrevious" style="height: 30px; background-color: white; border: none; border-radius: 8px;">GO BACK</button>
 
-            <button id="morepagbutton" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">MORE</button>
-            <button id="aboutpagebutton" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">ABOUT</button>
-            <button id="homepagebutton" style="float: right; margin-right: 20px; height: 30px; background-color: white; border: none;">HOME</button>
+            <button id="morepagbutton" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">MORE</button>
+            <button id="aboutpagebutton" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">ABOUT</button>
+            <button id="homepagebutton" onclick="location.href='Frontpage.html'" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">HOME</button>
         </div>
+
     </p1>
     
-    <h1 id="Header">Create Maze</h1>
+    <!--Make a pop-up notification here-->
+
+    <h1 id="Header" style="text-shadow: 2px 2px #8896a2;">Create Maze</h1>
+
+    <p3>
+        <div class="Factors">
+            <button id="Door" onclick="DoorParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DOORS</button>
+            <br><br>
+            <button id="Size" onclick="SizeParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">SIZE</button>
+            <br><br>
+            <button id="Branches" onclick="BranchesParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">BRANCHES</button>
+            <br><br>
+            <button id="Loops" onclick="LoopsParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">LOOPS</button>
+            <br><br>
+            <button id="Straightness" onclick="StraightnessParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">STRAIGHTNESS</button>
+        </div>
+        <div id= "output"></div>
+    </p3>
+
+    <!--This box is used in the if-loop for the different factors-->
+
+
+    <p5>
+        <button class="CreateMazeButton"
+        style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 200px; height: 50px; border-radius: 12px;"
+        onclick="location.href='MazeGenerated.html'">
+            Create Maze
+        </button>
+    </p5>
+
     
 </body>
 </html>

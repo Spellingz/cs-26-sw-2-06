@@ -4,6 +4,7 @@
 
 
 
+
 Data unpackFile(int id)
 {
     Data data;
@@ -17,12 +18,12 @@ Data unpackFile(int id)
 
     if (file == NULL) {
         printf("Error opening file\n");
-        return; // better error handling maybe
+        exit(0);
     }
 
     fscanf(file,
     "{ \"Door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
-    &data.doors,
+    &data.Door,
     &data.x_size,
     &data.y_size,
     &data.branches,

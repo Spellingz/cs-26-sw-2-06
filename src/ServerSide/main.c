@@ -13,16 +13,21 @@ typedef struct ExportData ExportData;
 
 int main(void)
 {
+
+int size = 0;
+    int queue[1000];
+
+
 	while (_isActive)
 	{
 		// Is there any request?
-		bool _isRequest = checkRequests();
+		bool _isRequest = checkRequests(size);
 
 		// No? go back
 		if (!_isRequest) continue;
 
 		// Get the request and save it into 'data'
-		Data data = getTopRequest();
+		Data data = getTopRequest(&size, queue);
 
 		// make temporary data variable to recieve processed data
 		ExportData dataToExport;

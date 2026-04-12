@@ -3,7 +3,7 @@
 
 typedef struct Data {
     int id;
-    double doors;
+    double Door;
     int x_size;
     int y_size;
     double branches;

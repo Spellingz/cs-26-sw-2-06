@@ -3,57 +3,58 @@
 #include <stdbool.h>
 #include <fileUnpacker.h>
 
-// #include "requestDataTypes.h"
-
-typedef struct requestQueue {
-
-int queue[1000];
-int id;
-int front;
-int back;
-int size;
-
-}requestQueue;
-
-typedef struct ExportData ExportData;
 
 
-requestQueue myQueue;
 
-bool checkRequests()
+
+
+
+
+
+
+bool checkRequests(int size)
 {
 
-    if (myQueue.size<=0){
-        printf("Queue is empty\n");
+    if (size<=0){
         return false;
     } else {
-        printf("there are %d requests in the queue", myQueue.size);
         return true;
-        }
-
     }
 
-Data getTopRequest()
+}
+
+Data getTopRequest(int *size, int *queue)
 {
 
-    int id = myQueue.queue[0];
+
+    int id = queue[0];
 
     Data data = unpackFile(id);
 
+
+
+    for (int i = 0; i < *size - 1; i++) {
+        queue[i] = queue[i + 1];
+    }
+    (*size)--;
+
+
     return data;
+
 }
 
-void addRequest(int id)
+void addRequest(int id,int *size, int *queue)
 {
+    queue[*size]=id;
+    (*size)++;
 
 
-
-    //Add a request to queue
 }
+
 
 void exportData(ExportData data)
 {
-    //Pack ExportData to file
+    //Pack ExportData to file (Use magic)
     string stringifiedData = packExportData(data);
     returnExportData(stringifiedData); //somehow
 }

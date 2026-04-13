@@ -18,7 +18,8 @@ Data unpackFile(int id)
 
     if (file == NULL) {
         printf("Error opening file\n");
-        exit(0);
+        data.id = -1;
+        return data;
     }
 
     fscanf(file,

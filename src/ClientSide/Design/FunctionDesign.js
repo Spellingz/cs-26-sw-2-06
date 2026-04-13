@@ -11,11 +11,15 @@ function DoorParameter() {
 
 function SizeParameter() {
     let html = `
-    <p>
-        <div id="Boks">
-            <button>Size</button>
-        </div>
-    </p>
+    <div id="Boks">
+            <p style="font-weight: bolder; font-size: large; margin-right:20px;">HEIGHT</p>
+            <input id="HeightInput" style="height: 25px; width: 150px;" />
+            <br><br><br><br>
+            <p style="font-weight: bolder; font-size: large; margin-right:20px;">WEIGHT</p>
+            <input id="WeightInput" style="height: 25px; width: 150px" />
+
+            <div id="InfoBoks"></div>
+    </div>
     `;
     document.getElementById("output").innerHTML = html;
 }

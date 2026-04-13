@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 // #include "generateMaze.h"
-// #include "requestManger.h"
+ #include "requestManager.h"
 #pragma pack(1)
 
 bool _isActive = true;
@@ -14,19 +14,20 @@ typedef struct ExportData ExportData;
 int main(void)
 {
 
-int size = 0;
-    int queue[1000];
+Queue *queue = malloc(sizeof(Queue));
+queue->first = NULL;
+queue->last = NULL;
 
 	while (_isActive)
 	{
 
 		// Is there any request?
-		bool _isRequest = checkRequests(size);
+		bool _isRequest = checkRequests(*queue);
 		// No? go back
 		if (!_isRequest) continue;
 
 		// Get the request and save it into 'data'
-		Data data = getTopRequest(&size, queue);
+		Data data = getTopRequest(queue);
 
 		
 		// make temporary data variable to recieve processed data

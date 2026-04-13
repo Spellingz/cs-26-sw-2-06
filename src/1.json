@@ -1,5 +1,6 @@
 {   
-    "Door": 0.3,
+  "SessionID": 8,
+    "door": 0.3,
     "x_size": 55,
     "y_size": 55,
   "branches": 0.7,

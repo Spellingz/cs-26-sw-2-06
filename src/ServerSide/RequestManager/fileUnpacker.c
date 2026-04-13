@@ -23,8 +23,9 @@ Data unpackFile(int id)
     }
 
     fscanf(file,
-    "{ \"Door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
-    &data.Door,
+    "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
+    &data.id,
+    &data.door,
     &data.x_size,
     &data.y_size,
     &data.branches,

@@ -2,59 +2,45 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <fileUnpacker.h>
+#include <requestManager.h>
 
-
-
-
-
-
-
-
-
-
-bool checkRequests(int size)
-{
-
-    if (size<=0){
-        return false;
-    } else {
-        return true;
-    }
-
+bool checkRequests(Queue queue){
+    return queue.first != NULL;
 }
 
-Data getTopRequest(int *size, int *queue)
-{
+Data getTopRequest(Queue *queue){
 
+    int id = queue->first->queueId;
+    QueueNode *node = queue->first;
 
-    int id = queue[0];
+    if (queue->first == queue->last){
+        queue->last = NULL;
+    }
+
+    queue->first = queue->first->next;
+
+    free(node);
 
     Data data = unpackFile(id);
 
-
-
-    for (int i = 0; i < *size - 1; i++) {
-        queue[i] = queue[i + 1];
-    }
-    (*size)--;
-
-
     return data;
-
 }
 
-void addRequest(int id,int *size, int *queue)
-{
-    queue[*size]=id;
-    (*size)++;
-
-
+void addRequest(int id, Queue *queue){
+    QueueNode *node = malloc(sizeof(node));
+    node->queueId = id;
+    if (queue->last == NULL){
+        queue->first = node;
+        queue->last = node;
+    }
+    else{
+        queue->last->next = node;
+        queue->last = node;
+    }
 }
 
-
-void exportData(ExportData data)
-{
-    //Pack ExportData to file (Use magic)
+void exportData(ExportData data){
+    // Pack ExportData to file (Use magic)
     string stringifiedData = packExportData(data);
-    returnExportData(stringifiedData); //somehow
+    returnExportData(stringifiedData); // somehow
 }

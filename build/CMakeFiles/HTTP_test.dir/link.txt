@@ -1,0 +1,1 @@
+/usr/bin/cc -Wl,--dependency-file=CMakeFiles/HTTP_test.dir/link.d CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o -o HTTP_test  -lmicrohttpd

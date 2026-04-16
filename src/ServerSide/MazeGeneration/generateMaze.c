@@ -28,7 +28,7 @@ typedef struct {
 } Wall;
 
 const Wall DefaultWall = {
-    .type = 1,
+    .type = WALL,
     .direction = 0,
     .isLoop = 0,
     .closedSides = 0,
@@ -49,10 +49,10 @@ typedef struct {
 
 typedef struct {
     long horizontal, vertical;
-} MazeWallSize;
+} MazeWallCount;
 
 typedef struct {
-    MazeWallSize wallSize;
+    MazeWallCount wallCount;
     Wall *horizontalArr;
     Wall *verticalArr;
 } MazeStruct;
@@ -87,18 +87,18 @@ void printMaze(MazeStruct maze, MazeSize size) {
 
 MazeStruct *fillWalls(MazeSize size) {
     //Amount of horizontal walls are (width-1) times height. Opposite for vertical
-    MazeWallSize wallSize = {(size.x - 1) * size.y, (size.y - 1) * size.x};
+    MazeWallCount wallCount = {(size.x - 1) * size.y, (size.y - 1) * size.x};
     MazeStruct *maze = malloc(sizeof(MazeStruct));
     //Allocating a memory block that can hold both arrays. This increases cache friendliness
-    Wall *block = malloc(sizeof(Wall) * wallSize.horizontal + sizeof(Wall) * wallSize.vertical);
-    maze->wallSize = wallSize;
+    Wall *block = malloc(sizeof(Wall) * wallCount.horizontal + sizeof(Wall) * wallCount.vertical);
+    maze->wallCount = wallCount;
     maze->horizontalArr = block; //First array begins at the start of the block
-    maze->verticalArr = block + maze->wallSize.horizontal; //Second array begins right after the first one
+    maze->verticalArr = block + maze->wallCount.horizontal; //Second array begins right after the first one
 
-    for (int i = 0; i < maze->wallSize.horizontal; i++) {
+    for (int i = 0; i < maze->wallCount.horizontal; i++) {
         maze->horizontalArr[i] = DefaultWall;
     }
-    for (int j = 0; j < maze->wallSize.vertical ; j++) {
+    for (int j = 0; j < maze->wallCount.vertical ; j++) {
         maze->verticalArr[j] = DefaultWall;
     }
     return maze;
@@ -146,7 +146,7 @@ Wall **getNeighbourWalls(MazeStruct *maze, MazeSize size, Point pos) {
 }
 
 
-void addNeighbourFrontiers(Wall **frontier, int *frontierSize, MazeStruct *maze, MazeSize size, Point pos) {
+void addNeighboursToFrontier(Wall **frontier, int *frontierSize, MazeStruct *maze, MazeSize size, Point pos) {
     //Adds the up to four neighbour walls of a point to the frontier array if they have not been added already
     Wall **neighbourWalls = getNeighbourWalls(maze, size, pos);
     for (int i = 0; i < 4; i++) {
@@ -180,12 +180,12 @@ ArrIndexResult getArrayIndex(MazeStruct *maze, Wall *frontierWall) {
     //Returns the index of the wall in its respective array, and whether it is in the horizontal array or not
 
     //If the pointer is between the first and last pointer in the vertical array
-    if (frontierWall >= maze->verticalArr && frontierWall < maze->verticalArr + maze->wallSize.vertical)
+    if (frontierWall >= maze->verticalArr && frontierWall < maze->verticalArr + maze->wallCount.vertical)
         //Difference between the pointer and the address of the start of the array is the position in the array
         return (ArrIndexResult){0, (int)(frontierWall - maze->verticalArr)};
 
     //If the pointer is between the first and last pointer in the horizontal array
-    else if (frontierWall >= maze->horizontalArr && frontierWall < maze->horizontalArr + maze->wallSize.horizontal)
+    else if (frontierWall >= maze->horizontalArr && frontierWall < maze->horizontalArr + maze->wallCount.horizontal)
         //Difference between the pointer and the address of the start of the array is the position in the array
         return (ArrIndexResult){1, (int)(frontierWall - maze->horizontalArr)};
     else {
@@ -196,8 +196,10 @@ ArrIndexResult getArrayIndex(MazeStruct *maze, Wall *frontierWall) {
 
 Point indexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
     if (isHorizontal)
+        //Returns the position of the point just left of the wall.
         return (Point){index % (mazeSize.x-1), index / (mazeSize.x-1)};
     else
+        //Returns the position of the point just above the wall.
         return (Point){index / (mazeSize.y-1), index % (mazeSize.y-1)};
 }
 
@@ -209,25 +211,26 @@ ExportData generateMaze(Data data) {
 
     int frontierSize = 0;
     Wall** frontiers = malloc(
-        sizeof(Wall*)*maze->wallSize.horizontal+
-        sizeof(Wall*)*maze->wallSize.vertical
-        );
+        sizeof(Wall*) * maze->wallCount.horizontal +
+        sizeof(Wall*) * maze->wallCount.vertical);
     
-    Point startPos = {1,1};
-    addNeighbourFrontiers(frontiers, &frontierSize, maze, size, startPos);
-    while (frontierSize>0)
-    {
+    Point startPos = {rand() % size.x, rand() % size.y};
+    addNeighboursToFrontier(frontiers, &frontierSize, maze, size, startPos);
+    while (frontierSize > 0) {
         Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize);
+        //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
         if (rndFrontier->closedSides >= 2) continue;
-        
-        ArrIndexResult arrIndex = getArrayIndex(maze, rndFrontier);
-        if (arrIndex.index == -1) continue;
 
-        // frontierPos = Index + direction
+        //Gets the index of the wall in its corresponding array
+        ArrIndexResult arrIndex = getArrayIndex(maze, rndFrontier);
+        if (arrIndex.index == -1) continue; //Should crash here instead
+
+        //Uses the index to get the position just above/to the left of the wall.
         Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index, size);
-        frontierPos.x +=  arrIndex.isHorizontal * rndFrontier->direction;
-        frontierPos.y += !arrIndex.isHorizontal * rndFrontier->direction;
-        addNeighbourFrontiers(frontiers, &frontierSize, maze, size, frontierPos);
+        //If the wall has a positive direction, shift the point 1 down/to the right
+        if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
+        if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y ++;
+        addNeighboursToFrontier(frontiers, &frontierSize, maze, size, frontierPos);
 
         rndFrontier->type = AIR;
     }

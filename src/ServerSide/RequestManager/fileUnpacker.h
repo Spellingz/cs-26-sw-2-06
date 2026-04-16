@@ -3,12 +3,12 @@
 
 typedef struct Data {
     int id;
-    double door;
-    int x_size;
-    int y_size;
-    double branches;
-    double loops;
-    double straightness;
+    double Door;
+    int Size_Width;
+    int Size_Height;
+    double Branches;
+    double Loops;
+    double Straightness;
 }Data;
 
 Data unpackFile(int id);

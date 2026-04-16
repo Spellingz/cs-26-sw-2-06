@@ -1,11 +1,11 @@
 {   
   "SessionID": 8,
-    "door": 0.3,
-    "x_size": 55,
-    "y_size": 55,
-  "branches": 0.7,
-  "loops": 0.5,
-  "straightness": 0.1
+    "Door": 0.3,
+    "Size_Width": 55,
+    "Size_Height": 55,
+  "Branches": 0.7,
+  "Loops": 0.5,
+  "Straightness": 0.1
 }
 
 //Json filerne SKAL se præcis sådan her ud. Ellers falder mit kode sammen.

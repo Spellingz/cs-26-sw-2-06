@@ -23,14 +23,14 @@ Data unpackFile(int id)
     }
 
     fscanf(file,
-    "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
+    "{ \"SessionID\": %d, \"Door\": %lf, \"Size_Width\": %d, \"Size_Height\": %d, \"Branches\": %lf, \"Loops\": %lf, \"Straightness\": %lf }",
     &data.id,
-    &data.door,
-    &data.x_size,
-    &data.y_size,
-    &data.branches,
-    &data.loops,
-    &data.straightness
+    &data.Door,
+    &data.Size_Width,
+    &data.Size_Height,
+    &data.Branches,
+    &data.Loops,
+    &data.Straightness
 );
 
     fclose(file);

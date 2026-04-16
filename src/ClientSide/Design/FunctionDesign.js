@@ -6,13 +6,13 @@ function DoorParameter() {
             <h2 style="margin-right:20px; color: #000047;">DOOR SLIDER</h2>
             <div class="container">
                 <div class="range-slider-container">
-                    <input id="range" type="range" min="0" max="100" value="50">
+                    <input id="rangeDoor" type="range" min="0" max="100" value="0">
                     <div class="percentage">
                         <span>0%</span>
                     </div>
                 </div>
             </div>
-            <button id="confirm">CONFIRM</button>
+            <button id="confirm" onclick="SaveInformationInputDoor()">CONFIRM</button>
         </div>
 
         <div id="InfoBoks">
@@ -36,8 +36,15 @@ function DoorParameter() {
         percentage.style.left = `${rangeEl.value}%`;
         percentageSpan.innerText = `${rangeEl.value}%`;
     })
+    const savedDoor = localStorage.getItem('inputDoor');
+    if (savedDoor) document.getElementById('rangeDoor').value = savedDoor;
 }
-
+//confirm button save information
+function SaveInformationInputDoor () {
+    let inputDoor = document.getElementById('rangeDoor').value;
+    console.log('saved percentage for Door input:', inputDoor);
+    localStorage.setItem('inputDoor', inputDoor);
+}
 
 function SizeParameter() {
     let html = `
@@ -45,9 +52,10 @@ function SizeParameter() {
             <div id="IndputGroup" style="color: #000047;">
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">HEIGHT</p>
                 <input id="HeightInput" style="height: 25px; width: 150px;" />
-                <br><br><br><br>
+                <br>
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">WIDTH</p>
                 <input id="WidthInput" style="height: 25px; width: 150px" />
+                <button id="confirm" onclick="SaveInformationInputSize()" style="margin-top: 70px;">CONFIRM</button>
             </div>
 
             <div id="InfoBoks" style="color: #000047;">
@@ -61,66 +69,170 @@ function SizeParameter() {
     </div>
     `;
     document.getElementById("output").innerHTML = html;
+
+    //restoring inputs from user
+    const savedHeight = localStorage.getItem('inputSizeHeight');
+    if (savedHeight) document.getElementById('HeightInput').value = savedHeight;
+    const savedWidth = localStorage.getItem('inputSizeWidth');
+    if (savedWidth) document.getElementById('WidthInput').value = savedWidth;
+
+}
+//confirm button save information
+function SaveInformationInputSize () {
+    let inputSizeHeight = document.getElementById('HeightInput').value;
+    console.log('saved percentage for Size Height input:', inputSizeHeight);
+    localStorage.setItem('inputSizeHeight', inputSizeHeight);
+
+    let inputSizeWidth = document.getElementById('WidthInput').value;
+    console.log('saved percentage for Size Width input:', inputSizeWidth);
+    localStorage.setItem('inputSizeWidth', inputSizeWidth);
+
 }
 
 function BranchesParameter() {
     let html = `
     <div id="Boks">
-        <button>Door Weight</button>
-    
+
+        <div class="wrapper">
+            <h2 style="margin-right:20px; color: #000047;">BRANCHES SLIDER</h2>
+            <div class="container">
+                <div class="range-slider-container">
+                    <input id="rangeBranches" type="range" min="0" max="100" value="0">
+                    <div class="percentage">
+                        <span>0%</span>
+                    </div>
+                </div>
+            </div>
+            <button id="confirm" onclick="SaveInformationInputBranches()">CONFIRM</button>
+        </div>
 
         <div id="InfoBoks">
-            <p style="font-weight: bolder; margin-right:20px;">Please input you disired value for the size of the maze</p>
-            <br>
-            <p>Max Height: ???</p>
-            <p>Max Width: ???</p>
-            <p>Min Height: ???</p>
-            <p>Min Width: ???</p>
+            <h3>INFORMATION:</h3>
+            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the branches to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
+
     `;
     document.getElementById("output").innerHTML = html;
+
+    //for the slyder
+    const rangeEl = document.querySelector('input');
+    const percentage = document.querySelector('.percentage');
+    const percentageSpan = document.querySelector('.percentage span');
+
+    rangeEl.addEventListener('input', function () {
+        const val = rangeEl.value;
+
+        percentage.style.left = `${rangeEl.value}%`;
+        percentageSpan.innerText = `${rangeEl.value}%`;
+    })
+    const savedBranches = localStorage.getItem('inputBranches');
+    if (savedBranches) document.getElementById('rangeBranches').value = savedBranches;
+}
+//confirm button save information
+function SaveInformationInputBranches () {
+    let inputBranches = document.getElementById('rangeBranches').value;
+    console.log('saved percentage for Branches input:', inputBranches);
+    localStorage.setItem('inputBranches', inputBranches);
 }
 
 function LoopsParameter() {
     let html = `
     <div id="Boks">
-        <button>Door Weight</button>
-    
+
+        <div class="wrapper">
+            <h2 style="margin-right:20px; color: #000047;">LOOPS SLIDER</h2>
+            <div class="container">
+                <div class="range-slider-container">
+                    <input id="rangeLoops" type="range" min="0" max="100" value="0">
+                    <div class="percentage">
+                        <span>0%</span>
+                    </div>
+                </div>
+            </div>
+            <button id="confirm" onclick="SaveInformationInputLoops()">CONFIRM</button>
+        </div>
 
         <div id="InfoBoks">
-            <p style="font-weight: bolder; margin-right:20px;">Please input you disired value for the size of the maze</p>
-            <br>
-            <p>Max Height: ???</p>
-            <p>Max Width: ???</p>
-            <p>Min Height: ???</p>
-            <p>Min Width: ???</p>
+            <h3>INFORMATION:</h3>
+            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the loops to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
+
     `;
     document.getElementById("output").innerHTML = html;
+    
+    //for the slyder
+    const rangeEl = document.querySelector('input');
+    const percentage = document.querySelector('.percentage');
+    const percentageSpan = document.querySelector('.percentage span');
+
+    rangeEl.addEventListener('input', function () {
+        const val = rangeEl.value;
+
+        percentage.style.left = `${rangeEl.value}%`;
+        percentageSpan.innerText = `${rangeEl.value}%`;
+    })
+
+    const savedLoops = localStorage.getItem('inputLoops');
+    if (savedLoops) document.getElementById('rangeLoops').value = savedLoops;
+}
+//confirm button save information
+function SaveInformationInputLoops () {
+    let inputLoops = document.getElementById('rangeLoops').value;
+    console.log('saved percentage for Loops input:', inputLoops);
+    localStorage.setItem('inputLoops', inputLoops);
 }
 
 function StraightnessParameter() {
     let html = `
     <div id="Boks">
-        <button>Door Weight</button>
-    
+
+        <div class="wrapper">
+            <h2 style="margin-right:20px; color: #000047;">STRAIGHTNESS SLIDER</h2>
+            <div class="container">
+                <div class="range-slider-container">
+                    <input id="rangeStraightness" type="range" min="0" max="100" value="0">
+                    <div class="percentage">
+                        <span>0%</span>
+                    </div>
+                </div>
+            </div>
+            <button id="confirm" onclick="SaveInformationInputStraightness()">CONFIRM</button>
+        </div>
 
         <div id="InfoBoks">
-            <p style="font-weight: bolder; margin-right:20px;">Please input you disired value for the size of the maze</p>
-            <br>
-            <p>Max Height: ???</p>
-            <p>Max Width: ???</p>
-            <p>Min Height: ???</p>
-            <p>Min Width: ???</p>
+            <h3>INFORMATION:</h3>
+            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the straightness to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
+
     `;
     document.getElementById("output").innerHTML = html;
+
+    //for the slyder
+    const rangeEl = document.querySelector('input');
+    const percentage = document.querySelector('.percentage');
+    const percentageSpan = document.querySelector('.percentage span');
+
+    rangeEl.addEventListener('input', function () {
+        const val = rangeEl.value;
+
+        percentage.style.left = `${rangeEl.value}%`;
+        percentageSpan.innerText = `${rangeEl.value}%`;
+    })
+
+    const savedStraightness = localStorage.getItem('inputStraightness');
+    if (savedStraightness) document.getElementById('rangeStraightness').value = savedStraightness;
+}
+//confirm button save information
+function SaveInformationInputStraightness () {
+    let inputStraightness = document.getElementById('rangeStraightness').value;
+    console.log('saved percentage for Straightness input:', inputStraightness);
+    localStorage.setItem('inputStraightness', inputStraightness);
 }
 
 //functions for the heat-map buttons

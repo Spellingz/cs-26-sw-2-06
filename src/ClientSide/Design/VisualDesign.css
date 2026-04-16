@@ -96,7 +96,7 @@ p5{
     background-color: #8896a2;
     color: #000047;
     font-weight: bolder;
-    border: 2px solid #d4e4f1;
+    border: 2px solid #000047;
     border-radius: 12px;
 }
 .container {
@@ -111,7 +111,32 @@ p5{
     position: relative;
     display: block;
 }
-#range{
+/*Slider range for door parameter*/
+#rangeDoor{
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0%;
+    transform: none;
+}
+/*Slider range for branches parameter*/
+#rangeBranches{
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0%;
+    transform: none;
+}
+/*Slider range for Loops parameter*/
+#rangeLoops{
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0%;
+    transform: none;
+}
+/*Slider range for Straightness parameter*/
+#rangeStraightness{
     width: 100%;
     position: absolute;
     top: 0;

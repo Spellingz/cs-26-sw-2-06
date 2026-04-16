@@ -238,7 +238,7 @@ ExportData generateMaze(Data data) {
         Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index, size);
         //If the wall has a positive direction, shift the point 1 down/to the right
         if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
-        if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y ++;
+        if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y++;
         addNeighboursToFrontier(frontiers, &frontierSize, maze, size, frontierPos);
 
         rndFrontier->type = AIR;

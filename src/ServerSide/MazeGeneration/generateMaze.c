@@ -85,12 +85,20 @@ void printMaze(MazeStruct maze, MazeSize size) {
     printf("+\n\n");
 }
 
+void freeMemory(MazeStruct* maze, Wall** frontiers) {
+    if (maze && maze->horizontalArr) free(maze->horizontalArr);
+    if (maze) free(maze);
+    if (frontiers) free(frontiers);
+}
+
 MazeStruct *fillWalls(MazeSize size) {
     //Amount of horizontal walls are (width-1) times height. Opposite for vertical
     MazeWallCount wallCount = {(size.x - 1) * size.y, (size.y - 1) * size.x};
     MazeStruct *maze = malloc(sizeof(MazeStruct));
+    if (!maze) return freeMemory(maze, NULL), NULL;
     //Allocating a memory block that can hold both arrays. This increases cache friendliness
     Wall *block = malloc(sizeof(Wall) * wallCount.horizontal + sizeof(Wall) * wallCount.vertical);
+    if (!block) return freeMemory(maze, NULL), NULL;
     maze->wallCount = wallCount;
     maze->horizontalArr = block; //First array begins at the start of the block
     maze->verticalArr = block + maze->wallCount.horizontal; //Second array begins right after the first one
@@ -207,13 +215,14 @@ ExportData generateMaze(Data data) {
     // MazeSize size = {data.size.x, data.size.y};
     MazeSize size = {4,3};
     MazeStruct *maze = fillWalls(size);
-
+    if (!maze) return (ExportData){-1}; //crash
 
     int frontierSize = 0;
     Wall** frontiers = malloc(
         sizeof(Wall*) * maze->wallCount.horizontal +
         sizeof(Wall*) * maze->wallCount.vertical);
-    
+    if (!frontiers)  return freeMemory(maze, frontiers), (ExportData){-1}; //crash
+
     Point startPos = {rand() % size.x, rand() % size.y};
     addNeighboursToFrontier(frontiers, &frontierSize, maze, size, startPos);
     while (frontierSize > 0) {
@@ -223,7 +232,7 @@ ExportData generateMaze(Data data) {
 
         //Gets the index of the wall in its corresponding array
         ArrIndexResult arrIndex = getArrayIndex(maze, rndFrontier);
-        if (arrIndex.index == -1) continue; //Should crash here instead
+        if (arrIndex.index == -1) return freeMemory(maze, frontiers), (ExportData){-1}; //crash
 
         //Uses the index to get the position just above/to the left of the wall.
         Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index, size);
@@ -234,9 +243,7 @@ ExportData generateMaze(Data data) {
 
         rndFrontier->type = AIR;
     }
-    free(frontiers);
-    free(maze->horizontalArr);
-    free(maze);
+    freeMemory(maze, frontiers);
 
     return (ExportData){1};
 }

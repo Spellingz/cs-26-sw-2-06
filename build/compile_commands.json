@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
-  "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/httpRequestTest.c",
-  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/httpRequestTest.c",
-  "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o"
-}
-]

@@ -42,7 +42,7 @@ queue->last = NULL;
 			case "alteration":
 				dataToExport = alterMaze(data);
 				break;
-			default; //Fallback
+			default: //Fallback
 			printf("Reject Request - no type");
 				break;
 		}

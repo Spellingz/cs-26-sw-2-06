@@ -37,7 +37,3 @@ typedef struct Path {
 	Point end;
 	Cell* cells;
 } Path;
-
-short mazeSize = 5;
-
-Cell **maze; 

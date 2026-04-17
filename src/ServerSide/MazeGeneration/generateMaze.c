@@ -125,7 +125,7 @@ int getLowerWallIndex(Point pos, MazeSize size) {
     return pos.y + pos.x * (size.y - 1);
 }
 
-Wall **getNeighbourWalls(MazeStruct *maze, MazeSize size, Point pos) {
+Wall **getNeighbourWalls(MazeStruct maze, MazeSize size, Point pos) {
     Wall **neighbourWalls = malloc(sizeof(Wall*)*4);
 
     //Gets the indexes of the neighbouring walls in their respective arrays
@@ -141,15 +141,15 @@ Wall **getNeighbourWalls(MazeStruct *maze, MazeSize size, Point pos) {
         if (index[i] == -1) 
             neighbourWalls[i] = NULL;
         else if (i<2)
-            neighbourWalls[i] = &maze->horizontalArr[index[i]];
+            neighbourWalls[i] = &maze.horizontalArr[index[i]];
         else
-            neighbourWalls[i] = &maze->verticalArr[index[i]];
+            neighbourWalls[i] = &maze.verticalArr[index[i]];
     }
     return neighbourWalls;
 }
 
 
-void addNeighboursToFrontier(Wall **frontier, int *frontierSize, MazeStruct *maze, MazeSize size, Point pos) {
+void addNeighboursToFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, MazeSize size, Point pos) {
     //Adds the up to four neighbour walls of a point to the frontier array if they have not been added already
     Wall **neighbourWalls = getNeighbourWalls(maze, size, pos);
     for (int i = 0; i < 4; i++) {
@@ -179,18 +179,18 @@ typedef struct ArrIndexResult {
     int index;
 } ArrIndexResult;
 
-ArrIndexResult getArrayIndex(MazeStruct *maze, Wall *frontierWall) {
+ArrIndexResult getArrayIndex(MazeStruct maze, Wall *frontierWall) {
     //Returns the index of the wall in its respective array, and whether it is in the horizontal array or not
 
     //If the pointer is between the first and last pointer in the vertical array
-    if (frontierWall >= maze->verticalArr && frontierWall < maze->verticalArr + maze->wallCount.vertical)
+    if (frontierWall >= maze.verticalArr && frontierWall < maze.verticalArr + maze.wallCount.vertical)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (ArrIndexResult){0, (int)(frontierWall - maze->verticalArr)};
+        return (ArrIndexResult){0, (int)(frontierWall - maze.verticalArr)};
 
     //If the pointer is between the first and last pointer in the horizontal array
-    else if (frontierWall >= maze->horizontalArr && frontierWall < maze->horizontalArr + maze->wallCount.horizontal)
+    else if (frontierWall >= maze.horizontalArr && frontierWall < maze.horizontalArr + maze.wallCount.horizontal)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (ArrIndexResult){1, (int)(frontierWall - maze->horizontalArr)};
+        return (ArrIndexResult){1, (int)(frontierWall - maze.horizontalArr)};
     else {
         printf("No Index Found!");
         return (ArrIndexResult){0, -1}; //FallBack
@@ -219,14 +219,14 @@ ExportData generateMaze(Data data) {
     if (!frontiers)  return freeMemory(maze, frontiers), (ExportData){-1}; //crash
 
     Point startPos = {rand() % size.x, rand() % size.y};
-    addNeighboursToFrontier(frontiers, &frontierSize, maze, size, startPos);
+    addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, startPos);
     while (frontierSize > 0) {
         Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize);
         //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
         if (rndFrontier->closedSides >= 2) continue;
 
         //Gets the index of the wall in its corresponding array
-        ArrIndexResult arrIndex = getArrayIndex(maze, rndFrontier);
+        ArrIndexResult arrIndex = getArrayIndex(*maze, rndFrontier);
         if (arrIndex.index == -1) return freeMemory(maze, frontiers), (ExportData){-1}; //crash
 
         //Uses the index to get the position just above/to the left of the wall.
@@ -234,7 +234,7 @@ ExportData generateMaze(Data data) {
         //If the wall has a positive direction, shift the point 1 down/to the right
         if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
         if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y++;
-        addNeighboursToFrontier(frontiers, &frontierSize, maze, size, frontierPos);
+        addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, frontierPos);
 
         rndFrontier->type = AIR;
     }

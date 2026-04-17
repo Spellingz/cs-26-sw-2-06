@@ -23,14 +23,15 @@ typedef enum {
 typedef struct {
 	bool type;
 	bool direction;
-    bool isLoop;
-    char closedSides;
+    union {
+        bool isLoop;
+        char closedSides;
+    };
 } Wall;
 
 const Wall DefaultWall = {
     .type = WALL,
     .direction = 0,
-    .isLoop = 0,
     .closedSides = 0,
 };
 

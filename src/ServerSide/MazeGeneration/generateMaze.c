@@ -16,8 +16,8 @@ typedef enum {
 } Direction;
 
 typedef enum {
-	AIR = 0,
-	WALL = 1,
+    WALL = 0,
+	AIR = 1,
 } Type;
 
 typedef struct {
@@ -68,7 +68,7 @@ void printMaze(MazeStruct maze, MazeSize size) {
             printf("|");
             for(int j = 0; j < size.x - 1; j++, h++) {
                 Wall wall = maze.horizontalArr[h];
-                printf(" %c", wall.type ? wall.closedSides ? 'I' : '|' : wall.direction ? '>' : '<');
+                printf(" %c", wall.type ? (wall.direction ? '>' : '<') : (wall.closedSides == 1 ? 'I' : '|'));
             }
             printf(" |");
         }
@@ -76,7 +76,7 @@ void printMaze(MazeStruct maze, MazeSize size) {
             printf("+");
             for(int j = 0; j < size.x; j++, v++) {
                 Wall wall = maze.verticalArr[(v % size.x) * (size.y - 1) + v/size.x];
-                printf("%c+", wall.type ? wall.closedSides ? '~' : '-' : wall.direction ? 'v' : '^');
+                printf("%c+", wall.type ? (wall.direction ? 'v' : '^') : (wall.closedSides == 1 ? '~' : '-'));
             }
         }
         printf("\n");
@@ -98,18 +98,12 @@ MazeStruct *fillWalls(MazeSize size) {
     MazeStruct *maze = malloc(sizeof(MazeStruct));
     if (!maze) return freeMemory(maze, NULL), NULL;
     //Allocating a memory block that can hold both arrays. This increases cache friendliness
-    Wall *block = malloc(sizeof(Wall) * wallCount.horizontal + sizeof(Wall) * wallCount.vertical);
+    Wall *block = calloc(wallCount.horizontal + wallCount.vertical, sizeof(Wall));
     if (!block) return freeMemory(maze, NULL), NULL;
     maze->wallCount = wallCount;
     maze->horizontalArr = block; //First array begins at the start of the block
     maze->verticalArr = block + maze->wallCount.horizontal; //Second array begins right after the first one
 
-    for (int i = 0; i < maze->wallCount.horizontal; i++) {
-        maze->horizontalArr[i] = DefaultWall;
-    }
-    for (int j = 0; j < maze->wallCount.vertical ; j++) {
-        maze->verticalArr[j] = DefaultWall;
-    }
     return maze;
 }
 

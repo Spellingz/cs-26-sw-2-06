@@ -248,3 +248,38 @@ ExportData generateMaze(Data data) {
 
     return (ExportData){1};
 }
+
+int Weight(Wall **frontiers, int frontierSize, int frontierChance, MazeStruct *maze, Point p) {
+
+    for (int i = 0; i < frontierSize; i++) {
+        Wall *current = frontiers[i];
+
+        Wall **neighbors = getNeighbourWalls(maze, maze->wallCount, p);
+
+        ArrIndexResult example = getArrayIndex(maze, current);
+
+        if (example.isHorizontal) {
+            if (current->direction == 0) { // LEFT
+
+                if (neighbors[1]) {
+                    
+                }
+
+            }
+
+            if (current->direction == 1) { // RIGHT
+
+            }
+        }
+
+        if (!example.isHorizontal) {
+            if (current->direction == 0) { // UP
+
+            }
+
+            if (current->direction == 1) { // DOWN
+
+            }
+        }
+    }
+}

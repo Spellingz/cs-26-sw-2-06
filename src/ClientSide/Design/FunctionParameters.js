@@ -30,7 +30,10 @@ function DoorParameter() {
      </div>
 
     `;
-    document.getElementById("output").innerHTML = html;
+    //making the id=boks show as the output, when the door button is clicked upon
+    const output = document.getElementById("output")
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforeend', html);
 
     //for the slyder
     const rangeEl = document.querySelector('input');
@@ -43,14 +46,14 @@ function DoorParameter() {
         percentage.style.left = `${rangeEl.value}%`;
         percentageSpan.innerText = `${rangeEl.value}%`;
     })
-    const savedDoor = localStorage.getItem('inputDoor');
+    const savedDoor = sessionStorage.getItem('inputDoor');
     if (savedDoor) document.getElementById('rangeDoor').value = savedDoor;
 }
 //confirm button save information
 function SaveInformationInputDoor () {
     let inputDoor = document.getElementById('rangeDoor').value;
     console.log('saved percentage for Door input:', inputDoor);
-    localStorage.setItem('inputDoor', inputDoor);
+    sessionStorage.setItem('inputDoor', inputDoor);
 }
 
 function SizeParameter() {
@@ -75,12 +78,14 @@ function SizeParameter() {
             </div>
     </div>
     `;
-    document.getElementById("output").innerHTML = html;
+    const output = document.getElementById("output")
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforeend', html);
 
     //restoring inputs from user
-    const savedHeight = localStorage.getItem('inputSizeHeight');
+    const savedHeight = sessionStorage.getItem('inputSizeHeight');
     if (savedHeight) document.getElementById('HeightInput').value = savedHeight;
-    const savedWidth = localStorage.getItem('inputSizeWidth');
+    const savedWidth = sessionStorage.getItem('inputSizeWidth');
     if (savedWidth) document.getElementById('WidthInput').value = savedWidth;
 
 }
@@ -88,11 +93,11 @@ function SizeParameter() {
 function SaveInformationInputSize () {
     let inputSizeHeight = document.getElementById('HeightInput').value;
     console.log('saved percentage for Size Height input:', inputSizeHeight);
-    localStorage.setItem('inputSizeHeight', inputSizeHeight);
+    sessionStorage.setItem('inputSizeHeight', inputSizeHeight);
 
     let inputSizeWidth = document.getElementById('WidthInput').value;
     console.log('saved percentage for Size Width input:', inputSizeWidth);
-    localStorage.setItem('inputSizeWidth', inputSizeWidth);
+    sessionStorage.setItem('inputSizeWidth', inputSizeWidth);
 
 }
 
@@ -121,7 +126,9 @@ function BranchesParameter() {
      </div>
 
     `;
-    document.getElementById("output").innerHTML = html;
+    const output = document.getElementById("output")
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforeend', html);
 
     //for the slyder
     const rangeEl = document.querySelector('input');
@@ -134,14 +141,14 @@ function BranchesParameter() {
         percentage.style.left = `${rangeEl.value}%`;
         percentageSpan.innerText = `${rangeEl.value}%`;
     })
-    const savedBranches = localStorage.getItem('inputBranches');
+    const savedBranches = sessionStorage.getItem('inputBranches');
     if (savedBranches) document.getElementById('rangeBranches').value = savedBranches;
 }
 //confirm button save information
 function SaveInformationInputBranches () {
     let inputBranches = document.getElementById('rangeBranches').value;
     console.log('saved percentage for Branches input:', inputBranches);
-    localStorage.setItem('inputBranches', inputBranches);
+    sessionStorage.setItem('inputBranches', inputBranches);
 }
 
 function LoopsParameter() {
@@ -169,7 +176,9 @@ function LoopsParameter() {
      </div>
 
     `;
-    document.getElementById("output").innerHTML = html;
+    const output = document.getElementById("output")
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforeend', html);
     
     //for the slyder
     const rangeEl = document.querySelector('input');
@@ -183,14 +192,14 @@ function LoopsParameter() {
         percentageSpan.innerText = `${rangeEl.value}%`;
     })
 
-    const savedLoops = localStorage.getItem('inputLoops');
+    const savedLoops = sessionStorage.getItem('inputLoops');
     if (savedLoops) document.getElementById('rangeLoops').value = savedLoops;
 }
 //confirm button save information
 function SaveInformationInputLoops () {
     let inputLoops = document.getElementById('rangeLoops').value;
     console.log('saved percentage for Loops input:', inputLoops);
-    localStorage.setItem('inputLoops', inputLoops);
+    sessionStorage.setItem('inputLoops', inputLoops);
 }
 
 function StraightnessParameter() {
@@ -218,7 +227,9 @@ function StraightnessParameter() {
      </div>
 
     `;
-    document.getElementById("output").innerHTML = html;
+    const output = document.getElementById("output")
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforeend', html);
 
     //for the slyder
     const rangeEl = document.querySelector('input');
@@ -232,14 +243,14 @@ function StraightnessParameter() {
         percentageSpan.innerText = `${rangeEl.value}%`;
     })
 
-    const savedStraightness = localStorage.getItem('inputStraightness');
+    const savedStraightness = sessionStorage.getItem('inputStraightness');
     if (savedStraightness) document.getElementById('rangeStraightness').value = savedStraightness;
 }
 //confirm button save information
 function SaveInformationInputStraightness () {
     let inputStraightness = document.getElementById('rangeStraightness').value;
     console.log('saved percentage for Straightness input:', inputStraightness);
-    localStorage.setItem('inputStraightness', inputStraightness);
+    sessionStorage.setItem('inputStraightness', inputStraightness);
 }
 
 //functions for the heat-map buttons
@@ -278,6 +289,15 @@ function sendmazeinfo(){
 
 }
 
+//now we make sure that if the user push the start button that the input is reset
+function startbuttonReset () {
+    sessionStorage.clear('inputDoor', inputDoor);
+    sessionStorage.clear('inputSizeHeight', inputSizeHeight);
+    sessionStorage.clear('inputSizeWidth', inputSizeWidth);
+    sessionStorage.clear('inputBranches', inputBranches);
+    sessionStorage.clear('inputLoops', inputLoops);
+    sessionStorage.clear('inputStraightness', inputStraightness);
+}
 
 
 

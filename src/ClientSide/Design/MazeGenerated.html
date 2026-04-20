@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MazeGenerated</title>
     <link rel="stylesheet" href="VisualDesign.css">
-    <script src="FunctionDesign.js" defer></script> 
+    <script src="FunctionParameters.js" defer></script> 
+    <script src="FunctionMazeGenerated.js" defer></script> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
      <p1>
@@ -25,19 +27,23 @@
 
     <p3>
         <div class="Factors">
-            <button id="Traps" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">TRAPS</button>
+            <button id="Traps" onclick="trapsHeatMap()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">TRAPS</button>
             <br><br>
-            <button id="Enemies" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ENEMIES</button>
+            <button id="Enemies" onclick="enemiesHeatMap()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ENEMIES</button>
             <br><br>
-            <button id="Items" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ITEMS</button>
+            <button id="Items" onclick="itemsHeatMap()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ITEMS</button>
             <br><br>
-            <button id="Doors" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DOORS</button>
+            <button id="Doors" onclick="doorsHeatMap()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DOORS</button>
             <br><br>
-            <button id="SpecialWalls" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">"SPECIAL" WALLS</button>
+            <button id="SpecialWalls" onclick="specialWallsHeatMap()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">"SPECIAL" WALLS</button>
         </div>
         <div id= "output"></div>
     </p3>
 
+    <p id="ModificationButtons">
+        <button id="EditMode" onclick="editMode()" style="margin-left: 20px; background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb;">EDIT MODE</button>
+        <button id="Eksport" onclick="exsport()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb;">EKSPORT</button>
+    </p>
         
 </body>
 </html>

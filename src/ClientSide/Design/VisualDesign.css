@@ -39,7 +39,7 @@ p3{
     display: flex;
     justify-content: left;
     align-items: left;
-    margin-top: 100px;
+    margin-top: 4%;
 }
 p5{
     display: flex;
@@ -48,14 +48,19 @@ p5{
 
     .CreateMazeButton {
         color: #f0efeb;
-        margin-top: 20px;
+        margin-top: 15%;
         margin-right: 50px;
-
     }
 }
+/*Want to make the buttons look like they are more clickable*/
+button:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
 #output{
     justify-content: flex-end;
-    margin-top: -45px;
+    margin-top: -3%;
     margin-left: 70px;
 }
 #output #Boks {
@@ -67,7 +72,7 @@ p5{
     border: 2px solid #8896a2;
     padding: 50px;
     box-sizing: border-box;
-    margin: 10px;
+    margin: 3%;
     background-color: #d4e4f1;
 }
 #output #InfoBoks {

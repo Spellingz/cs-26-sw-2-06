@@ -6,6 +6,7 @@
     <title>Maze Generator</title>
     <link rel="stylesheet" href="VisualDesign.css">
     <link rel="stylesheet" href="frontpage.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <p1>
@@ -25,12 +26,14 @@
     <h1 id="Header" style="text-shadow: 2px 2px #8896a2;">Maze Generator 2.0</h1>
 
     <p2>
-        <button 
-            class="startbutton" 
-            style="width: 400px; height: 200px; font-size: 28px; background-color: #4a6275; border-color: #303f4b;"
-            onclick="location.href='CreateMaze.html'"
-            >CREATE YOUR OWN MAZE NOW <br> CLICK HERE!
-        </button>
+        <a href="CreateMaze.html">
+            <button 
+                class="startbutton" 
+                style="width: 400px; height: 200px; font-size: 28px; background-color: #4a6275; border-color: #303f4b;"
+                onclick="startbuttonReset ()">
+                CREATE YOUR OWN MAZE NOW <br> CLICK HERE!
+            </button>
+        </a>
     </p2>
 
     <!--Make sure to connect js.file-->

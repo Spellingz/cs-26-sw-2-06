@@ -172,11 +172,35 @@ void addNeighboursToFrontier(Wall **frontier, int *frontierSize, MazeStruct *maz
 }
 
 
-Wall *popRandomFrontier(Wall **frontier, int *frontierSize) {
-    int rndIndex = rand() % *frontierSize;
-    Wall *poppedFrontier = frontier[rndIndex];
+Wall *popRandomFrontier(Wall **frontier, int *frontierSize, MazeStruct *maze, MazeSize size, float straightnessPriority, float BranchPriority) {
+
+float *weights = Weight(frontier, *frontierSize, maze, size, straightnessPriority, BranchPriority);
+
+double temp[*frontierSize];     //create a temporary array, should probably give it a better name but meh
+
+float total = 0.0;
+
+for (int i = 0; i < *frontierSize; i++) { //now pay attention, we are adding each weight to the total
+    total += weights[i];
+    temp[i] = total;           //while that is happening each temp[] is getting a value that is higher and higher, increased each time by the next weight value
+}
+
+float random = ((float)rand() / RAND_MAX) * total;    //now we get a random number between 0 and the result of our total
+
+int chosenIndex = 0;
+for (int i = 0; i < *frontierSize; i++) {      //whatever number we got, we are now checking here and the index of the number which matches is our chosenindex 
+    if (random <= temp[i]) {
+        chosenIndex = i;                       //Assume we got:
+        break;                                 //total: 1.93,   random number: 0.73
+    }                                          //Indexes: 1: 0.35, 2: 0.74, 3: 1.12, 4: 1.37 etc
+}                                              // 0.73 is below index 2 0.74. So our chosen index is 2.
+
+
+    Wall *poppedFrontier = frontier[chosenIndex];  //now the frontier with index 2 is the one to get removed
     //Moves the last element in the frontier to the deleted element's place
-    frontier[rndIndex] = frontier[--(*frontierSize)];
+    frontier[chosenIndex] = frontier[--(*frontierSize)];
+
+    free(weights);
 
     return poppedFrontier;
 }
@@ -262,42 +286,25 @@ ExportData generateMaze(Data data) {
 
 
 
-int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size, float straightnessPriority, float loopPriority, float BranchPriority)
+float *Weight(Wall **frontier, int frontierSize, MazeStruct *maze, MazeSize size, float straightnessPriority, float BranchPriority) 
 {
 
-    float FrontierWeight[frontierSize];
+    float *FrontierWeight = malloc(sizeof(float) * frontierSize);    //We create an array with weights for each frontier, its just as big as the frontier array and each matches
+    if (FrontierWeight == NULL) return NULL;
 
     int branchPotential;
-    int straightnessPotential;
+    float straightnessPotential;
 
-    int max_len = 1; 
+    int max_len = 0; 
+    int max_len_count = 0; 
 
+    for (int y = 0; y<size.y; y++){      //calculating max_len, problem with this is that it checks the WALLS, not the cells, so three cells open are seperated by 2 walls. We fix this later by just adding 1
 
-    for (int i = 0; i < frontierSize; i++)
-    {
+        max_len_count = 0; 
 
-        if (frontier[i]->closedSides != 1)
-        {
-            branchPotential = 0;
-        }
-        else
-        {
+        for (int x = 0; x<size.x; x++){
 
-            ArrIndexResult arr = getArrayIndex(maze, *frontier[i]);
-        
-            Point position = indexToPos(arr.isHorizontal, arr.index, size);
-
-
-            if (arr.isHorizontal && frontier[i]->direction == LEFT)
-            {
-                position.x++;
-            }
-            if (!arr.isHorizontal && frontier[i]->direction == UP)
-            {
-                position.y++;
-            }
-
-
+            Point position = {x,y};                
 
             Wall **neighbors = getNeighbourWalls(maze, size, position);
 
@@ -306,16 +313,114 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
             Wall *down = neighbors[2];
             Wall *up = neighbors[3];
 
-            int count4 = 0;
-            for (int i = 0; i < 4; i++)
+           if (right != NULL && right->type == AIR){    //After getting all neighbors we are checking if if the right side, cuz we are moving right, is open
+                max_len_count++;           //if yes, max_len_count is increased
+            } else { 
+
+                if (max_len_count > max_len){     //if not, max len if it is smaller than the max_len_count gets max_len_count's value, and max_len_count is reset
+                    max_len = max_len_count;
+                }
+
+                max_len_count = 0;
+
+            }
+
+            free(neighbors);
+
+        }
+
+        if (max_len_count > max_len){
+            max_len = max_len_count;           //if we are going out of bounds, like moving straight towards the exit, we need this to ensure the last one is also added.
+        }
+
+    }
+
+    max_len_count = 0;
+
+
+
+    for (int x = 0; x<size.x; x++){    //same as before but now we are checking vertically instead
+
+        max_len_count = 0; 
+
+        for (int y = 0; y<size.y; y++){
+
+            Point position = {x,y};
+
+            Wall **neighbors = getNeighbourWalls(maze, size, position);
+
+            Wall *right = neighbors[0];
+            Wall *left = neighbors[1];
+            Wall *down = neighbors[2];
+            Wall *up = neighbors[3];
+
+            if (down != NULL && down->type == AIR){ 
+                max_len_count++;
+            } else {
+
+                if (max_len_count > max_len){
+                    max_len = max_len_count;
+                }
+
+                max_len_count = 0;
+            }
+
+            free(neighbors);
+
+        }
+
+        if (max_len_count > max_len){
+            max_len = max_len_count;
+        }
+    }
+
+    max_len_count = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+    for (int i = 0; i < frontierSize; i++)     //getting branch potential
+    {
+
+
+            ArrIndexResult arr = getArrayIndex(maze, frontier[i]);       //we use the get ArrindexResult to get the index of our frontier
+        
+            Point position = indexToPos(arr.isHorizontal, arr.index, size);   //Then we get our position by using the indexToPos function
+
+            if (arr.isHorizontal && frontier[i]->direction == RIGHT)    //now the indexToPos automatically shifts us to the left side, however, if our direction is right, we need to be on the right side
             {
-                if (neighbors[i] == AIR)
+                position.x++;                                       //So we shift to the right cell
+            }
+            if (!arr.isHorizontal && frontier[i]->direction == DOWN)   //same idea here, just vertically
+            {
+                position.y++;
+            }
+
+            Wall **neighbors = getNeighbourWalls(maze, size, position);     
+
+            Wall *right = neighbors[0];
+            Wall *left = neighbors[1];
+            Wall *down = neighbors[2];
+            Wall *up = neighbors[3];
+
+            int count4 = 0;
+            for (int j = 0; j < 4; j++)    //We are counting all 4 neighbor walls to check how many are open and closed
+            {
+                if (neighbors[j] != NULL && neighbors[j]->type == AIR)
                 {
                     count4++;
                 }
             }
 
-            if (count4 == 1)
+            if (count4 <= 1)           //if its 1 or under its a deadend
             {
                 branchPotential = 0;
             }
@@ -324,6 +429,8 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
                 branchPotential = 1;
             }
 
+            free(neighbors);
+
         }
 
 
@@ -331,46 +438,17 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
 
 
 
-        int straightnesscount = 0;
 
 
-        if (frontier[i]->closedSides != 1)
-        {
-            straightnessPotential = 0;
-        }
-        else
-        {
 
-            ArrIndexResult arr = getArrayIndex(maze, *frontier[i]);
+        int straightnesscount = 0;            //Calculate Straightness potential
+
+
+            ArrIndexResult arr = getArrayIndex(maze, frontier[i]);
 
             Point position = indexToPos(arr.isHorizontal, arr.index, size);
 
             bool keepGoing = true;
-
-            int directionIndex = -1;
-
-
-            if (arr.isHorizontal && frontier[i]->direction == LEFT)
-            {
-                position.x++;          
-                directionIndex = 0;    
-            }
-
-            if (arr.isHorizontal && frontier[i]->direction == RIGHT)
-            {
-                directionIndex = 1;    
-            }
-
-            if (!arr.isHorizontal && frontier[i]->direction == UP)
-            {
-                position.y++;          
-                directionIndex = 2;    
-            }
-
-            if (!arr.isHorizontal && frontier[i]->direction == DOWN)
-            {
-                directionIndex = 3;    
-            }
 
 
             while (keepGoing)
@@ -382,16 +460,16 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
                 Wall *down = neighbors[2];
                 Wall *up = neighbors[3];
 
-                if (arr.isHorizontal && frontier[i]->direction == LEFT)
+                if (arr.isHorizontal && frontier[i]->direction == LEFT)    // four copies of the same function, I know its inefficient but dont touch.
                 {
-                    if (right != NULL && right->type == AIR)
+                    if (right != NULL && right->type == AIR)     //we are checking if the next step is open, if yes, we keep going and counting
                     {
                         position.x++;
                         straightnesscount++;
                     }
                     else
                     {
-                        keepGoing = false;
+                        keepGoing = false;        //once we hit a wall we stop
                     }
                 }
 
@@ -437,10 +515,22 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
                 free(neighbors);
             }
 
-            straightnesscount += 1;
-            straightnessPotential = straightnesscount / max_len;
+            straightnesscount += 1;    // same issue with max_len, we are counting the walls, not the cells, so we have to +1
+                if (max_len == 0)
+            {
+             straightnessPotential = 0;
+            }
+            else
+            {
+                int true_max = max_len + 1;
+                straightnessPotential = (float)straightnesscount / true_max;
+            }
         }
-   // weight = e^((straight_priority - 0.5) * (straight_potential - 0.5) + (branch_priority - 0.5) * (branch_potential - 0.5)) 
-    FrontierWeight[i] = exp((straightnessPriority-0.5)*(straightnessPotential-0.5)+(BranchPriority-0.5)*(branchPotential-0.5));
+
+        // our weight function = e^((straight_priority - 0.5) * (straight_potential - 0.5)) * e^((branch_priority - 0.5) * (branch_potential - 0.5))
+        FrontierWeight[i] = exp((straightnessPriority-0.5)*(straightnessPotential-0.5)) * exp((BranchPriority-0.5)*(branchPotential-0.5));
+    
     }
+
+    return FrontierWeight;
 }

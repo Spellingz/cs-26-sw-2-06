@@ -269,24 +269,12 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
 
     int branchPotential;
     int straightnessPotential;
-    int loopPotential;
 
     int max_len = 1; 
 
 
     for (int i = 0; i < frontierSize; i++)
     {
-
-        if (frontier[i]->closedSides == 1)
-        {
-            loopPotential = 0;
-        }
-        else
-        {
-            loopPotential = 1;
-        }
-
-
 
         if (frontier[i]->closedSides != 1)
         {
@@ -348,7 +336,7 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
 
         if (frontier[i]->closedSides != 1)
         {
-            branchPotential = 0;
+            straightnessPotential = 0;
         }
         else
         {
@@ -452,7 +440,7 @@ int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size,
             straightnesscount += 1;
             straightnessPotential = straightnesscount / max_len;
         }
-   // weight = e^((straight_priority - 0.5) * (straight_potential - 0.5) + (branch_priority - 0.5) * (branch_potential - 0.5) + (loop_priority - 0.5) * (loop_potential - 0.5)) 
-    FrontierWeight[i] = exp((straightnessPriority-0.5)*(straightnessPotential-0.5)+(BranchPriority-0.5)*(branchPotential-0.5)+(loopPriority-0.5)*(loopPotential-0.5));
+   // weight = e^((straight_priority - 0.5) * (straight_potential - 0.5) + (branch_priority - 0.5) * (branch_potential - 0.5)) 
+    FrontierWeight[i] = exp((straightnessPriority-0.5)*(straightnessPotential-0.5)+(BranchPriority-0.5)*(branchPotential-0.5));
     }
 }

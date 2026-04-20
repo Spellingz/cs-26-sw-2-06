@@ -74,7 +74,7 @@ static enum MHD_Result iterate_post (void *coninfo_cls,
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
     {
-        char _addString[strlen(key) + 6 + dataSize];
+        char _addString[strlen(key) + 10 + dataSize];
         sprintf(_addString, "\"%s\": %s, ", key, data);
         strcat(con_info->jsonData, _addString); // "Key: Data"
     } else 
@@ -107,7 +107,6 @@ void request_completed (void *cls, struct MHD_Connection *connection,
     }
 
     // CLEANUP
-    free(con_info->jsonData);
     free(con_info);
     *req_cls = NULL;
 }
@@ -201,10 +200,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
             con_info->connectiontype = POST;
         }
-        // Assume method == GET
-        con_info->connectiontype = GET;
-        con_info->jsonData = malloc(1);
-        con_info->jsonData[0] = '\0';
+        else con_info->connectiontype = GET;
         return MHD_YES;
     }
 
@@ -229,6 +225,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         printf("fileName: %s\n", fileName);
     
         // COPY PAGE FROM SERVER, TO SEND TO CLIENT
+        char *page = 0;
         long length;
         FILE * f = fopen (fileName, "rb");
         if (f)
@@ -237,9 +234,9 @@ static enum MHD_Result answer_to_connection (void *cls,
             fseek (f, 0, SEEK_END);
             length = ftell (f);
             fseek (f, 0, SEEK_SET);
-            con_info->jsonData = malloc (length);
-            if (con_info->jsonData)
-                fread (con_info->jsonData, 1, length, f);
+            page = malloc (length);
+            if (page)
+                fread (page, 1, length, f);
             fclose (f);
         }
         else {
@@ -251,7 +248,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         struct MHD_Response *response;
         enum MHD_Result ret;
 
-        response = MHD_create_response_from_buffer_static(strlen(con_info->jsonData), con_info->jsonData);
+        response = MHD_create_response_from_buffer_static(strlen(page), page);
         ret = MHD_queue_response (con, MHD_HTTP_OK, response);
         MHD_destroy_response (response);
         printf("response successfuly made and destroyed");

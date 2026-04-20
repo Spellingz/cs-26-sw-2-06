@@ -14,7 +14,7 @@
 struct connection_info_struct
 {
   int connectiontype;
-  char *answerstring;
+  char *jsonData;
   struct MHD_PostProcessor *postprocessor;
 };
 
@@ -25,6 +25,10 @@ enum connectiontype {
     DELETE,
 };
 
+struct keyStruct {
+    int diff, keyIndex;
+};
+
 
 ////////////////////
 // CHECK DATA KEY///
@@ -33,12 +37,13 @@ enum connectiontype {
 int checkKey(const char* key, char** values)
 {
     int counter = 0;
-    int diff = 1;
+    int diff = -2;
     while(values[counter] != NULL && diff != 0)
     {
         diff = strcmp(key, values[counter++]);
     }
-    return diff;
+    if (diff != 0) return -1;
+    return counter;
 }
 
 
@@ -52,17 +57,27 @@ static enum MHD_Result iterate_post (void *coninfo_cls,
                 const char *transfer_encoding, const char *data,
                 uint64_t off, size_t dataSize)
 {
+    enum KeyIndexDatas {
+        Name,
+        Test2,
+    };
+
     printf("    Iterating Post of size %lu -> Key: %s, Data: %s\n", dataSize, key, data);
     struct connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-    if (0 != checkKey(key, (char*[]){"name", "test2", NULL}))
+    char *dataArray[3] = {"name", "test2", NULL};
+    int keyIndex = checkKey(key, dataArray);
+    if (keyIndex == -1)
         return MHD_YES;
 
-    // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO ANSWERSTRING IF CORRECT SIZE
+    // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
-        strcat(con_info->answerstring, data);
-    else 
+    {
+        char _addString[strlen(key) + 6 + dataSize];
+        sprintf(_addString, "\"%s\": %s, ", key, data);
+        strcat(con_info->jsonData, _addString); // "Key: Data"
+    } else 
     {
         printf("dataSize TOO BIG!!");
         return MHD_NO;
@@ -88,10 +103,11 @@ void request_completed (void *cls, struct MHD_Connection *connection,
     if (con_info->connectiontype == POST)
     {
         MHD_destroy_post_processor(con_info->postprocessor);
-        if (con_info->answerstring) free (con_info->answerstring);
+        if (con_info->jsonData) free (con_info->jsonData);
     }
 
     // CLEANUP
+    free(con_info->jsonData);
     free(con_info);
     *req_cls = NULL;
 }
@@ -147,8 +163,8 @@ static enum MHD_Result answer_to_connection (void *cls,
     // INITIALIZE CONNECTION_INFO STRUCT
     struct connection_info_struct *con_info = *req_cls;
 
-    // // IF ANSWERSTRING HASN'T BEEN INITIALIZED, INITIALIZE IT
-    // if (con_info->answerstring == NULL)
+    // // IF jsonData HASN'T BEEN INITIALIZED, INITIALIZE IT
+    // if (con_info->jsonData == NULL)
     // {
     // }
 
@@ -165,14 +181,15 @@ static enum MHD_Result answer_to_connection (void *cls,
             return MHD_NO;
         }         
 
-        // con_info->answerstring = NULL;
-        con_info->answerstring = malloc(MAX_ANSWER_SIZE);
-        // if (con_info->answerstring == NULL) // FALLBACK IF FAILED TO MALLOC
-        //     return MHD_NO;
-        con_info->answerstring[0] = '\0';
 
         if (strcmp(method, "POST") == 0)
         {
+            // con_info->jsonData = NULL;
+            con_info->jsonData = malloc(MAX_ANSWER_SIZE);
+            // if (con_info->jsonData == NULL) // FALLBACK IF FAILED TO MALLOC
+            //     return MHD_NO;
+            con_info->jsonData[0] = '{';
+            con_info->jsonData[1] = '\0';
             con_info->postprocessor = MHD_create_post_processor(con, 
                                             512, iterate_post, (void*) con_info);
 
@@ -184,7 +201,10 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
             con_info->connectiontype = POST;
         }
-        else con_info->connectiontype = GET;
+        // Assume method == GET
+        con_info->connectiontype = GET;
+        con_info->jsonData = malloc(1);
+        con_info->jsonData[0] = '\0';
         return MHD_YES;
     }
 
@@ -209,7 +229,6 @@ static enum MHD_Result answer_to_connection (void *cls,
         printf("fileName: %s\n", fileName);
     
         // COPY PAGE FROM SERVER, TO SEND TO CLIENT
-        char *page = 0;
         long length;
         FILE * f = fopen (fileName, "rb");
         if (f)
@@ -218,9 +237,9 @@ static enum MHD_Result answer_to_connection (void *cls,
             fseek (f, 0, SEEK_END);
             length = ftell (f);
             fseek (f, 0, SEEK_SET);
-            page = malloc (length);
-            if (page)
-                fread (page, 1, length, f);
+            con_info->jsonData = malloc (length);
+            if (con_info->jsonData)
+                fread (con_info->jsonData, 1, length, f);
             fclose (f);
         }
         else {
@@ -232,7 +251,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         struct MHD_Response *response;
         enum MHD_Result ret;
 
-        response = MHD_create_response_from_buffer_static(strlen(page), page);
+        response = MHD_create_response_from_buffer_static(strlen(con_info->jsonData), con_info->jsonData);
         ret = MHD_queue_response (con, MHD_HTTP_OK, response);
         MHD_destroy_response (response);
         printf("response successfuly made and destroyed");
@@ -256,10 +275,12 @@ static enum MHD_Result answer_to_connection (void *cls,
             *upload_data_size = 0;
             return MHD_YES;
         }
-        else if (con_info->answerstring != NULL) // IF ALL UPLOAD DATA HAS BEEN PROCESSED
+        else if (con_info->jsonData != NULL) // IF ALL UPLOAD DATA HAS BEEN PROCESSED
         {
+            strcat(con_info->jsonData, "}");
+            // Don't Respond - save data
             printf("\n\nPOST SUCCESS!\n\n");
-            return respond(con, con_info->answerstring);
+            return respond(con, con_info->jsonData);
         }
         // FALLBACK - IF ALL ELSE FAILS
         printf("Post Failure!\n");

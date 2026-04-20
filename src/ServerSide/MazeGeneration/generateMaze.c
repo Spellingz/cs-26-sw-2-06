@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 // #include "mazeDataTypes.c"
 
 
@@ -249,37 +250,209 @@ ExportData generateMaze(Data data) {
     return (ExportData){1};
 }
 
-int Weight(Wall **frontiers, int frontierSize, int frontierChance, MazeStruct *maze, Point p) {
 
-    for (int i = 0; i < frontierSize; i++) {
-        Wall *current = frontiers[i];
 
-        Wall **neighbors = getNeighbourWalls(maze, maze->wallCount, p);
 
-        ArrIndexResult example = getArrayIndex(maze, current);
 
-        if (example.isHorizontal) {
-            if (current->direction == 0) { // LEFT
 
-                if (neighbors[1]) {
-                    
+
+
+
+
+
+
+
+int Weight(Wall **frontier[], int frontierSize, int maze, Wall w, MazeSize size, float straightnessPriority, float loopPriority, float BranchPriority)
+{
+
+    float FrontierWeight[frontierSize];
+
+    int branchPotential;
+    int straightnessPotential;
+    int loopPotential;
+
+    int max_len = 1; 
+
+
+    for (int i = 0; i < frontierSize; i++)
+    {
+
+        if (frontier[i]->closedSides == 1)
+        {
+            loopPotential = 0;
+        }
+        else
+        {
+            loopPotential = 1;
+        }
+
+
+
+        if (frontier[i]->closedSides != 1)
+        {
+            branchPotential = 0;
+        }
+        else
+        {
+
+            ArrIndexResult arr = getArrayIndex(maze, *frontier[i]);
+        
+            Point position = indexToPos(arr.isHorizontal, arr.index, size);
+
+
+            if (arr.isHorizontal && frontier[i]->direction == LEFT)
+            {
+                position.x++;
+            }
+            if (!arr.isHorizontal && frontier[i]->direction == UP)
+            {
+                position.y++;
+            }
+
+
+
+            Wall **neighbors = getNeighbourWalls(maze, size, position);
+
+            Wall *right = neighbors[0];
+            Wall *left = neighbors[1];
+            Wall *down = neighbors[2];
+            Wall *up = neighbors[3];
+
+            int count4 = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (neighbors[i] == AIR)
+                {
+                    count4++;
+                }
+            }
+
+            if (count4 == 1)
+            {
+                branchPotential = 0;
+            }
+            else
+            {
+                branchPotential = 1;
+            }
+
+        }
+
+
+
+
+
+
+        int straightnesscount = 0;
+
+
+        if (frontier[i]->closedSides != 1)
+        {
+            branchPotential = 0;
+        }
+        else
+        {
+
+            ArrIndexResult arr = getArrayIndex(maze, *frontier[i]);
+
+            Point position = indexToPos(arr.isHorizontal, arr.index, size);
+
+            bool keepGoing = true;
+
+            int directionIndex = -1;
+
+
+            if (arr.isHorizontal && frontier[i]->direction == LEFT)
+            {
+                position.x++;          
+                directionIndex = 0;    
+            }
+
+            if (arr.isHorizontal && frontier[i]->direction == RIGHT)
+            {
+                directionIndex = 1;    
+            }
+
+            if (!arr.isHorizontal && frontier[i]->direction == UP)
+            {
+                position.y++;          
+                directionIndex = 2;    
+            }
+
+            if (!arr.isHorizontal && frontier[i]->direction == DOWN)
+            {
+                directionIndex = 3;    
+            }
+
+
+            while (keepGoing)
+            {
+                Wall **neighbors = getNeighbourWalls(maze, size, position);
+
+                Wall *right = neighbors[0];
+                Wall *left = neighbors[1];
+                Wall *down = neighbors[2];
+                Wall *up = neighbors[3];
+
+                if (arr.isHorizontal && frontier[i]->direction == LEFT)
+                {
+                    if (right != NULL && right->type == AIR)
+                    {
+                        position.x++;
+                        straightnesscount++;
+                    }
+                    else
+                    {
+                        keepGoing = false;
+                    }
                 }
 
+                if (arr.isHorizontal && frontier[i]->direction == RIGHT)
+                {
+                    if (left != NULL && left->type == AIR)
+                    {
+                        position.x--;
+                        straightnesscount++;
+                    }
+                    else
+                    {
+                        keepGoing = false;
+                    }
+                }
+
+                if (!arr.isHorizontal && frontier[i]->direction == UP)
+                {
+                    if (down != NULL && down->type == AIR)
+                    {
+                        position.y++;
+                        straightnesscount++;
+                    }
+                    else
+                    {
+                        keepGoing = false;
+                    }
+                }
+
+                if (!arr.isHorizontal && frontier[i]->direction == DOWN)
+                {
+                    if (up != NULL && up->type == AIR)
+                    {
+                        position.y--;
+                        straightnesscount++;
+                    }
+                    else
+                    {
+                        keepGoing = false;
+                    }
+                }
+
+                free(neighbors);
             }
 
-            if (current->direction == 1) { // RIGHT
-
-            }
+            straightnesscount += 1;
+            straightnessPotential = straightnesscount / max_len;
         }
-
-        if (!example.isHorizontal) {
-            if (current->direction == 0) { // UP
-
-            }
-
-            if (current->direction == 1) { // DOWN
-
-            }
-        }
+   // weight = e^((straight_priority - 0.5) * (straight_potential - 0.5) + (branch_priority - 0.5) * (branch_potential - 0.5) + (loop_priority - 0.5) * (loop_potential - 0.5)) 
+    FrontierWeight[i] = exp((straightnessPriority-0.5)*(straightnessPotential-0.5)+(BranchPriority-0.5)*(branchPotential-0.5)+(loopPriority-0.5)*(loopPotential-0.5));
     }
 }

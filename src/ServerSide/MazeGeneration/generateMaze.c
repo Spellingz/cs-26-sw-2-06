@@ -379,14 +379,6 @@ float *Weight(Wall **frontier, int frontierSize, MazeStruct *maze, MazeSize size
 
 
 
-
-
-
-
-
-
-
-
     for (int i = 0; i < frontierSize; i++)     //getting branch potential
     {
 
@@ -431,15 +423,7 @@ float *Weight(Wall **frontier, int frontierSize, MazeStruct *maze, MazeSize size
 
             free(neighbors);
 
-        }
-
-
-
-
-
-
-
-
+        
 
         int straightnesscount = 0;            //Calculate Straightness potential
 
@@ -525,7 +509,6 @@ float *Weight(Wall **frontier, int frontierSize, MazeStruct *maze, MazeSize size
                 int true_max = max_len + 1;
                 straightnessPotential = (float)straightnesscount / true_max;
             }
-        }
 
         // our weight function = e^((straight_priority - 0.5) * (straight_potential - 0.5)) * e^((branch_priority - 0.5) * (branch_potential - 0.5))
         FrontierWeight[i] = exp((straightnessPriority-0.5)*(straightnessPotential-0.5)) * exp((BranchPriority-0.5)*(branchPotential-0.5));

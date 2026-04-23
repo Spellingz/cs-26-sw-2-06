@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <sys/types.h>
+#ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
+#else
+#include <winsock2.h>
+#endif
 #include <microhttpd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -22,7 +26,7 @@ enum connectiontype {
     POST,
     PUT,
     GET,
-    DELETE,
+    //DELETE,
 };
 
 struct keyStruct {

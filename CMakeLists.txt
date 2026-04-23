@@ -5,9 +5,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 set(SOURCES
-    src/ServerSide/httpRequestTest.c
+        src/ServerSide/httpRequestTest.c
 )
 
 add_executable(HTTP_test ${SOURCES})
 
 target_link_libraries(HTTP_test PRIVATE microhttpd)
+target_link_libraries(HTTP_test PRIVATE ws2_32)

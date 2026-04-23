@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <sys/types.h>
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -11,9 +10,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define PORT 8888
+enum verbosity {
+    NONE,
+    MINIMAL,
+    WARNINGS,
+    ALL
+};
+#define VERBOSITY ALL
 
-#define MAX_ANSWER_SIZE 512 
+#define SUPPORTED_FILE_TYPE_COUNT 3
+const char* SUPPORTED_FILE_TYPES[] = {
+    ".html",
+    ".js",
+    ".css"
+};
+
+#define PORT 8888
+#define MAX_ANSWER_SIZE 512
 
 struct connection_info_struct
 {
@@ -32,6 +45,45 @@ enum connectiontype {
 struct keyStruct {
     int diff, keyIndex;
 };
+///////////////
+// FILE SIZE///
+///////////////
+
+int stringEndsWith(const char* str, const char* end) {
+    if(strlen(str) >= strlen(end))
+    {
+        const char* strEnd = str + strlen(str);
+        return !strcmp(strEnd - strlen(end), end);
+    }
+    return 0;
+}
+
+int isSupportedFileType(const char* str) {
+    for (int i = 0; i < SUPPORTED_FILE_TYPE_COUNT; i++) {
+        if (stringEndsWith(str, SUPPORTED_FILE_TYPES[i])) return 1;
+    }
+    if (VERBOSITY >= WARNINGS) printf("Unsupported file format for %s\n", str);
+    return 0;
+}
+
+int sizeOfTextFile(FILE* f) {
+    int count = 0;
+    while (getc(f) != EOF) {
+        count++;
+    }
+    return count;
+}
+
+void readTextFile(FILE* f, char* str) {
+    fseek (f, 0L, SEEK_SET);
+    int c, i = 0;
+    while ((c = getc(f)) != EOF) {
+        //Makes sure that all \n are preceded by \r
+        if (c == '\n' && str[i - 1] != '\r') str[i++] = '\r';
+        str[i++] = (char) c;
+    }
+    str[i] = '\0';
+}
 
 
 ////////////////////
@@ -66,7 +118,7 @@ static enum MHD_Result iterate_post (void *coninfo_cls,
         Test2,
     };
 
-    printf("    Iterating Post of size %lu -> Key: %s, Data: %s\n", dataSize, key, data);
+    if(VERBOSITY == ALL) printf("    Iterating Post of size %lu -> Key: %s, Data: %s\n", dataSize, key, data);
     struct connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
@@ -83,7 +135,7 @@ static enum MHD_Result iterate_post (void *coninfo_cls,
         strcat(con_info->jsonData, _addString); // "Key: Data"
     } else 
     {
-        printf("dataSize TOO BIG!!");
+        if(VERBOSITY >= WARNINGS) printf("dataSize TOO BIG!!");
         return MHD_NO;
     }
 
@@ -157,10 +209,10 @@ static enum MHD_Result answer_to_connection (void *cls,
     //
 
 
-    printf("\nEVERY PAYLOAD: -----------------------\n");
-    printf("URL: '%s'\n", url);
-    printf("Method: %s \n", method);
-    printf("UploadDataSize: %lu, UploadData: %s\n", *upload_data_size, upload_data);
+    if(VERBOSITY == ALL) printf("\nEVERY PAYLOAD: -----------------------\n");
+    if(VERBOSITY == ALL) printf("URL: '%s'\n", url);
+    if(VERBOSITY == ALL) printf("Method: %s \n", method);
+    if(VERBOSITY == ALL) printf("UploadDataSize: %lu, UploadData: %s\n", *upload_data_size, upload_data);
 
 
     // INITIALIZE CONNECTION_INFO STRUCT
@@ -175,15 +227,13 @@ static enum MHD_Result answer_to_connection (void *cls,
     if (con_info == NULL)
     {
         con_info = malloc(sizeof(struct connection_info_struct));
-
         *req_cls = (void*) con_info; //SET CONNECTION_INFO SO IT CAN BE ITERATED OVER 
 
         if (con_info == NULL) // IF CON_INFO FAILED TO INITIATE
         {
-            printf("didn't malloced con_info\n");
+            if(VERBOSITY >= WARNINGS) printf("Didn't malloc con_info\n");
             return MHD_NO;
-        }         
-
+        }
 
         if (strcmp(method, "POST") == 0)
         {
@@ -198,21 +248,29 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             if (con_info->postprocessor == NULL)
             {
-                printf("postProcessor failed to create\n");
+                if(VERBOSITY >= WARNINGS) printf("postProcessor failed to create\n");
                 free(con_info);
                 return MHD_NO;
             }
             con_info->connectiontype = POST;
+            return MHD_YES;
         }
-        else con_info->connectiontype = GET;
-        return MHD_YES;
+        else if (strcmp(method, "GET") == 0) {
+            con_info->connectiontype = GET;
+            return MHD_YES;
+        }
+        else {
+            if (VERBOSITY >= WARNINGS) printf("Unsupported fetch type: %s\n", method);
+            free(con_info);
+            return MHD_NO;
+        }
     }
+
 
     //
     // CONNECTIONTYPE GET
     //
 
-    // if (strcmp(method, "GET") == 0)
     if (con_info->connectiontype == GET)
     {
         char* requestURL;
@@ -220,43 +278,53 @@ static enum MHD_Result answer_to_connection (void *cls,
         // IF NO PAGE -> DEFAULT TO FRONTPAGE
         if (strcmp(url, "/") == 0)
             requestURL = "/Frontpage.html";
+        else if (!isSupportedFileType(url))
+            return MHD_NO;
         else 
             requestURL = (char*) url;
     
         // LOOK FOR PAGE WITH SAID NAME
         char fileName[100];
         sprintf(fileName, "../src/ClientSide/Design%s", requestURL); // STARTS FROM '${PROJECT_DIR}/build'
-        printf("fileName: %s\n", fileName);
+        if(VERBOSITY == ALL) printf("fileName: %s\n", fileName);
     
         // COPY PAGE FROM SERVER, TO SEND TO CLIENT
-        char *page = 0;
-        long length;
-        FILE * f = fopen (fileName, "rb");
-        if (f)
-        {
-            printf("fileOpened\n");
-            fseek (f, 0, SEEK_END);
-            length = ftell (f);
-            fseek (f, 0, SEEK_SET);
-            page = malloc (length);
-            if (page)
-                fread (page, 1, length, f);
+        if (stringEndsWith(requestURL, ".html") ||
+            stringEndsWith(requestURL, ".js") ||
+            stringEndsWith(requestURL, ".css")) {
+
+            char *page = NULL;
+            int length;
+            FILE * f = fopen (fileName, "rb");
+            if (!f) {
+                if(VERBOSITY >= WARNINGS) printf("File does not exist: %s\n", fileName);
+                return MHD_NO;
+            }
+
+            if (VERBOSITY == ALL) printf("fileOpened\n");
+            length = sizeOfTextFile(f);
+            page = malloc (length * sizeof(char));
+
+            if (!page) {
+                fclose(f);
+                if (VERBOSITY == WARNINGS) printf("Not enough memory for response page\n");
+                return MHD_NO;
+            }
+
+            readTextFile(f, page);
             fclose (f);
-        }
-        else {
-            printf("File does not exist: %s\n", fileName);
-            return MHD_NO;
-        }
 
-        // MAKE RESPONSE TO SEND TO CLIENT
-        struct MHD_Response *response;
-        enum MHD_Result ret;
+            // MAKE RESPONSE TO SEND TO CLIENT
+            struct MHD_Response *response;
+            enum MHD_Result ret;
 
-        response = MHD_create_response_from_buffer_static(strlen(page), page);
-        ret = MHD_queue_response (con, MHD_HTTP_OK, response);
-        MHD_destroy_response (response);
-        printf("response successfuly made and destroyed");
-        return ret;
+            response = MHD_create_response_from_buffer_static(strlen(page), page);
+            ret = MHD_queue_response (con, MHD_HTTP_OK, response);
+            MHD_destroy_response (response);
+            if(VERBOSITY == ALL) printf("response successfuly made and destroyed");
+            return ret;
+        }
+        //else if file format is jpg...
     }
 
 
@@ -268,7 +336,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         // IF UPLOAD DATA HASN'T ALL BEEN PROCESSED
         if (*upload_data_size != 0)
         {
-            printf("Posting Something::::\n    Upload Data: %s, SIZE: %lu\n", upload_data, *upload_data_size);
+            if(VERBOSITY == ALL) printf("Posting Something::::\n    Upload Data: %s, SIZE: %lu\n", upload_data, *upload_data_size);
 
             int postProcessType = MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
             if (postProcessType != MHD_YES)
@@ -280,18 +348,18 @@ static enum MHD_Result answer_to_connection (void *cls,
         {
             strcat(con_info->jsonData, "}");
             // Don't Respond - save data
-            printf("\n\nPOST SUCCESS!\n\n");
+            if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
             return respond(con, con_info->jsonData);
         }
         // FALLBACK - IF ALL ELSE FAILS
-        printf("Post Failure!\n");
+        if(VERBOSITY >= WARNINGS) printf("Post Failure!\n");
         return MHD_NO;
     }
 
     // IF EVERYTHING FAILS - SHOULD NEVER HAPPEN
-    printf("\nSOMETHING HAS GONE WRONG!!\n");
-    printf("SOMETHING HAS GONE WRONG!!\n");
-    printf("SOMETHING HAS GONE WRONG!!\n");
+    if(VERBOSITY >= WARNINGS) printf("\nSOMETHING HAS GONE WRONG!!\n");
+    if(VERBOSITY >= WARNINGS) printf("SOMETHING HAS GONE WRONG!!\n");
+    if(VERBOSITY >= WARNINGS) printf("SOMETHING HAS GONE WRONG!!\n");
     return MHD_NO;
 }
 
@@ -302,6 +370,7 @@ int main(void)
     NULL, &answer_to_connection, NULL, MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL, MHD_OPTION_END);
     if (NULL == daemon) return 1;
 
+    if(VERBOSITY >= MINIMAL) printf("Server running at http://localhost:%d", PORT);
     (void) getchar ();
     MHD_stop_daemon (daemon);
 

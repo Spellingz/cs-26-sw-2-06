@@ -8,18 +8,20 @@
     <script src="FunctionParameters.js" defer></script> 
     <script src="FunctionMazeGenerated.js" defer></script> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="MoreAndAbout.js" defer></script> 
+    <link rel="stylesheet" href="NavigationBar.css">
 </head>
 <body>
-     <p1>
+     <div id="navBar">
         <div style="background-color: #000047; padding: 10px; width: 90%; height: 30px; border-radius: 12px;">
             <button onclick="location.href='CreateMaze.html'" id="GoBackToPrevious" style="height: 30px; background-color: white; border: none; border-radius: 8px;">GO BACK</button>
 
             <button id="morepagbutton" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">MORE</button>
-            <button id="aboutpagebutton" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">ABOUT</button>
+            <button id="aboutpagebutton" onclick="about()" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">ABOUT</button>
             <button id="homepagebutton" onclick="location.href='Frontpage.html'" style="float: right; margin-right: 40px; height: 30px; background-color: white; border: none; border-radius: 8px;">HOME</button>
         </div>
-
-    </p1>
+        <div id= "navigationOutput"></div>
+    </div>
     
     <!--Make a pop-up notification here-->
 

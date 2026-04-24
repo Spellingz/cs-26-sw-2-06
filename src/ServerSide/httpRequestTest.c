@@ -18,11 +18,12 @@ enum verbosity {
 };
 #define VERBOSITY ALL
 
-#define SUPPORTED_FILE_TYPE_COUNT 3
+#define SUPPORTED_FILE_TYPE_COUNT 4
 const char* SUPPORTED_FILE_TYPES[] = {
     ".html",
     ".js",
-    ".css"
+    ".css",
+    ".jpg"
 };
 
 #define PORT 8888
@@ -66,7 +67,8 @@ int isSupportedFileType(const char* str) {
     return 0;
 }
 
-int sizeOfTextFile(FILE* f) {
+int sizeOfFile(FILE* f) {
+    fseek (f, 0L, SEEK_SET);
     int count = 0;
     while (getc(f) != EOF) {
         count++;
@@ -85,6 +87,14 @@ void readTextFile(FILE* f, char* str) {
     str[i] = '\0';
 }
 
+void readFile(FILE* f, char* buffer) {
+    fseek (f, 0L, SEEK_SET);
+    int c, i = 0;
+    while ((c = getc(f)) != EOF) {
+        buffer[i++] = (char) c;
+    }
+}
+
 
 ////////////////////
 // CHECK DATA KEY///
@@ -93,7 +103,7 @@ void readTextFile(FILE* f, char* str) {
 int checkKey(const char* key, char** values)
 {
     int counter = 0;
-    int diff = -2;
+    int diff = 1;
     while(values[counter] != NULL && diff != 0)
     {
         diff = strcmp(key, values[counter++]);
@@ -107,7 +117,7 @@ int checkKey(const char* key, char** values)
 // ITERATE POST ///
 ///////////////////
 
-static enum MHD_Result iterate_post (void *coninfo_cls, 
+static enum MHD_Result process_post (void *coninfo_cls,
                 enum MHD_ValueKind kind, const char *key,
                 const char *filename, const char *content_type,
                 const char *transfer_encoding, const char *data,
@@ -171,23 +181,55 @@ void request_completed (void *cls, struct MHD_Connection *connection,
 // RESPOND ///
 //////////////
 
-static enum MHD_Result respond(struct MHD_Connection *connection, 
-                               const char *page)
-{
-    // INITIALIZE RESPONSE AND RESPOSNE_RESULT VARS
+static enum MHD_Result respond_error(struct MHD_Connection *connection, int errorCode) {
+    // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
     enum MHD_Result result;
     struct MHD_Response *response;
 
     // MAKE RESPONSE
-    response = MHD_create_response_from_buffer_static (strlen (page),
-                                                        page);
+    response = MHD_create_response_from_buffer_static (0, NULL);
     // IF RESPONSE FAILED TO CREATE OR IS INVALID
     if (!response)
         return MHD_NO;
 
-    result = MHD_queue_response (connection,
-                            MHD_HTTP_OK,
-                            response);
+    result = MHD_queue_response (connection, errorCode, response);
+    MHD_destroy_response (response);
+    return result;
+}
+
+static enum MHD_Result respond_image(struct MHD_Connection *con,
+                               char* buffer, int bufferLen,
+                               enum MHD_ResponseMemoryMode memoryMode)
+{
+    // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
+    enum MHD_Result result;
+    struct MHD_Response *response;
+
+    // MAKE RESPONSE
+    response = MHD_create_response_from_buffer(bufferLen, buffer, memoryMode);
+    // IF RESPONSE FAILED TO CREATE OR IS INVALID
+    if (!response)
+        return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
+
+    result = MHD_queue_response (con, MHD_HTTP_OK, response);
+    MHD_destroy_response (response);
+    return result;
+}
+
+static enum MHD_Result respond_text(struct MHD_Connection *con,
+                               const char *page, enum MHD_ResponseMemoryMode memoryMode)
+{
+    // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
+    enum MHD_Result result;
+    struct MHD_Response *response;
+
+    // MAKE RESPONSE
+    response = MHD_create_response_from_buffer (strlen (page), page, memoryMode);
+    // IF RESPONSE FAILED TO CREATE OR IS INVALID
+    if (!response)
+        return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
+
+    result = MHD_queue_response (con, MHD_HTTP_OK, response);
     MHD_destroy_response (response);
     return result;
 }
@@ -197,11 +239,11 @@ static enum MHD_Result respond(struct MHD_Connection *connection,
 // MAIN CONNECTION POINT //
 ///////////////////////////
 
-static enum MHD_Result answer_to_connection (void *cls, 
+static enum MHD_Result answer_to_connection (void *cls,
                       struct MHD_Connection *con,
                       const char *url, const char *method,
                       const char *version, const char *upload_data,
-                      size_t *upload_data_size, void **req_cls) 
+                      size_t *upload_data_size, void **req_cls)
 {
     //
     // CONNECTIONTYPE GET: GET PAGES
@@ -232,25 +274,22 @@ static enum MHD_Result answer_to_connection (void *cls,
         if (con_info == NULL) // IF CON_INFO FAILED TO INITIATE
         {
             if(VERBOSITY >= WARNINGS) printf("Didn't malloc con_info\n");
-            return MHD_NO;
+            return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
         }
 
-        if (strcmp(method, "POST") == 0)
-        {
-            // con_info->jsonData = NULL;
+        if (strcmp(method, "POST") == 0) {
             con_info->jsonData = malloc(MAX_ANSWER_SIZE);
-            // if (con_info->jsonData == NULL) // FALLBACK IF FAILED TO MALLOC
-            //     return MHD_NO;
+            if (con_info->jsonData == NULL) // FALLBACK IF FAILED TO MALLOC
+                 return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
             con_info->jsonData[0] = '{';
             con_info->jsonData[1] = '\0';
             con_info->postprocessor = MHD_create_post_processor(con, 
-                                            512, iterate_post, (void*) con_info);
+                                            512, process_post, (void*) con_info);
 
-            if (con_info->postprocessor == NULL)
-            {
+            if (con_info->postprocessor == NULL) {
                 if(VERBOSITY >= WARNINGS) printf("postProcessor failed to create\n");
                 free(con_info);
-                return MHD_NO;
+                return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
             }
             con_info->connectiontype = POST;
             return MHD_YES;
@@ -262,7 +301,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         else {
             if (VERBOSITY >= WARNINGS) printf("Unsupported fetch type: %s\n", method);
             free(con_info);
-            return MHD_NO;
+            return respond_error(con, MHD_HTTP_BAD_REQUEST);
         }
     }
 
@@ -270,7 +309,6 @@ static enum MHD_Result answer_to_connection (void *cls,
     //
     // CONNECTIONTYPE GET
     //
-
     if (con_info->connectiontype == GET)
     {
         char* requestURL;
@@ -279,7 +317,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         if (strcmp(url, "/") == 0)
             requestURL = "/Frontpage.html";
         else if (!isSupportedFileType(url))
-            return MHD_NO;
+            return respond_error(con, MHD_HTTP_NOT_FOUND);
         else 
             requestURL = (char*) url;
     
@@ -298,33 +336,50 @@ static enum MHD_Result answer_to_connection (void *cls,
             FILE * f = fopen (fileName, "rb");
             if (!f) {
                 if(VERBOSITY >= WARNINGS) printf("File does not exist: %s\n", fileName);
-                return MHD_NO;
+                return respond_error(con, MHD_HTTP_NOT_FOUND);
             }
 
             if (VERBOSITY == ALL) printf("fileOpened\n");
-            length = sizeOfTextFile(f);
+            length = sizeOfFile(f);
             page = malloc (length * sizeof(char));
 
             if (!page) {
                 fclose(f);
                 if (VERBOSITY >= WARNINGS) printf("Not enough memory for response page\n");
-                return MHD_NO;
+                return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
             }
 
             readTextFile(f, page);
             fclose (f);
 
             // MAKE RESPONSE TO SEND TO CLIENT
-            struct MHD_Response *response;
-            enum MHD_Result ret;
-
-            response = MHD_create_response_from_buffer_static(strlen(page), page);
-            ret = MHD_queue_response (con, MHD_HTTP_OK, response);
-            MHD_destroy_response (response);
-            if(VERBOSITY == ALL) printf("response successfuly made and destroyed");
-            return ret;
+            return respond_text(con, page, MHD_RESPMEM_MUST_FREE);
         }
-        //else if file format is jpg...
+        else if (stringEndsWith(requestURL, ".jpg")) {
+            char *buffer = NULL;
+            int length;
+            FILE * f = fopen (fileName, "rb");
+            if (!f) {
+                if(VERBOSITY >= WARNINGS) printf("File does not exist: %s\n", fileName);
+                return respond_error(con, MHD_HTTP_NOT_FOUND);
+            }
+
+            if (VERBOSITY == ALL) printf("image opened\n");
+            length = sizeOfFile(f);
+            buffer = malloc (length * sizeof(char));
+
+            if (!buffer) {
+                fclose(f);
+                if (VERBOSITY == WARNINGS) printf("Not enough memory for image buffer\n");
+                return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
+            }
+
+            readFile(f, buffer);
+            fclose (f);
+
+            // MAKE RESPONSE TO SEND TO CLIENT
+            return respond_image(con, buffer, length, MHD_RESPMEM_MUST_FREE);
+        }
     }
 
 
@@ -340,7 +395,7 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             int postProcessType = MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
             if (postProcessType != MHD_YES)
-                return MHD_NO;
+                return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
             *upload_data_size = 0;
             return MHD_YES;
         }
@@ -349,18 +404,16 @@ static enum MHD_Result answer_to_connection (void *cls,
             strcat(con_info->jsonData, "}");
             // Don't Respond - save data
             if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
-            return respond(con, con_info->jsonData);
+            return respond_text(con, con_info->jsonData, MHD_RESPMEM_MUST_FREE);
         }
         // FALLBACK - IF ALL ELSE FAILS
-        if(VERBOSITY >= WARNINGS) printf("Post Failure!\n");
-        return MHD_NO;
+        if(VERBOSITY >= WARNINGS) printf("conInfo has allocated response string!\n");
+        return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
     }
 
     // IF EVERYTHING FAILS - SHOULD NEVER HAPPEN
-    if(VERBOSITY >= WARNINGS) printf("\nSOMETHING HAS GONE WRONG!!\n");
-    if(VERBOSITY >= WARNINGS) printf("SOMETHING HAS GONE WRONG!!\n");
-    if(VERBOSITY >= WARNINGS) printf("SOMETHING HAS GONE WRONG!!\n");
-    return MHD_NO;
+    if(VERBOSITY >= WARNINGS) printf("conInfo exists, but has no valid connectionType\n");
+    return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
 }
 
 int main(void)

@@ -307,7 +307,7 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             if (!page) {
                 fclose(f);
-                if (VERBOSITY == WARNINGS) printf("Not enough memory for response page\n");
+                if (VERBOSITY >= WARNINGS) printf("Not enough memory for response page\n");
                 return MHD_NO;
             }
 

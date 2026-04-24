@@ -24,12 +24,12 @@ function more() {
     let html = `
         <nav>
             <div class="menu">
+                <button onclick="closePage()" style="background-color: #f0efeb; border: 6px solid #d8d7d3; border-radius: 12px; height: 5%; width: 10%; font-weight: bold;" >x</button>
                 <ul class="nav-links">
-                    <button onclick="closePage()" style="background-color: #f0efeb; border: 6px solid #d8d7d3; border-radius: 12px; height: 10%; width: 3%; font-weight: bold;" >x</button>
-                    <li><a href="#">Portfolio</a></li>
-                    <li><a href="#">Servises</a></li>
-                    <li><a href="#">Settings</a></li>
-                    <li><a href="#">Contact</a></li>
+                    <li><a href="#" style="color: #f0efeb;">Portfolio</a></li>
+                    <li><a href="#" style="color: #f0efeb;">Servises</a></li>
+                    <li><a href="#" style="color: #f0efeb;">Settings</a></li>
+                    <li><a href="#" style="color: #f0efeb;">Contact</a></li>
                 </ul>
             </div>
         </nav>

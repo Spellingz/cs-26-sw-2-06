@@ -6,6 +6,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
         src/ServerSide/httpRequestTest.c
+        src/ServerSide/MazeGeneration/generateMaze.h
+        src/ServerSide/MazeGeneration/generateMaze.c
 )
 
 add_executable(HTTP_test ${SOURCES})

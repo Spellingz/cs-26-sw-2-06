@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "./MazeGeneration/generateMaze.h"
 
 enum verbosity {
     NONE,
@@ -365,6 +366,7 @@ static enum MHD_Result answer_to_connection (void *cls,
 
 int main(void)
 {
+    /*
     struct MHD_Daemon *daemon;
     daemon = MHD_start_daemon (MHD_USE_INTERNAL_POLLING_THREAD, PORT, NULL,
     NULL, &answer_to_connection, NULL, MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL, MHD_OPTION_END);
@@ -373,6 +375,19 @@ int main(void)
     if(VERBOSITY >= MINIMAL) printf("Server running at http://localhost:%d", PORT);
     (void) getchar ();
     MHD_stop_daemon (daemon);
+    */
+
+    Data mazeData = {
+        0, // ID
+        0, // door
+        5, // x_size
+        5, // y_size
+        0, // branches
+        0, // loops
+        0, // straightness
+    };
+
+    generateMaze(mazeData);
 
     return 0;
 }

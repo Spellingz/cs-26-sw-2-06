@@ -3,61 +3,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "generateMaze.h"
+
 // #include "mazeDataTypes.c"
 
-
-typedef struct ExportData {int x;} ExportData;
-typedef struct Data {} Data;
-
-typedef enum {
-    UP = 0,
-    DOWN = 1,
-    LEFT = 0,
-    RIGHT = 1,
-} Direction;
-
-typedef enum {
-	AIR = 0,
-	WALL = 1,
-} Type;
-
-typedef struct {
-	bool type;
-	bool direction;
-    union {
-        bool isLoop;
-        char closedSides;
-    };
-} Wall;
-
+// Unused currently
 const Wall DefaultWall = {
     .type = WALL,
     .direction = 0,
     .closedSides = 0,
 };
-
-typedef struct {short x,y;} Point;
-
-typedef struct {
-	char dir;
-	Point start;
-	Point end;
-	Wall* walls;
-} Path;
-
-typedef struct {
-    unsigned short x, y;
-} MazeSize;
-
-typedef struct {
-    long horizontal, vertical;
-} MazeWallCount;
-
-typedef struct {
-    MazeWallCount wallCount;
-    Wall *horizontalArr;
-    Wall *verticalArr;
-} MazeStruct;
 
 float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
               float BranchPriority);
@@ -218,11 +173,6 @@ Wall *popRandomFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, Maz
     return poppedFrontier;
 }
 
-typedef struct ArrIndexResult {
-    bool isHorizontal;
-    int index;
-} ArrIndexResult;
-
 ArrIndexResult getArrayIndex(MazeStruct maze, Wall *frontierWall) {
     //Returns the index of the wall in its respective array, and whether it is in the horizontal array or not
 
@@ -251,8 +201,8 @@ Point indexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
 }
 
 ExportData generateMaze(Data data) {
-    // MazeSize size = {data.size.x, data.size.y};
-    MazeSize size = {24,26};
+    MazeSize size = {data.x_size, data.y_size};
+    // MazeSize size = {24,26};
     MazeStruct *maze = fillWalls(size);
     if (!maze) return (ExportData){-1}; //crash
 
@@ -441,7 +391,7 @@ float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeS
 }
 
 
-int main(void) {
-    Data data;
-    generateMaze(data);
-}
+// int main(void) {
+//     Data data;
+//     generateMaze(data);
+// }

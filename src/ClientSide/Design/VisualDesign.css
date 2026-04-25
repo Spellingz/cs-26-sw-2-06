@@ -39,7 +39,7 @@ p3{
     display: flex;
     justify-content: left;
     align-items: left;
-    margin-top: 4%;
+    margin-top: 6%;
 }
 p5{
     display: flex;
@@ -179,6 +179,26 @@ button:active {
 .range-slider-container:hover .percentage {
     transform: translate(-50%, 230%) scale(1);
 
+}
+
+/*Boks for the generated maze to be printed into*/
+#generatedOutput {
+    position: fixed;
+    top: 120px;       
+    left: 70%;
+    transform: translateX(-50%);
+    z-index: 9999;
+}
+
+#generatedBoks {
+    width: 600px;
+    height: 600px;
+    background-color: transparent;
+    border: 4px solid #a1aeb8;
+    border-radius: 12px;
+    padding: 50px;
+    box-sizing: border-box;
+    overflow: auto;
 }
 
 

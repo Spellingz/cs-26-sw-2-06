@@ -38,5 +38,16 @@ function sendmazeinfo(){
 
 //from array to visual maze printet on website
 function visualMaze() {
+    let generatedMaze  ;//set all the gathered JSON-output into this variable
 
+    let html =`
+        <div id="generatedBoks">
+            ${generatedMaze}
+        </div>
+    `;
+    
+    //printing into boks
+    const output = document.getElementById("generatedOutput"); 
+    output.innerHTML = '';
+    output.insertAdjacentHTML('beforeend', html);
 }

@@ -9,6 +9,7 @@ set(SOURCES
 )
 
 add_executable(HTTP_test ${SOURCES})
+add_executable(test src/ServerSide/MazeGeneration/generateMaze.c)
 
 target_link_libraries(HTTP_test PRIVATE microhttpd)
 target_link_libraries(HTTP_test PRIVATE ws2_32)

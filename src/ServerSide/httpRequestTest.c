@@ -197,8 +197,8 @@ static enum MHD_Result respond_error(struct MHD_Connection *connection, int erro
     return result;
 }
 
-static enum MHD_Result respond_image(struct MHD_Connection *con,
-                               char* buffer, int bufferLen,
+static enum MHD_Result respond(struct MHD_Connection *con,
+                               char* buffer, size_t bufferLen,
                                enum MHD_ResponseMemoryMode memoryMode)
 {
     // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
@@ -215,25 +215,6 @@ static enum MHD_Result respond_image(struct MHD_Connection *con,
     MHD_destroy_response (response);
     return result;
 }
-
-static enum MHD_Result respond_text(struct MHD_Connection *con,
-                               const char *page, enum MHD_ResponseMemoryMode memoryMode)
-{
-    // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
-    enum MHD_Result result;
-    struct MHD_Response *response;
-
-    // MAKE RESPONSE
-    response = MHD_create_response_from_buffer (strlen (page), page, memoryMode);
-    // IF RESPONSE FAILED TO CREATE OR IS INVALID
-    if (!response)
-        return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
-
-    result = MHD_queue_response (con, MHD_HTTP_OK, response);
-    MHD_destroy_response (response);
-    return result;
-}
-
 
 ///////////////////////////
 // MAIN CONNECTION POINT //
@@ -353,7 +334,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             fclose (f);
 
             // MAKE RESPONSE TO SEND TO CLIENT
-            return respond_text(con, page, MHD_RESPMEM_MUST_FREE);
+            return respond(con, page, strlen(page), MHD_RESPMEM_MUST_FREE);
         }
         else if (stringEndsWith(requestURL, ".jpg")) {
             char *buffer = NULL;
@@ -378,7 +359,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             fclose (f);
 
             // MAKE RESPONSE TO SEND TO CLIENT
-            return respond_image(con, buffer, length, MHD_RESPMEM_MUST_FREE);
+            return respond(con, buffer, length, MHD_RESPMEM_MUST_FREE);
         }
     }
 
@@ -404,10 +385,10 @@ static enum MHD_Result answer_to_connection (void *cls,
             strcat(con_info->jsonData, "}");
             // Don't Respond - save data
             if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
-            return respond_text(con, con_info->jsonData, MHD_RESPMEM_MUST_FREE);
+            return respond(con, con_info->jsonData, strlen(con_info->jsonData), MHD_RESPMEM_MUST_FREE);
         }
         // FALLBACK - IF ALL ELSE FAILS
-        if(VERBOSITY >= WARNINGS) printf("conInfo has allocated response string!\n");
+        if(VERBOSITY >= WARNINGS) printf("conInfo has not allocated response string!\n");
         return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
     }
 

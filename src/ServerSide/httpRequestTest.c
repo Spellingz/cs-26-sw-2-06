@@ -36,7 +36,7 @@ struct connection_info_struct
   struct MHD_PostProcessor *postprocessor;
 };
 
-enum connectiontype {
+enum connectionType {
     POST,
     PUT,
     GET,
@@ -46,6 +46,12 @@ enum connectiontype {
 struct keyStruct {
     int diff, keyIndex;
 };
+
+typedef struct {
+    char* contentType;
+    char* cacheControl;
+} headersStruct;
+
 ///////////////
 // FILE SIZE///
 ///////////////
@@ -199,6 +205,7 @@ static enum MHD_Result respond_error(struct MHD_Connection *connection, int erro
 
 static enum MHD_Result respond(struct MHD_Connection *con,
                                char* buffer, size_t bufferLen,
+                               headersStruct headers,
                                enum MHD_ResponseMemoryMode memoryMode)
 {
     // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
@@ -210,7 +217,10 @@ static enum MHD_Result respond(struct MHD_Connection *con,
     // IF RESPONSE FAILED TO CREATE OR IS INVALID
     if (!response)
         return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
-
+    // ADD HEADERS
+    MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, headers.contentType);
+    MHD_add_response_header(response, MHD_HTTP_HEADER_CACHE_CONTROL, headers.cacheControl);
+    //SEND RESPONSE
     result = MHD_queue_response (con, MHD_HTTP_OK, response);
     MHD_destroy_response (response);
     return result;
@@ -332,9 +342,16 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             readTextFile(f, page);
             fclose (f);
+            //MAKE HEADERS FOR RESPONSE
+            headersStruct headers = {
+                .contentType = stringEndsWith(requestURL, ".html") ? "text/html" :
+                               stringEndsWith(requestURL, ".css")  ? "text/css" :
+                                                                     "text/javascript",
+                .cacheControl = "no-cache" //should probably be changed to maxage=x later
+            };
 
             // MAKE RESPONSE TO SEND TO CLIENT
-            return respond(con, page, strlen(page), MHD_RESPMEM_MUST_FREE);
+            return respond(con, page, strlen(page), headers, MHD_RESPMEM_MUST_FREE);
         }
         else if (stringEndsWith(requestURL, ".jpg")) {
             char *buffer = NULL;
@@ -358,8 +375,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             readFile(f, buffer);
             fclose (f);
 
+            //MAKE HEADERS
+            headersStruct headers = {
+                .contentType = CFSTR_MIME_JPEG,
+                .cacheControl = "max-age=3600"
+            };
+
             // MAKE RESPONSE TO SEND TO CLIENT
-            return respond(con, buffer, length, MHD_RESPMEM_MUST_FREE);
+            return respond(con, buffer, length, headers, MHD_RESPMEM_MUST_FREE);
         }
     }
 
@@ -385,7 +408,13 @@ static enum MHD_Result answer_to_connection (void *cls,
             strcat(con_info->jsonData, "}");
             // Don't Respond - save data
             if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
-            return respond(con, con_info->jsonData, strlen(con_info->jsonData), MHD_RESPMEM_MUST_FREE);
+
+            headersStruct headers = {
+                .contentType = "application/json",
+                .cacheControl = "no-store"
+            };
+
+            return respond(con, con_info->jsonData, strlen(con_info->jsonData), headers, MHD_RESPMEM_MUST_FREE);
         }
         // FALLBACK - IF ALL ELSE FAILS
         if(VERBOSITY >= WARNINGS) printf("conInfo has not allocated response string!\n");

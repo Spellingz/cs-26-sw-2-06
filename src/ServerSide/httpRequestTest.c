@@ -18,23 +18,30 @@ enum verbosity {
 };
 #define VERBOSITY ALL
 
+enum fileTypeEnum {
+    HTML,
+    JS,
+    CSS,
+    JPG
+};
+
+typedef struct {
+    enum fileTypeEnum type;
+    char* extension;
+    char* contentType;
+} fileTypeInfoStruct;
+
 #define SUPPORTED_FILE_TYPE_COUNT 4
-const char* SUPPORTED_FILE_TYPES[] = {
-    ".html",
-    ".js",
-    ".css",
-    ".jpg"
+const fileTypeInfoStruct SUPPORTED_FILE_TYPES[SUPPORTED_FILE_TYPE_COUNT] = {
+    {HTML, ".html", "text/html"},
+    {JS, ".js", "text/javascript"},
+    {CSS, ".css", "text/css"},
+    {JPG, ".jpg", "image/jpeg"}
 };
 
 #define PORT 8888
 #define MAX_ANSWER_SIZE 512
 
-struct connection_info_struct
-{
-  int connectiontype;
-  char *jsonData;
-  struct MHD_PostProcessor *postprocessor;
-};
 
 enum connectionType {
     POST,
@@ -42,6 +49,13 @@ enum connectionType {
     GET,
     //DELETE,
 };
+
+typedef struct {
+    enum connectionType connectionType;
+    const fileTypeInfoStruct *fileTypeInfo;
+    char *jsonData;
+    struct MHD_PostProcessor *postProcessor;
+} connection_info_struct;
 
 struct keyStruct {
     int diff, keyIndex;
@@ -52,9 +66,9 @@ typedef struct {
     char* cacheControl;
 } headersStruct;
 
-///////////////
-// FILE SIZE///
-///////////////
+//////////////////////
+// STRING ENDS WITH //
+//////////////////////
 
 int stringEndsWith(const char* str, const char* end) {
     if(strlen(str) >= strlen(end))
@@ -65,13 +79,22 @@ int stringEndsWith(const char* str, const char* end) {
     return 0;
 }
 
-int isSupportedFileType(const char* str) {
+/////////////////////////////
+// FILE TYPE INFO FROM URL //
+/////////////////////////////
+
+const fileTypeInfoStruct *fileTypeInfoFromUrl (const char* url) {
     for (int i = 0; i < SUPPORTED_FILE_TYPE_COUNT; i++) {
-        if (stringEndsWith(str, SUPPORTED_FILE_TYPES[i])) return 1;
+        if (stringEndsWith(url, SUPPORTED_FILE_TYPES[i].extension)) {
+            return &SUPPORTED_FILE_TYPES[i];
+        }
     }
-    if (VERBOSITY >= WARNINGS) printf("Unsupported file format for %s\n", str);
-    return 0;
+    return NULL;
 }
+
+///////////////
+// FILE SIZE///
+///////////////
 
 int sizeOfFile(FILE* f) {
     fseek (f, 0L, SEEK_SET);
@@ -82,12 +105,20 @@ int sizeOfFile(FILE* f) {
     return count;
 }
 
+
+///////////////
+// READ FILE //
+///////////////
+
 void readTextFile(FILE* f, char* str) {
     fseek (f, 0L, SEEK_SET);
     int c, i = 0;
     while ((c = getc(f)) != EOF) {
         //Makes sure that all \n are preceded by \r
-        if (c == '\n' && str[i - 1] != '\r') str[i++] = '\r';
+        if (c == '\n' && str[i - 1] != '\r') {
+            str[i++] = '\r';
+            if (VERBOSITY == ALL) printf("Added \\r to string.\n");
+        }
         str[i++] = (char) c;
     }
     str[i] = '\0';
@@ -102,25 +133,22 @@ void readFile(FILE* f, char* buffer) {
 }
 
 
-////////////////////
-// CHECK DATA KEY///
-////////////////////
+///////////////
+// FIND KEY ///
+///////////////
 
-int checkKey(const char* key, char** values)
-{
-    int counter = 0;
-    int diff = 1;
-    while(values[counter] != NULL && diff != 0)
+int findKey(const char* key, char** keys) {
+    for(int i = 0; keys[i] != NULL; i++)
     {
-        diff = strcmp(key, values[counter++]);
+        if (strcmp(key, keys[i]) == 0)
+            return i;
     }
-    if (diff != 0) return -1;
-    return counter;
+    return -1;
 }
 
 
 ///////////////////
-// ITERATE POST ///
+// PROCESS POST ///
 ///////////////////
 
 static enum MHD_Result process_post (void *coninfo_cls,
@@ -129,17 +157,12 @@ static enum MHD_Result process_post (void *coninfo_cls,
                 const char *transfer_encoding, const char *data,
                 uint64_t off, size_t dataSize)
 {
-    enum KeyIndexDatas {
-        Name,
-        Test2,
-    };
-
-    if(VERBOSITY == ALL) printf("    Iterating Post of size %lu -> Key: %s, Data: %s\n", dataSize, key, data);
-    struct connection_info_struct *con_info = coninfo_cls;
+    if(VERBOSITY == ALL) printf("    Partially processing post of size %lu -> Key: %s, Data: %s\n", dataSize, key, data);
+    connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-    char *dataArray[3] = {"name", "test2", NULL};
-    int keyIndex = checkKey(key, dataArray);
+    char *keyArray[3] = {"name", "test2", NULL};
+    int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
         return MHD_YES;
 
@@ -166,15 +189,15 @@ static enum MHD_Result process_post (void *coninfo_cls,
 void request_completed (void *cls, struct MHD_Connection *connection, 
                         void **req_cls, enum MHD_RequestTerminationCode toe)
 {
-    struct connection_info_struct *con_info = *req_cls;
+    connection_info_struct *con_info = *req_cls;
 
     // IF THE REQUEST DOESN'T EXIST/HAVE CONTENT
     if (con_info == NULL)
         return;
 
-    if (con_info->connectiontype == POST)
+    if (con_info->connectionType == POST)
     {
-        MHD_destroy_post_processor(con_info->postprocessor);
+        MHD_destroy_post_processor(con_info->postProcessor);
         if (con_info->jsonData) free (con_info->jsonData);
     }
 
@@ -249,24 +272,19 @@ static enum MHD_Result answer_to_connection (void *cls,
 
 
     // INITIALIZE CONNECTION_INFO STRUCT
-    struct connection_info_struct *con_info = *req_cls;
-
-    // // IF jsonData HASN'T BEEN INITIALIZED, INITIALIZE IT
-    // if (con_info->jsonData == NULL)
-    // {
-    // }
+    connection_info_struct *con_info = *req_cls;
 
     // IF FIRST CONNECTION ITERATION
-    if (con_info == NULL)
-    {
-        con_info = malloc(sizeof(struct connection_info_struct));
+    if (con_info == NULL) {
+        con_info = malloc(sizeof(connection_info_struct));
         *req_cls = (void*) con_info; //SET CONNECTION_INFO SO IT CAN BE ITERATED OVER 
 
-        if (con_info == NULL) // IF CON_INFO FAILED TO INITIATE
-        {
+        if (con_info == NULL) { // IF CON_INFO FAILED TO INITIATE
             if(VERBOSITY >= WARNINGS) printf("Didn't malloc con_info\n");
             return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
         }
+
+        con_info->fileTypeInfo = fileTypeInfoFromUrl(url);
 
         if (strcmp(method, "POST") == 0) {
             con_info->jsonData = malloc(MAX_ANSWER_SIZE);
@@ -274,19 +292,19 @@ static enum MHD_Result answer_to_connection (void *cls,
                  return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
             con_info->jsonData[0] = '{';
             con_info->jsonData[1] = '\0';
-            con_info->postprocessor = MHD_create_post_processor(con, 
+            con_info->postProcessor = MHD_create_post_processor(con,
                                             512, process_post, (void*) con_info);
 
-            if (con_info->postprocessor == NULL) {
+            if (con_info->postProcessor == NULL) {
                 if(VERBOSITY >= WARNINGS) printf("postProcessor failed to create\n");
                 free(con_info);
                 return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
             }
-            con_info->connectiontype = POST;
+            con_info->connectionType = POST;
             return MHD_YES;
         }
         else if (strcmp(method, "GET") == 0) {
-            con_info->connectiontype = GET;
+            con_info->connectionType = GET;
             return MHD_YES;
         }
         else {
@@ -300,15 +318,19 @@ static enum MHD_Result answer_to_connection (void *cls,
     //
     // CONNECTIONTYPE GET
     //
-    if (con_info->connectiontype == GET)
-    {
+    if (con_info->connectionType == GET) {
         char* requestURL;
     
         // IF NO PAGE -> DEFAULT TO FRONTPAGE
-        if (strcmp(url, "/") == 0)
+        if (strcmp(url, "/") == 0) {
             requestURL = "/Frontpage.html";
-        else if (!isSupportedFileType(url))
+            con_info->fileTypeInfo = &SUPPORTED_FILE_TYPES[0];
+        }
+        // IF FILE TYPE IS UNSUPPORTED
+        else if (con_info->fileTypeInfo == NULL) {
+            if (VERBOSITY >= WARNINGS) printf("Unsupported file format for %s\n", url);
             return respond_error(con, MHD_HTTP_NOT_FOUND);
+        }
         else 
             requestURL = (char*) url;
     
@@ -318,9 +340,9 @@ static enum MHD_Result answer_to_connection (void *cls,
         if(VERBOSITY == ALL) printf("fileName: %s\n", fileName);
     
         // COPY PAGE FROM SERVER, TO SEND TO CLIENT
-        if (stringEndsWith(requestURL, ".html") ||
-            stringEndsWith(requestURL, ".js") ||
-            stringEndsWith(requestURL, ".css")) {
+        if (con_info->fileTypeInfo->type == HTML ||
+            con_info->fileTypeInfo->type == JS ||
+            con_info->fileTypeInfo->type == CSS) {
 
             char *page = NULL;
             int length;
@@ -344,16 +366,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             fclose (f);
             //MAKE HEADERS FOR RESPONSE
             headersStruct headers = {
-                .contentType = stringEndsWith(requestURL, ".html") ? "text/html" :
-                               stringEndsWith(requestURL, ".css")  ? "text/css" :
-                                                                     "text/javascript",
-                .cacheControl = "no-cache" //should probably be changed to maxage=x later
+                .contentType = con_info->fileTypeInfo->contentType,
+                .cacheControl = "no-cache" //should probably be changed to max-age=x later
             };
 
             // MAKE RESPONSE TO SEND TO CLIENT
             return respond(con, page, strlen(page), headers, MHD_RESPMEM_MUST_FREE);
         }
-        else if (stringEndsWith(requestURL, ".jpg")) {
+        else if (con_info->fileTypeInfo->type == JPG) {
             char *buffer = NULL;
             int length;
             FILE * f = fopen (fileName, "rb");
@@ -377,7 +397,7 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             //MAKE HEADERS
             headersStruct headers = {
-                .contentType = CFSTR_MIME_JPEG,
+                .contentType = con_info->fileTypeInfo->contentType,
                 .cacheControl = "max-age=3600"
             };
 
@@ -390,14 +410,14 @@ static enum MHD_Result answer_to_connection (void *cls,
     //
     // CONNECTIONTYPE -- POST
     //
-    if (con_info->connectiontype == POST)
+    if (con_info->connectionType == POST)
     {
         // IF UPLOAD DATA HASN'T ALL BEEN PROCESSED
         if (*upload_data_size != 0)
         {
             if(VERBOSITY == ALL) printf("Posting Something::::\n    Upload Data: %s, SIZE: %lu\n", upload_data, *upload_data_size);
 
-            int postProcessType = MHD_post_process(con_info->postprocessor, upload_data, *upload_data_size);
+            int postProcessType = MHD_post_process(con_info->postProcessor, upload_data, *upload_data_size);
             if (postProcessType != MHD_YES)
                 return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
             *upload_data_size = 0;

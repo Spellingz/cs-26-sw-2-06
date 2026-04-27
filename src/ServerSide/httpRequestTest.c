@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "./MazeGeneration/generateMaze.h"
+#include "./Heatmap/heatmapGen.h"
 
 enum verbosity {
     NONE,

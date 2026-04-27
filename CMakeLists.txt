@@ -8,6 +8,8 @@ set(SOURCES
         src/ServerSide/httpRequestTest.c
         src/ServerSide/MazeGeneration/generateMaze.h
         src/ServerSide/MazeGeneration/generateMaze.c
+        src/ServerSide/Heatmap/heatmapGen.h
+        src/ServerSide/Heatmap/heatmapGen.c
 )
 
 add_executable(HTTP_test ${SOURCES})

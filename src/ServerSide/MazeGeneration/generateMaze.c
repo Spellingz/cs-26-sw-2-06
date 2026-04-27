@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "generateMaze.h"
+#include "../Heatmap/heatmapGen.h"
 
 // #include "mazeDataTypes.c"
 
@@ -233,6 +234,7 @@ ExportData generateMaze(Data data) {
         rndFrontier->type = AIR;
     }
     printMaze(*maze, size);
+    checkHeat(*maze);
     freeMemory(maze, frontiers);
 
     return (ExportData){1};

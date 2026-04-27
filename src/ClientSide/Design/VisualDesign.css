@@ -185,13 +185,14 @@ button:active {
 #generatedOutput {
     position: fixed;
     top: 120px;       
-    left: 70%;
-    transform: translateX(-50%);
-    z-index: 9999;
+    right: 5%;
+    left: auto;
+    transform: none;
+    z-index: 300;
 }
-
 #generatedBoks {
-    width: 600px;
+    z-index: 400;
+    width: min(600px, calc(100vw - 40px));
     height: 600px;
     background-color: transparent;
     border: 4px solid #a1aeb8;
@@ -200,5 +201,7 @@ button:active {
     box-sizing: border-box;
     overflow: auto;
 }
+
+
 
 

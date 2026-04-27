@@ -15,7 +15,7 @@ int main(void)
 {
 
 Queue *queue = malloc(sizeof(Queue));
-queue->first = NULL;
+queue->first = NULL  ;
 queue->last = NULL;
 
 	while (_isActive)

@@ -86,18 +86,98 @@ CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/httpRequestTest.c -o CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.s
 
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o: CMakeFiles/HTTP_test.dir/flags.make
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o: /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeAlteration/changeMaze.c
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o: CMakeFiles/HTTP_test.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o -MF CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o.d -o CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeAlteration/changeMaze.c
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeAlteration/changeMaze.c > CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.i
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeAlteration/changeMaze.c -o CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.s
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: CMakeFiles/HTTP_test.dir/flags.make
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: CMakeFiles/HTTP_test.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o -MF CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o.d -o CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c > CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.i
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c -o CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.s
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o: CMakeFiles/HTTP_test.dir/flags.make
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o: /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/fileUnpacker.c
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o: CMakeFiles/HTTP_test.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o -MF CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o.d -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/fileUnpacker.c
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/fileUnpacker.c > CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.i
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/fileUnpacker.c -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.s
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o: CMakeFiles/HTTP_test.dir/flags.make
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o: /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/requestManager.c
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o: CMakeFiles/HTTP_test.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o -MF CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o.d -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/requestManager.c
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/requestManager.c > CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.i
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/requestManager.c -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.s
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o: CMakeFiles/HTTP_test.dir/flags.make
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o: /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o: CMakeFiles/HTTP_test.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o -MF CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o.d -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c > CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.i
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.s
+
 # Object files for target HTTP_test
 HTTP_test_OBJECTS = \
-"CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o"
+"CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o" \
+"CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o" \
+"CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o" \
+"CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o" \
+"CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o" \
+"CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o"
 
 # External object files for target HTTP_test
 HTTP_test_EXTERNAL_OBJECTS =
 
 HTTP_test: CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o
+HTTP_test: CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o
+HTTP_test: CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o
+HTTP_test: CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o
+HTTP_test: CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o
+HTTP_test: CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o
 HTTP_test: CMakeFiles/HTTP_test.dir/build.make
 HTTP_test: CMakeFiles/HTTP_test.dir/compiler_depend.ts
 HTTP_test: CMakeFiles/HTTP_test.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable HTTP_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/kianh/stuff/p2/cs-26-sw-2-06/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking C executable HTTP_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/HTTP_test.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

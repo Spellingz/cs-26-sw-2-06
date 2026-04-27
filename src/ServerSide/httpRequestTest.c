@@ -6,9 +6,15 @@
 #include <winsock2.h>
 #endif
 #include <microhttpd.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "DataTypes/requestDataTypes.h"
+#include "RequestManager/uploadstringToDataStruct.h"
+#include "MazeAlteration/changeMaze.h"
+#include "MazeGeneration/generateMaze.h"
 
 enum verbosity {
     NONE,
@@ -55,6 +61,7 @@ typedef struct {
     const fileTypeInfoStruct *fileTypeInfo;
     char *jsonData;
     struct MHD_PostProcessor *postProcessor;
+    bool requestType;
 } connection_info_struct;
 
 typedef struct {
@@ -156,7 +163,7 @@ static enum MHD_Result process_post (void *coninfo_cls,
     connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-    char *keyArray[3] = {"name", "test2", NULL};
+    char *keyArray[9] = {"type", "id", "door", "x_size", "y_size", "branches", "loops", "straightness", NULL};
     int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
         return MHD_YES;
@@ -164,8 +171,12 @@ static enum MHD_Result process_post (void *coninfo_cls,
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
     {
-        char _addString[strlen(key) + 10 + dataSize];
-        sprintf(_addString, "\"%s\": %s, ", key, data);
+        if (0 == strcmp(key, "type"))
+            con_info->requestType = data;
+        // char _addString[strlen(key) + 10 + dataSize];
+        // sprintf(_addString, "\"%s\": %s, ", key, data);
+        char _addString[strlen(key)+7+dataSize];
+        sprintf(_addString, "(%s, %s), ", key, data);
         strcat(con_info->jsonData, _addString); // "Key: Data"
     } else 
     {
@@ -175,6 +186,43 @@ static enum MHD_Result process_post (void *coninfo_cls,
 
     return MHD_YES;
 }
+
+
+char *exportDataToString(ExportData data)
+{
+    // data.JSON.stringify();
+    int horizontalArrStringSize = (data.horizontalMazeArraySize*3);
+    int verticalArrStringSize= (data.verticalMazeArraySize*3);
+
+    char *responseString = malloc(sizeof(char)*(8 + 2 + horizontalArrStringSize + 2 + verticalArrStringSize + 3));
+    // LOOP FOR HORIZONTAL ARRAY
+    char horizontalArrString[horizontalArrStringSize];
+    for (int i = 0; i < data.horizontalMazeArraySize-1; i++)
+    {
+        char _addString[4];
+        sprintf(_addString, "%d, ", data.horizontalMazeArr[i]);
+        strcat(horizontalArrString, _addString);
+    }    
+    char _addString[2];
+    sprintf(_addString, "%d", data.horizontalMazeArr[data.horizontalMazeArraySize-1]);
+    strcat(horizontalArrString, _addString);
+
+    char verticalArrString[verticalArrStringSize];
+    for (int i = 0; i < data.verticalMazeArraySize-1; i++)
+    {
+        char _addString[4];
+        sprintf(_addString, "%d, ", data.verticalMazeArr[i]);
+        strcat(verticalArrString, _addString);
+    }
+    sprintf(_addString, "%d", data.verticalMazeArr[data.verticalMazeArraySize-1]);
+    strcat(verticalArrString, _addString);
+
+
+    sprintf(responseString, "{%d, [%s], [%s]}", data.id, horizontalArrString, verticalArrString);
+
+    return responseString;
+}
+
 
 
 //////////////////////////////////
@@ -424,12 +472,29 @@ static enum MHD_Result answer_to_connection (void *cls,
             // Don't Respond - save data
             if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
 
+            // Process data
+            void* request = transformRequest(con_info->jsonData, con_info->requestType);
+            ExportData responseData;
+
+            if (!con_info->requestType)     // generationData
+            {
+                generationData *request = request;
+                responseData = generateMaze(*request);
+            }
+            else {                          // alterationData
+                alterationData *request = request;
+                responseData = alterMaze(*request);
+            }
+
+            char* responseString = exportDataToString(responseData);
+
+
             headersStruct headers = {
                 .contentType = "application/json",
                 .cacheControl = "no-store"
             };
 
-            return respond(con, con_info->jsonData, strlen(con_info->jsonData), headers, MHD_RESPMEM_MUST_FREE);
+            return respond(con, responseString, strlen(responseString), headers, MHD_RESPMEM_MUST_FREE);
         }
         // FALLBACK - IF ALL ELSE FAILS
         if(VERBOSITY >= WARNINGS) printf("conInfo has not allocated response string!\n");

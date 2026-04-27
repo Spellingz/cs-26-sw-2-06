@@ -4,5 +4,41 @@
   "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/httpRequestTest.c",
   "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/httpRequestTest.c",
   "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o"
+},
+{
+  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
+  "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeAlteration/changeMaze.c",
+  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeAlteration/changeMaze.c",
+  "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o"
+},
+{
+  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
+  "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c",
+  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c",
+  "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o"
+},
+{
+  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
+  "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/fileUnpacker.c",
+  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/fileUnpacker.c",
+  "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o"
+},
+{
+  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
+  "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/requestManager.c",
+  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/requestManager.c",
+  "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o"
+},
+{
+  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
+  "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c",
+  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c",
+  "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o"
+},
+{
+  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
+  "command": "/usr/bin/cc    -o CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c",
+  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c",
+  "output": "CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o"
 }
 ]

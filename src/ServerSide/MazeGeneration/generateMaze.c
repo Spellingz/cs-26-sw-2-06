@@ -7,10 +7,6 @@
 #include "../DataTypes/mazeDataTypes.h"
 #include "generateMaze.h"
 
-
-float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
-              float BranchPriority);
-
 void printMaze(MazeStruct maze, MazeSize size) {
     int h = 0, v = 0;
     printf("+");
@@ -123,50 +119,6 @@ void addNeighboursToFrontier(Wall **frontier, int *frontierSize, MazeStruct maze
     free(neighbourWalls);
 }
 
-
-
-Wall *popRandomFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
-                        float branchPriority) {
-    float *weights = frontierWeights(frontier, *frontierSize, maze, size, straightnessPriority, branchPriority);
-
-    float total = 0.0f;
-
-    //printf("Changed weights.\n");
-    for (int i = 0; i < *frontierSize; i++) {
-        //now pay attention, we are adding each weight to the total
-        total += weights[i];
-        weights[i] = total;
-        //printf("%f\n",weights[i]);
-
-        //while that is happening each temp[] is getting a value that is higher and higher, increased each time by the next weight value
-    }
-
-
-    float random = ((float) rand() / RAND_MAX) * total;
-    //now we get a random number between 0 and the result of our total
-
-    int chosenIndex = 0;
-    for (int i = 0; i < *frontierSize; i++) {
-        //whatever number we got, we are now checking here and the index of the number which matches is our chosenindex
-        if (random <= weights[i]) {
-            chosenIndex = i;
-            break;
-        }
-    }
-    //Assume we got:
-    //total: 1.93,   random number: 0.73
-    //Indexes: 0: 0.35, 1: 0.74, 2: 1.12, 3: 1.37 etc
-    // 0.73 is below index 1 0.74. So our chosen index is 1.
-
-    Wall *poppedFrontier = frontier[chosenIndex]; //now the frontier with index 2 is the one to get removed
-    //Moves the last element in the frontier to the deleted element's place
-    frontier[chosenIndex] = frontier[--(*frontierSize)];
-
-    free(weights);
-
-    return poppedFrontier;
-}
-
 typedef struct ArrIndexResult {
     bool isHorizontal;
     int index;
@@ -198,48 +150,16 @@ Point indexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
         //Returns the position of the point just above the wall.
         return (Point){index / (mazeSize.y-1), index % (mazeSize.y-1)};
 }
-
-ExportData generateMaze(generationData data) {
-    // MazeSize size = {data.size.x, data.size.y};
-    MazeSize size = {24,26};
-    MazeStruct *maze = fillWalls(size);
-    if (!maze) return (ExportData){-1}; //crash
-
-    int frontierSize = 0;
-    Wall** frontiers = malloc(
-        sizeof(Wall*) * maze->wallCount.horizontal +
-        sizeof(Wall*) * maze->wallCount.vertical);
-    if (!frontiers)  return freeMemory(maze, frontiers), (ExportData){-1}; //crash
-
-    Point startPos = {rand() % size.x, rand() % size.y};
-    addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, startPos);
-    while (frontierSize > 0) {
-        Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize, *maze, size, 0.67, 0.69); // change so the numbers are branch potential and straightness potential
-        //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
-        if (rndFrontier->closedSides >= 2) continue;
-
-        //Gets the index of the wall in its corresponding array
-        ArrIndexResult arrIndex = getArrayIndex(*maze, rndFrontier);
-        if (arrIndex.index == -1) return freeMemory(maze, frontiers), (ExportData){-1}; //crash
-
-        //Uses the index to get the position just above/to the left of the wall.
-        Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index, size);
-        //If the wall has a positive direction, shift the point 1 down/to the right
-        if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
-        if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y++;
-        addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, frontierPos);
-
-        rndFrontier->type = AIR;
-    }
-    printMaze(*maze, size);
-    freeMemory(maze, frontiers);
-
-    return (ExportData){1};
+bool *convertWallArrToBoolArr(Wall* arr, int size)
+{
+    bool* boolArr= malloc(sizeof(bool)*size);
+    for (int i = 0; i < size; i++)
+        boolArr[i] = arr[i].type;
+    return boolArr;
 }
 
 
-float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
-              float branchPriority) {
+float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority, float branchPriority) {
     float *frontierWeights = malloc(sizeof(float) * frontierSize);
     //We create an array with weights for each frontier, its just as big as the frontier array and each matches
     if (frontierWeights == NULL) return NULL;
@@ -389,8 +309,91 @@ float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeS
     return frontierWeights;
 }
 
+Wall *popRandomFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
+                        float branchPriority) {
+    float *weights = frontierWeights(frontier, *frontierSize, maze, size, straightnessPriority, branchPriority);
 
-int main(void) {
-    generationData data;
-    generateMaze(data);
+    float total = 0.0f;
+
+    //printf("Changed weights.\n");
+    for (int i = 0; i < *frontierSize; i++) {
+        //now pay attention, we are adding each weight to the total
+        total += weights[i];
+        weights[i] = total;
+        //printf("%f\n",weights[i]);
+
+        //while that is happening each temp[] is getting a value that is higher and higher, increased each time by the next weight value
+    }
+
+
+    float random = ((float) rand() / RAND_MAX) * total;
+    //now we get a random number between 0 and the result of our total
+
+    int chosenIndex = 0;
+    for (int i = 0; i < *frontierSize; i++) {
+        //whatever number we got, we are now checking here and the index of the number which matches is our chosenindex
+        if (random <= weights[i]) {
+            chosenIndex = i;
+            break;
+        }
+    }
+    //Assume we got:
+    //total: 1.93,   random number: 0.73
+    //Indexes: 0: 0.35, 1: 0.74, 2: 1.12, 3: 1.37 etc
+    // 0.73 is below index 1 0.74. So our chosen index is 1.
+
+    Wall *poppedFrontier = frontier[chosenIndex]; //now the frontier with index 2 is the one to get removed
+    //Moves the last element in the frontier to the deleted element's place
+    frontier[chosenIndex] = frontier[--(*frontierSize)];
+
+    free(weights);
+
+    return poppedFrontier;
+}
+
+
+
+
+ExportData generateMaze(generationData data) {
+    MazeSize size = {data.x_size, data.y_size};
+    // MazeSize size = {24,26};
+    MazeStruct *maze = fillWalls(size);
+    if (!maze) return (ExportData){-1}; //crash
+
+    int frontierSize = 0;
+    Wall** frontiers = malloc(
+        sizeof(Wall*) * maze->wallCount.horizontal +
+        sizeof(Wall*) * maze->wallCount.vertical);
+    if (!frontiers)  return freeMemory(maze, frontiers), (ExportData){-1}; //crash
+
+    Point startPos = {rand() % size.x, rand() % size.y};
+    addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, startPos);
+    while (frontierSize > 0) {
+        Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize, *maze, size, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
+        //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
+        if (rndFrontier->closedSides >= 2) continue;
+
+        //Gets the index of the wall in its corresponding array
+        ArrIndexResult arrIndex = getArrayIndex(*maze, rndFrontier);
+        if (arrIndex.index == -1) return freeMemory(maze, frontiers), (ExportData){-1}; //crash
+
+        //Uses the index to get the position just above/to the left of the wall.
+        Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index, size);
+        //If the wall has a positive direction, shift the point 1 down/to the right
+        if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
+        if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y++;
+        addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, frontierPos);
+
+        rndFrontier->type = AIR;
+    }
+    // printMaze(*maze, size);
+
+    bool* horizontalBoolArr = convertWallArrToBoolArr(maze->horizontalArr, maze->wallCount.horizontal);
+    bool* verticalBoolArr = convertWallArrToBoolArr(maze->verticalArr, maze->wallCount.vertical);
+
+    ExportData finishedMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalBoolArr, verticalBoolArr};
+
+    freeMemory(maze, frontiers);
+
+    return finishedMaze;
 }

@@ -3,6 +3,11 @@ HTTP_test: \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/crti.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
   CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o \
+  CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o \
+  CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o \
+  CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o \
+  CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o \
+  CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libmicrohttpd.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/libgcc.a \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libgcc_s.so \
@@ -43,6 +48,16 @@ HTTP_test: \
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o:
 
 CMakeFiles/HTTP_test.dir/src/ServerSide/httpRequestTest.c.o:
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o:
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o:
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/fileUnpacker.c.o:
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o:
+
+CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/libmicrohttpd.so:
 

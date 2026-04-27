@@ -19,12 +19,10 @@
         </div>
         <div id= "navigationOutput"></div>
     </div>
-    
-    <!--Make a pop-up notification here-->
 
     <h1 id="Header" style="text-shadow: 2px 2px #8896a2; text-align: left; margin-left: 5%;">Maze Generator 2.0</h1>
 
-    <p3>
+    <div id="wrapperFactors">
         <div class="Factors" style="margin-left: 5%;">
             <button id="Traps" onclick="trapsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">TRAPS</button>
             <br><br>
@@ -37,7 +35,7 @@
             <button id="SpecialWalls" onclick="specialWallsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">"SPECIAL" WALLS</button>
         </div>
         <div id= "output"></div>
-    </p3>
+    </div>
 
     <div id="modifi">
         <div id="ModificationButtons" style="margin-left: 5%;">
@@ -48,6 +46,7 @@
     </div>
 
     <div id="generatedOutput">
+        <!--This is just to visualise the boks until the data is ready, then delete this below (ONLY "generatedBoks")-->
         <div id="generatedBoks"></div>
     </div>
 

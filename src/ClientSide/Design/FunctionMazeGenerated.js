@@ -54,20 +54,21 @@ function remove(){
 function exsport() {
     //make a code that eksport the code to a .file 
 
-    //trying with hardcode, so that it is ready for when we have a filename
+    //trying with hardcode, so that it is ready for when we have the correct names 
     const JSONToFile = (obj, filename) => {
         const blob = new Blob([JSON.stringify(obj, null, 2)], {
-        type: 'application/json',
+        type: 'text/plain',
     });
   
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${filename}.json`;
+    a.download = `${filename}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     };
 
+    //a test that confirms that there is connection and that it works
     JSONToFile({ test: 'is passed' }, 'testJsonFile');
-    // downloads the object as 'testJsonFile.json'
+    // downloads the object as 'testJsonFile.txt'
 }

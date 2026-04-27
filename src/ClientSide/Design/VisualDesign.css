@@ -35,18 +35,19 @@ p2{
         margin-top: 4%;
     }   
 }
-p3{
+#wrapperFactors{
     display: flex;
     justify-content: left;
     align-items: left;
     margin-top: 6%;
 }
-p5{
+#CreateBoks{
     display: flex;
     justify-content: right;
     align-items: right;
 
     .CreateMazeButton {
+        z-index: 500;
         color: #f0efeb;
         margin-top: 15%;
         margin-right: 50px;

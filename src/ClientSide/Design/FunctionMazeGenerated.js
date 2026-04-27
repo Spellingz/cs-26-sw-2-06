@@ -52,33 +52,22 @@ function remove(){
 
 //=======Eksport Output===================================================================================
 function exsport() {
-    let html = `
-        <div class="eksportBoks">
-            <div class="close">
-                <button onclick="closeEksport()" style="background-color: #4a6275; border: 6px solid #303f4b; border-radius: 12px; height: 10%; width: 10%; font-weight: bold; align-items: center;" >x</button>
-            </div>
-            <div id="eksportButtons">
-                <button class="png" onclick="png()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 30px; border-radius: 12px; color: #f0efeb; margin-top: 10%;">.PNG</button>
-                <button class="pdf" onclick="pdf()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 30px; border-radius: 12px; color: #f0efeb; margin-top: 5%;">.PDF</button>
-                <button class="file" onclick="file()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 30px; border-radius: 12px; color: #f0efeb; margin-top: 5%;">.FILE</button>
-            </div>
-        </div>
-    `;
-    const output = document.getElementById("modificationOutput");
-    output.innerHTML = '';
-    output.insertAdjacentHTML('beforeend', html);
-}
-function closeEksport() {
-    const output = document.getElementById("modificationOutput");
-    output.innerHTML = '';
-}
-//functions for the different eksport options
-function png() {
+    //make a code that eksport the code to a .file 
 
-}
-function pdf() {
+    //trying with hardcode, so that it is ready for when we have a filename
+    const JSONToFile = (obj, filename) => {
+        const blob = new Blob([JSON.stringify(obj, null, 2)], {
+        type: 'application/json',
+    });
+  
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    };
 
-}
-function file() {
-    
+    JSONToFile({ test: 'is passed' }, 'testJsonFile');
+    // downloads the object as 'testJsonFile.json'
 }

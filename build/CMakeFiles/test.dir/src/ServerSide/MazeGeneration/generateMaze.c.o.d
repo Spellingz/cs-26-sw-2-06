@@ -1,4 +1,4 @@
-CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: \
+CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: \
  /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c \
  /usr/include/stdc-predef.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdint.h \

@@ -436,6 +436,7 @@ HTTP_test: /usr/lib/Scrt1.o \
   /usr/lib/libc.so \
   /usr/lib/libgcc_s.so \
   /usr/lib/libgcc_s.so.1 \
+  /usr/lib/libm.so \
   /usr/lib/libmicrohttpd.so \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
   /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtendS.o \
@@ -449,6 +450,8 @@ HTTP_test: /usr/lib/Scrt1.o \
   /usr/lib/libhogweed.so.6 \
   /usr/lib/libidn2.so.0 \
   /usr/lib/libleancrypto.so.1 \
+  /usr/lib/libm.so.6 \
+  /usr/lib/libmvec.so.1 \
   /usr/lib/libnettle.so.8 \
   /usr/lib/libp11-kit.so.0 \
   /usr/lib/libtasn1.so.6 \
@@ -473,6 +476,10 @@ CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o:
 
 /usr/lib/libp11-kit.so.0:
 
+/usr/lib/libmvec.so.1:
+
+/usr/lib/libm.so.6:
+
 /usr/lib/libleancrypto.so.1:
 
 /usr/lib/libhogweed.so.6:
@@ -482,6 +489,8 @@ CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o:
 /usr/lib/libtasn1.so.6:
 
 /usr/lib/libc_nonshared.a:
+
+/usr/lib/libc.so.6:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h:
 
@@ -745,6 +754,6 @@ CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/requestManager.c.o:
 
 /usr/lib/libgcc_s.so.1:
 
-/usr/lib/ld-linux-x86-64.so.2:
+/usr/lib/libm.so:
 
-/usr/lib/libc.so.6:
+/usr/lib/ld-linux-x86-64.so.2:

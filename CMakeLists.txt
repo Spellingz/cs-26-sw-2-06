@@ -14,9 +14,10 @@ set(SOURCES
 )
 
 add_executable(HTTP_test ${SOURCES})
-add_executable(test src/ServerSide/MazeGeneration/generateMaze.c)
 
 target_link_libraries(HTTP_test PRIVATE microhttpd)
 IF (WIN32)
 target_link_libraries(HTTP_test PRIVATE ws2_32)
+ELSE()
+target_link_libraries(HTTP_test PRIVATE m)
 ENDIF()

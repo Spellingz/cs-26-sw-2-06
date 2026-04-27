@@ -136,19 +136,6 @@ HTTP_test/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/build
 .PHONY : HTTP_test/fast
 
-#=============================================================================
-# Target rules for targets named test
-
-# Build rule for target.
-test: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test
-.PHONY : test
-
-# fast build rule for target.
-test/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-.PHONY : test/fast
-
 src/ServerSide/MazeAlteration/changeMaze.o: src/ServerSide/MazeAlteration/changeMaze.c.o
 .PHONY : src/ServerSide/MazeAlteration/changeMaze.o
 
@@ -179,7 +166,6 @@ src/ServerSide/MazeGeneration/generateMaze.o: src/ServerSide/MazeGeneration/gene
 # target to build an object file
 src/ServerSide/MazeGeneration/generateMaze.c.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o
 .PHONY : src/ServerSide/MazeGeneration/generateMaze.c.o
 
 src/ServerSide/MazeGeneration/generateMaze.i: src/ServerSide/MazeGeneration/generateMaze.c.i
@@ -188,7 +174,6 @@ src/ServerSide/MazeGeneration/generateMaze.i: src/ServerSide/MazeGeneration/gene
 # target to preprocess a source file
 src/ServerSide/MazeGeneration/generateMaze.c.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.i
 .PHONY : src/ServerSide/MazeGeneration/generateMaze.c.i
 
 src/ServerSide/MazeGeneration/generateMaze.s: src/ServerSide/MazeGeneration/generateMaze.c.s
@@ -197,7 +182,6 @@ src/ServerSide/MazeGeneration/generateMaze.s: src/ServerSide/MazeGeneration/gene
 # target to generate assembly for a file
 src/ServerSide/MazeGeneration/generateMaze.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.s
 .PHONY : src/ServerSide/MazeGeneration/generateMaze.c.s
 
 src/ServerSide/RequestManager/fileUnpacker.o: src/ServerSide/RequestManager/fileUnpacker.c.o
@@ -306,7 +290,6 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... HTTP_test"
-	@echo "... test"
 	@echo "... src/ServerSide/MazeAlteration/changeMaze.o"
 	@echo "... src/ServerSide/MazeAlteration/changeMaze.i"
 	@echo "... src/ServerSide/MazeAlteration/changeMaze.s"

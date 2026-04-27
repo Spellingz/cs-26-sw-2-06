@@ -2,11 +2,12 @@
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
+#define SERVERTYPE 1
 #else
+#define SERVERTYPE 2
 #include <winsock2.h>
 #endif
 #include <microhttpd.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -100,12 +101,19 @@ const fileTypeInfoStruct *fileTypeInfoFromUrl (const char* url) {
 ///////////////
 
 int sizeOfFile(FILE* f) {
-    fseek (f, 0L, SEEK_SET);
-    int count = 0;
-    while (getc(f) != EOF) {
-        count++;
+    if (SERVERTYPE == 2)
+    {
+        fseek (f, 0L, SEEK_SET);
+        int count = 0;
+        while (getc(f) != EOF) {
+            count++;
+        }
+        return count;
     }
-    return count;
+    fseek(f, 0, SEEK_END);
+    int length = ftell(f);
+    fseek(f,0,SEEK_SET);
+    return length;
 }
 
 
@@ -168,11 +176,16 @@ static enum MHD_Result process_post (void *coninfo_cls,
     if (keyIndex == -1)
         return MHD_YES;
 
+    printf("kvp: %s, %s\n", key, data);
+
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
     {
         if (0 == strcmp(key, "type"))
-            con_info->requestType = data;
+        {
+            con_info->requestType = data[0]-48;
+            return MHD_YES;
+        }
         // char _addString[strlen(key) + 10 + dataSize];
         // sprintf(_addString, "\"%s\": %s, ", key, data);
         char _addString[strlen(key)+7+dataSize];
@@ -190,35 +203,38 @@ static enum MHD_Result process_post (void *coninfo_cls,
 
 char *exportDataToString(ExportData data)
 {
-    // data.JSON.stringify();
     int horizontalArrStringSize = (data.horizontalMazeArraySize*3);
     int verticalArrStringSize= (data.verticalMazeArraySize*3);
 
-    char *responseString = malloc(sizeof(char)*(8 + 2 + horizontalArrStringSize + 2 + verticalArrStringSize + 3));
+
+    char *responseString = malloc(sizeof(char)*(80 + 2 + horizontalArrStringSize + 2 + verticalArrStringSize + 3));
+    responseString[0] = '\0';
     // LOOP FOR HORIZONTAL ARRAY
     char horizontalArrString[horizontalArrStringSize];
+    horizontalArrString[0] = '\0';
     for (int i = 0; i < data.horizontalMazeArraySize-1; i++)
     {
         char _addString[4];
-        sprintf(_addString, "%d, ", data.horizontalMazeArr[i]);
+        sprintf(_addString, "%d, ", (int)data.horizontalMazeArr[i]);
         strcat(horizontalArrString, _addString);
     }    
     char _addString[2];
-    sprintf(_addString, "%d", data.horizontalMazeArr[data.horizontalMazeArraySize-1]);
+    sprintf(_addString, "%d", (int)data.horizontalMazeArr[data.horizontalMazeArraySize-1]);
     strcat(horizontalArrString, _addString);
 
     char verticalArrString[verticalArrStringSize];
+    verticalArrString[0] = '\0';
     for (int i = 0; i < data.verticalMazeArraySize-1; i++)
     {
         char _addString[4];
-        sprintf(_addString, "%d, ", data.verticalMazeArr[i]);
+        sprintf(_addString, "%d, ", (int)data.verticalMazeArr[i]);
         strcat(verticalArrString, _addString);
     }
-    sprintf(_addString, "%d", data.verticalMazeArr[data.verticalMazeArraySize-1]);
+    sprintf(_addString, "%d", (int)data.verticalMazeArr[data.verticalMazeArraySize-1]);
     strcat(verticalArrString, _addString);
 
 
-    sprintf(responseString, "{%d, [%s], [%s]}", data.id, horizontalArrString, verticalArrString);
+    sprintf(responseString, "{\"id\": %d, \"horiArr\": [%s], \"vertArr\":[%s]}", data.id, horizontalArrString, verticalArrString);
 
     return responseString;
 }
@@ -279,7 +295,10 @@ static enum MHD_Result respond(struct MHD_Connection *con,
     struct MHD_Response *response;
 
     // MAKE RESPONSE
-    response = MHD_create_response_from_buffer(bufferLen, buffer, memoryMode);
+    if (SERVERTYPE == 1)
+        response = MHD_create_response_from_buffer_static(bufferLen, buffer);
+    else
+        response = MHD_create_response_from_buffer(bufferLen, buffer, memoryMode);
     // IF RESPONSE FAILED TO CREATE OR IS INVALID
     if (!response)
         return respond_error(con, MHD_HTTP_INTERNAL_SERVER_ERROR);
@@ -387,8 +406,8 @@ static enum MHD_Result answer_to_connection (void *cls,
             con_info->fileTypeInfo->type == JS ||
             con_info->fileTypeInfo->type == CSS) {
 
-            char *page = NULL;
-            int length;
+            char *page = 0;
+            long length;
             FILE * f = fopen (fileName, "rb");
             if (!f) {
                 if(VERBOSITY >= WARNINGS) printf("File does not exist: %s\n", fileName);
@@ -396,6 +415,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
 
             if (VERBOSITY == ALL) printf("fileOpened\n");
+
             length = sizeOfFile(f);
             page = malloc (length * sizeof(char));
 
@@ -405,9 +425,20 @@ static enum MHD_Result answer_to_connection (void *cls,
                 return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
             }
 
-            readTextFile(f, page);
+            if (SERVERTYPE == 1)
+                fread(page, 1, length, f);
+            else
+                readTextFile(f, page);
             fclose (f);
-            //MAKE HEADERS FOR RESPONSE
+
+            // struct  MHD_Response *response;
+            // enum MHD_Result ret;
+            // response = MHD_create_response_from_buffer_static(strlen(page),page);
+            // ret = MHD_queue_response(con, MHD_HTTP_OK, response);
+            // MHD_destroy_response(response);
+            // return ret;
+
+            // MAKE HEADERS FOR RESPONSE
             headersStruct headers = {
                 .contentType = con_info->fileTypeInfo->contentType,
                 .cacheControl = "no-cache" //should probably be changed to max-age=x later
@@ -473,16 +504,16 @@ static enum MHD_Result answer_to_connection (void *cls,
             if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
 
             // Process data
-            void* request = transformRequest(con_info->jsonData, con_info->requestType);
+            // void* request = transformRequest(con_info->jsonData, con_info->requestType);
             ExportData responseData;
 
-            if (!con_info->requestType)     // generationData
+            if (con_info->requestType == 0)     // generationData
             {
-                generationData *request = request;
+                generationData *request = transformRequest(con_info->jsonData, con_info->requestType);
                 responseData = generateMaze(*request);
             }
             else {                          // alterationData
-                alterationData *request = request;
+                alterationData *request = transformRequest(con_info->jsonData, con_info->requestType);
                 responseData = alterMaze(*request);
             }
 

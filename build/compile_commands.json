@@ -34,11 +34,5 @@
   "command": "/usr/bin/cc    -o CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c",
   "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/RequestManager/uploadstringToDataStruct.c",
   "output": "CMakeFiles/HTTP_test.dir/src/ServerSide/RequestManager/uploadstringToDataStruct.c.o"
-},
-{
-  "directory": "/home/kianh/stuff/p2/cs-26-sw-2-06/build",
-  "command": "/usr/bin/cc    -o CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o -c /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c",
-  "file": "/home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.c",
-  "output": "CMakeFiles/test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o"
 }
 ]

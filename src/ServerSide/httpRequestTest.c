@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "./MazeGeneration/generateMaze.h"
+#include "./Heatmap/heatmapGen.h"
 
 #include "DataTypes/requestDataTypes.h"
 #include "RequestManager/uploadstringToDataStruct.h"

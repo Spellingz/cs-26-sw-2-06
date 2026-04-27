@@ -57,10 +57,6 @@ typedef struct {
     struct MHD_PostProcessor *postProcessor;
 } connection_info_struct;
 
-struct keyStruct {
-    int diff, keyIndex;
-};
-
 typedef struct {
     char* contentType;
     char* cacheControl;
@@ -115,7 +111,7 @@ void readTextFile(FILE* f, char* str) {
     int c, i = 0;
     while ((c = getc(f)) != EOF) {
         //Makes sure that all \n are preceded by \r
-        if (c == '\n' && str[i - 1] != '\r') {
+        if (c == '\n' && (i == 0 || str[i - 1] != '\r')) {
             str[i++] = '\r';
             if (VERBOSITY == ALL) printf("Added \\r to string.\n");
         }
@@ -138,8 +134,7 @@ void readFile(FILE* f, char* buffer) {
 ///////////////
 
 int findKey(const char* key, char** keys) {
-    for(int i = 0; keys[i] != NULL; i++)
-    {
+    for(int i = 0; keys[i] != NULL; i++) {
         if (strcmp(key, keys[i]) == 0)
             return i;
     }
@@ -324,7 +319,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         // IF NO PAGE -> DEFAULT TO FRONTPAGE
         if (strcmp(url, "/") == 0) {
             requestURL = "/Frontpage.html";
-            con_info->fileTypeInfo = &SUPPORTED_FILE_TYPES[0];
+            con_info->fileTypeInfo = &SUPPORTED_FILE_TYPES[HTML];
         }
         // IF FILE TYPE IS UNSUPPORTED
         else if (con_info->fileTypeInfo == NULL) {

@@ -1,5 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-// #include "requestDataTypes.c"
+#include "changeMaze.h"
 
-alterMaze(Data data)
+ExportData alterMaze(alterationData data)
+{
+    ExportData x;
+    return x;
+}

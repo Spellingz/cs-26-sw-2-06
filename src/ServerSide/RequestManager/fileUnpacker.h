@@ -1,16 +1,9 @@
 #ifndef FILEUNPACKER_H
 #define FILEUNPACKER_H
+#include <stdio.h>
+#include <stdlib.h>
+#include "../DataTypes/requestDataTypes.h"
 
-typedef struct Data {
-    int id;
-    double door;
-    int x_size;
-    int y_size;
-    double branches;
-    double loops;
-    double straightness;
-}Data;
-
-Data unpackFile(int id);
+void unpackFile(bool type, int id, void* data);
 
 #endif

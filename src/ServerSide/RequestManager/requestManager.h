@@ -1,10 +1,19 @@
 #ifndef REQUESTMANAGER_H
 #define REQUESTMANAGER_H
-#include <fileUnpacker.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../DataTypes/requestDataTypes.h"
+#include "fileUnpacker.h"
+
+typedef struct TopRequest {
+    bool type;
+    void* data;
+} TopRequest; 
 
 typedef struct QueueNode {
+    bool dataType;
     int queueId;
-    QueueNode* next;
+    struct QueueNode* next;
 } QueueNode;
 
 typedef struct Queue {
@@ -15,11 +24,8 @@ typedef struct Queue {
 
 void addRequest(int id, Queue* queue);
 
-
-Data getTopRequest(Queue* queue);
+TopRequest popTopRequest(Queue* queue);
 
 bool checkRequests(Queue queue);
-
-
 
 #endif

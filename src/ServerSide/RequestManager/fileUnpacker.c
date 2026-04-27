@@ -1,14 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <fileUnpacker.h>
+#include "fileUnpacker.h"
 
-
-
-
-Data unpackFile(int id)
+void unpackFile(bool type, int id, void* data)
 {
-    Data data;
-
     char filename[50];
     sprintf(filename, "%d.json", id);
 
@@ -17,26 +10,40 @@ Data unpackFile(int id)
     printf("Looking for file: %s\n", filename);
 
     if (file == NULL) {
-        printf("Error opening file\n");
-        data.id = -1;
-        return data;
+        printf("Error opening file - Data corrupt or does not exist\n");
+        free(data);
+        data = NULL;
+        return;
     }
 
-    fscanf(file,
-    "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
-    &data.id,
-    &data.door,
-    &data.x_size,
-    &data.y_size,
-    &data.branches,
-    &data.loops,
-    &data.straightness
-);
+    if (!type) // generationData
+    {
+        generationData* data = (generationData*)data;
 
+        fscanf(file,
+        "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
+            &data->id,
+            &data->door,
+            &data->x_size,
+            &data->y_size,
+            &data->branches,
+            &data->loops,
+            &data->straightness
+            );
+    } 
+    else { //alterationData
+        alterationData* data = (alterationData*)data;
+
+        // fscanf(file,
+        // "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
+        //     &data->id,
+        //     &data->door,
+        //     &data->x_size,
+        //     &data->y_size,
+        //     &data->branches,
+        //     &data->loops,
+        //     &data->straightness
+        //     );
+    }
     fclose(file);
-
-
-
-
-    return data;
 }

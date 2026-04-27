@@ -3,61 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-// #include "mazeDataTypes.c"
+#include "../DataTypes/requestDataTypes.h"
+#include "../DataTypes/mazeDataTypes.h"
+#include "generateMaze.h"
 
-
-typedef struct ExportData {int x;} ExportData;
-typedef struct Data {} Data;
-
-typedef enum {
-    UP = 0,
-    DOWN = 1,
-    LEFT = 0,
-    RIGHT = 1,
-} Direction;
-
-typedef enum {
-	AIR = 0,
-	WALL = 1,
-} Type;
-
-typedef struct {
-	bool type;
-	bool direction;
-    union {
-        bool isLoop;
-        char closedSides;
-    };
-} Wall;
-
-const Wall DefaultWall = {
-    .type = WALL,
-    .direction = 0,
-    .closedSides = 0,
-};
-
-typedef struct {short x,y;} Point;
-
-typedef struct {
-	char dir;
-	Point start;
-	Point end;
-	Wall* walls;
-} Path;
-
-typedef struct {
-    unsigned short x, y;
-} MazeSize;
-
-typedef struct {
-    long horizontal, vertical;
-} MazeWallCount;
-
-typedef struct {
-    MazeWallCount wallCount;
-    Wall *horizontalArr;
-    Wall *verticalArr;
-} MazeStruct;
 
 float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
               float BranchPriority);
@@ -250,7 +199,7 @@ Point indexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
         return (Point){index / (mazeSize.y-1), index % (mazeSize.y-1)};
 }
 
-ExportData generateMaze(Data data) {
+ExportData generateMaze(generationData data) {
     // MazeSize size = {data.size.x, data.size.y};
     MazeSize size = {24,26};
     MazeStruct *maze = fillWalls(size);
@@ -442,6 +391,6 @@ float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeS
 
 
 int main(void) {
-    Data data;
+    generationData data;
     generateMaze(data);
 }

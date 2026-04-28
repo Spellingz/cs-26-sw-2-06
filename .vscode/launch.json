@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/kianh/Documents/GitHub/cs-26-sw-2-06/src/ServerSide",
-      "program": "c:/Users/kianh/Documents/GitHub/cs-26-sw-2-06/src/ServerSide/build/Debug/outDebug",
+      "cwd": "c:/Users/kianh/Documents/GitHub/cs-26-sw-2-06/src/ServerSide/DataTypes",
+      "program": "c:/Users/kianh/Documents/GitHub/cs-26-sw-2-06/src/ServerSide/DataTypes/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

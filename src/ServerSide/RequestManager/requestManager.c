@@ -1,32 +1,49 @@
-#include <stdio.h>
-#include <stdlib.h>
-// #include "requestDataTypes.h"
+#include "requestManager.h"
 
-typedef struct Data Data;
-typedef struct ExportData ExportData;
 
-void checkRequests()
-{
-    //Check queue for requests
+bool checkRequests(Queue queue){
+    return queue.first != NULL;
 }
 
-Data getTopRequest()
-{
-    id = 0; // get top id of queue
+TopRequest popTopRequest(Queue *queue){
+    int id = queue->first->queueId;
+    QueueNode *node = queue->first;
 
-    Data data = unpackFile(id);
+    if (queue->first == queue->last){
+        queue->last = NULL;
+    }
 
-    return data;
+    queue->first = queue->first->next;
+
+    TopRequest request;
+    request.type = node->dataType;
+    if (!request.type) // generationData
+        request.data = malloc(sizeof(generationData));
+    else // alterationData
+        request.data = malloc(sizeof(alterationData));
+
+    unpackFile(request.type, id, request.data);
+
+    free(node);
+
+    return request;
 }
 
-void addRequest(int id)
-{
-    //Add a request to queue
+void addRequest(int id, Queue *queue){
+    QueueNode *node = malloc(sizeof(QueueNode));
+    node->queueId = id;
+    if (queue->last == NULL){
+        queue->first = node;
+        queue->last = node;
+    }
+    else {
+        queue->last->next = node;
+        queue->last = node;
+    }
 }
 
-void exportData(ExportData data)
-{
-    //Pack ExportData to file
-    string stringifiedData = packExportData(data);
-    returnExportData(stringifiedData); //somehow
+void exportData(ExportData data){
+    // Pack ExportData to file (Use magic)
+    // char *stringifiedData = packExportData(data);
+    // return ExportData(stringifiedData); // somehow
 }

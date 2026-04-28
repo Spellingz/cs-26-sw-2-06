@@ -17,7 +17,7 @@ function DoorParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the doors to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the doors to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
@@ -28,7 +28,7 @@ function DoorParameter() {
     output.innerHTML = '';
     output.insertAdjacentHTML('beforeend', html);
 
-    //for the slyder
+    //for the slider
     const rangeEl = document.querySelector('input');
     const percentage = document.querySelector('.percentage');
     const percentageSpan = document.querySelector('.percentage span');
@@ -52,7 +52,7 @@ function SaveInformationInputDoor () {
 function SizeParameter() {
     let html = `
     <div id="Boks">
-            <div id="IndputGroup" style="color: #000047;">
+            <div id="inputGroup" style="color: #000047;">
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">HEIGHT</p>
                 <input id="HeightInput" style="height: 25px; width: 150px;" />
                 <br>
@@ -63,7 +63,7 @@ function SizeParameter() {
 
             <div id="InfoBoks" style="color: #000047;">
                 <h3>INFORMATION:</h3>
-                <p style="margin-right:20px;">Please input you disired value for the size of the maze</p>
+                <p style="margin-right:20px;">Please input your desired value for the size of the maze</p>
                 <p style="font-weight: bolder;">Max Height: ???</p>
                 <p style="font-weight: bolder;">Max Width: ???</p>
                 <p style="font-weight: bolder;">Min Height: ???</p>
@@ -113,7 +113,7 @@ function BranchesParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the branches to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the branches to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
@@ -163,7 +163,7 @@ function LoopsParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the loops to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the loops to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
@@ -173,7 +173,7 @@ function LoopsParameter() {
     output.innerHTML = '';
     output.insertAdjacentHTML('beforeend', html);
     
-    //for the slyder
+    //for the slider
     const rangeEl = document.querySelector('input');
     const percentage = document.querySelector('.percentage');
     const percentageSpan = document.querySelector('.percentage span');
@@ -214,7 +214,7 @@ function StraightnessParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input you disired percentage, that you want the straightness to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the straightness to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
@@ -224,7 +224,7 @@ function StraightnessParameter() {
     output.innerHTML = '';
     output.insertAdjacentHTML('beforeend', html);
 
-    //for the slyder
+    //for the slider
     const rangeEl = document.querySelector('input');
     const percentage = document.querySelector('.percentage');
     const percentageSpan = document.querySelector('.percentage span');

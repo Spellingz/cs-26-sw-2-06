@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "../DataTypes/requestDataTypes.h"
 #include "../DataTypes/mazeDataTypes.h"
 #include "generateMaze.h"
@@ -352,7 +353,45 @@ Wall *popRandomFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, Maz
 }
 
 
+void SaveMaze(MazeStruct maze, int id) {
+    char fileName[30];
+    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
 
+    FILE* f = fopen(fileName, "w");
+    if (!f) return;
+
+    char* filecontents = malloc(sizeof(char) * ((maze.wallCount.horizontal + maze.wallCount.vertical) * 8 + 200));
+    if (!filecontents) return;
+    char* _buffer = malloc(sizeof(char) * ((maze.wallCount.horizontal + maze.wallCount.vertical) * 8 + 200));
+    if (!_buffer) {
+        free(filecontents);
+        return;
+    }
+    filecontents[0] = _buffer[0] = '\n';
+
+    sprintf(filecontents, "{\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n",
+        maze.wallCount.horizontal, maze.wallCount.vertical);
+
+    for (int arrayNumber = 0; arrayNumber < 2; arrayNumber++) {
+        strcat(filecontents, arrayNumber == 0 ? "  \"horizontalMazeArr\": [" : "  \"verticalMazeArr\": [");
+
+        int arraySize = arrayNumber == 0 ? maze.wallCount.horizontal : maze.wallCount.vertical;
+        for (int i = 0; i < arraySize; i++) {
+            Wall wall = arrayNumber == 0 ? maze.horizontalArr[i] : maze.verticalArr[i];
+
+            sprintf(_buffer, i != arraySize - 1 ? "[%d, %d], " : "[%d, %d]", wall.type, wall.direction);
+            strcat(filecontents, _buffer);
+        }
+        strcat(filecontents, arrayNumber == 0 ? "], \n" : "]\n");
+    }
+    strcat(filecontents, "}");
+    printf("%s\n", filecontents);
+    fprintf(f, "%s", filecontents);
+    printf("printed");
+    fclose(f);
+    free(filecontents);
+    free(_buffer);
+}
 
 ExportData generateMaze(generationData data) {
     MazeSize size = {data.x_size, data.y_size};
@@ -390,6 +429,8 @@ ExportData generateMaze(generationData data) {
 
     bool* horizontalBoolArr = convertWallArrToBoolArr(maze->horizontalArr, maze->wallCount.horizontal);
     bool* verticalBoolArr = convertWallArrToBoolArr(maze->verticalArr, maze->wallCount.vertical);
+
+    SaveMaze(*maze, 7);
 
     ExportData finishedMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalBoolArr, verticalBoolArr};
 

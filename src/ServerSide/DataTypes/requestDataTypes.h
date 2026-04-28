@@ -11,7 +11,7 @@ typedef struct alterationData {
     int id;
     bool isHorizontal;
     int wallIndex;
-    int alterationType;
+    enum alterationType alterationType;
 }   alterationData;
 
 typedef struct generationData {

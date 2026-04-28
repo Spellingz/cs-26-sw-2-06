@@ -6,34 +6,66 @@ let maze = {
 };
 
 function sendmazeinfo(){
-    let door = document.getElementById('rangeDoor').value;
-    let height = document.getElementById('HeightInput').value;
-    let width = document.getElementById('WidthInput').value;
-    let branches = document.getElementById('rangeBranches').value;
-    let loops = document.getElementById('rangeLoops').value;
-    let straightness = document.getElementById('rangeStraightness').value;
+    // let door = document.getElementById('rangeDoor').value;
+    let height          = sessionStorage.getItem('inputSizeHeight');
+    let width           = sessionStorage.getItem('inputSizeWidth');
+    let door            = sessionStorage.getItem('inputDoor')/100;
+    let branches        = sessionStorage.getItem('inputBranches')/100;
+    let loops           = sessionStorage.getItem('inputLoops')/100;
+    let straightness    = sessionStorage.getItem('inputStraightness')/100;
+
+    maze.height = height;
+    maze.width = width;
 
 
     let mazeVariables = {
-        'SessionId': 1,
-        'Door': door,
-        'Size_Width': width,
-        'Size_height': height,
-        'Branches': branches,
-        'Loops': loops,
-        'Straightness': straightness
-    }
+        "type":             0,
+        "id":               12345678,
+        "door":             door,
+        "x_size":           width,
+        "y_size":           height,
+        "branches":         branches,
+        "loops":            loops,
+        "straightness":     straightness
+    };
+    let str = new URLSearchParams(Object.entries(mazeVariables)).toString();
 
-    fetch ('WWW.com', {method: 'POST', body: JSON.stringify(mazeVariables)})
-    .then(response => response.json())
-    .then(response => {
-        maze.horizontalWalls = response.serverHorizontalWalls;
-        maze.verticalWalls = response.serverVerticalWalls;
-        maze.height = height;
-        maze.width = width;
+    // var str = [];
+    // for (var key in mazeVariables) {
+    //     if(Object.hasOwnProperty(key)) {
+    //         str.push(`${ encodeURIComponent(key) } = ${ encodeURIComponent(mazeVariables[key]) }`);
+    //         console.log(key + " -> " + mazeVariables[key]);
+    //     }
+    // }
+    // str.join("&");
 
-        visualMaze();
-    })
+    console.log("body input string: '" + str + "'");
+
+    fetch ('http://localhost:8888', 
+        {method: 'POST', 
+        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
+        body: str
+        // body: 'type=0&id=12345678&door=0&x_size=3&y_size=3&branches=0.60&loops=0.0&straightness=0.54'
+        })
+    .then(result => result.json())
+    .then(result => {
+        maze.id = result.id;
+        maze.horizontalWalls = result.horiArr;
+        maze.verticalWalls = result.vertArr;
+        console.log("response: ", maze.id, maze.horizontalWalls, maze.verticalWalls);
+    });
+
+
+    // fetch ('WWW.com', {method: 'POST', body: JSON.stringify(mazeVariables)})
+    // .then(response => response.json())
+    // .then(response => {
+    //     maze.horizontalWalls = response.serverHorizontalWalls;
+    //     maze.verticalWalls = response.serverVerticalWalls;
+    //     maze.height = height;
+    //     maze.width = width;
+
+    //     visualMaze();
+    // })
 }
 
 //from array to visual maze printet on website

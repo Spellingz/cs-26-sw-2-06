@@ -242,8 +242,8 @@ function StraightnessParameter() {
 //confirm button save information
 function SaveInformationInputStraightness () {
     let inputStraightness = document.getElementById('rangeStraightness').value;
-    console.log('saved percentage for Straightness input:', inputStraightness);
     sessionStorage.setItem('inputStraightness', inputStraightness);
+    console.log('ssaved percentage for Straightness input:', document.getElementById('rangeStraightness').value);
 }
 
 

@@ -171,7 +171,17 @@ static enum MHD_Result process_post (void *coninfo_cls,
     connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-    char *keyArray[9] = {"type", "id", "door", "x_size", "y_size", "branches", "loops", "straightness", NULL};
+    char *keyArray[9] = {
+        "type", 
+        "id", 
+        "door", 
+        "x_size", 
+        "y_size", 
+        "branches", 
+        "loops", 
+        "straightness", 
+        NULL
+        };
     int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
         return MHD_YES;

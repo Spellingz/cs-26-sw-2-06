@@ -386,7 +386,7 @@ ExportData generateMaze(generationData data) {
 
         rndFrontier->type = AIR;
     }
-    // printMaze(*maze, size);
+    printMaze(*maze, size);
 
     bool* horizontalBoolArr = convertWallArrToBoolArr(maze->horizontalArr, maze->wallCount.horizontal);
     bool* verticalBoolArr = convertWallArrToBoolArr(maze->verticalArr, maze->wallCount.vertical);

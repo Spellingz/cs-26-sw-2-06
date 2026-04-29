@@ -1,72 +1,75 @@
+#include <string.h>
+#include "../Maze/maze.h"
 #include "changeMaze.h"
 
-typedef struct {
-    int type;
-    int direction;
-} changeWall;
-
-typedef struct {
-    unsigned horizontal;
-    unsigned vertical;
-} mazeWallCount;
-
-typedef struct {
-    changeWall *verticalWalls;
-    changeWall *horizontalWalls;
-    mazeWallCount count;
-} Maze;
 
 
-Maze* loadMaze(int id) {
-    char fileName[30];
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
+Wall *StepTowardsRoot(Maze maze, MazeSize size, Point *point) {
+    Wall *edge;
 
-    FILE* f = fopen(fileName, "r");
-    if (!f) return NULL;
-
-    Maze *maze = malloc(sizeof(Maze));
-    if (!maze) {
-        fclose(f);
-        return NULL;
-    }
-
-    fscanf(f, "{ \"horizontalMazeArraySize\": %d, \"verticalMazeArraySize\": %d,",
-        &maze->count.horizontal, &maze->count.vertical);
-    maze->horizontalWalls = malloc(sizeof(changeWall) * maze->count.horizontal);
-    if (!maze->horizontalWalls) {
-        free(maze);
-        fclose(f);
-        return NULL;
-    }
-    maze->verticalWalls = malloc(sizeof(changeWall) * maze->count.vertical);
-    if (!maze->verticalWalls) {
-        free(maze->horizontalWalls);
-        free(maze);
-        fclose(f);
-        return NULL;
-    }
-
-    fscanf(f, " \"horizontalMazeArr\": [");
-    for (int i = 0; fscanf(f, "[%d, %d]",
-        (int*)&maze->horizontalWalls[i].type, (int*)&maze->horizontalWalls[i].direction) == 2; i++) {
-        fscanf(f, ", ");
-    }
-    fscanf(f, "], ");
-
-    fscanf(f, " \"verticalMazeArr\": [");
-    for (int i = 0; fscanf(f, "[%d, %d]",
-        (int*)&maze->verticalWalls[i].type, (int*)&maze->verticalWalls[i].direction) == 2; i++) {
-        fscanf(f, ", ");
-        }
-    fscanf(f, " ] }");
-
-    fclose(f);
-
-    return maze;
+    return edge;
 }
 
-ExportData alterMaze(alterationData data)
-{
-    ExportData x;
-    return x;
+
+void MoveRoot(Maze maze, MazeSize size, Point newRoot) {
+
+    //for (Point point = newRoot; !(point.x == maze.root.x && point.y == maze.root.y); point = StepTowardsRoot(maze, size, point)) {
+
+    //}
+}
+
+
+
+
+AlterationExportData alterMaze(AlterationData data) {
+    Maze* maze = LoadMaze(data.id);
+    if (!maze) {
+        AlterationExportData returnData;
+        returnData.succeded = false;
+        return returnData;
+    }
+
+    switch (data.alterationType) {
+        case toggleWall:
+            if (data.perfectMaze == false) {
+                Wall *arr = data.isHorizontal ? maze->horizontalWalls : maze->verticalWalls;
+                Wall *wall = &arr[data.wallIndex];
+                wall->type = !wall->type;
+                SaveMaze(*maze, data.id);
+
+                free(maze->horizontalWalls);
+                free(maze->verticalWalls);
+                free(maze);
+
+                AlterationExportData returnData;
+                returnData.succeded = true;
+                returnData.wallCount = 0;
+                returnData.walls = NULL;
+                return returnData;
+            }
+            break;
+
+        case toggleDoor:
+            break;
+
+        default:
+            free(maze->horizontalWalls);
+            free(maze->verticalWalls);
+            free(maze);
+            AlterationExportData returnData;
+            returnData.succeded = false;
+            return returnData;
+    }
+
+
+}
+
+
+int main(void) {
+    AlterationData data = {
+        7, true, false, 2, toggleWall
+    };
+
+    alterMaze(data);
+    return 0;
 }

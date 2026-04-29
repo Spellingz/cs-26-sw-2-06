@@ -4,6 +4,6 @@
 #include <stdlib.h>
 #include "../DataTypes/requestDataTypes.h"
 
-ExportData alterMaze(alterationData data);
+AlterationExportData alterMaze(AlterationData data);
 
 #endif

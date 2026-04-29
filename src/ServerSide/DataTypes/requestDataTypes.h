@@ -7,14 +7,15 @@ enum alterationType {
     toggleDoor,
 };
 
-typedef struct alterationData {
+typedef struct {
     int id;
     bool isHorizontal;
+    bool perfectMaze;
     int wallIndex;
     enum alterationType alterationType;
-}   alterationData;
+}   AlterationData;
 
-typedef struct generationData {
+typedef struct {
     int id;
     double door;
     int x_size;
@@ -22,20 +23,30 @@ typedef struct generationData {
     double branches;
     double loops;
     double straightness;
-} generationData;
+} GenerationData;
 
-typedef struct queueDataType {
+typedef struct {
     int dataType;
     void* altdata;
-} queueDataType;
+} QueueDataType;
 
-typedef struct ExportData 
-{
+typedef struct {
     int id;
     int horizontalMazeArraySize, verticalMazeArraySize;
     //simplified 2d array into 1d with arrsize lengths of rows, hence size of rows-1*columns-1
     bool *horizontalMazeArr;  
     bool *verticalMazeArr;
 } ExportData;
+
+typedef struct {
+    bool isHorizontal;
+    int index;
+} ExportWall;
+
+typedef struct {
+    bool succeded;
+    int wallCount;
+    ExportWall* walls;
+} AlterationExportData;
 
 #endif

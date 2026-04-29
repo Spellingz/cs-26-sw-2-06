@@ -21,11 +21,13 @@ typedef struct {
 		COLDER,		// 5
 		COLDEST,	// 6
 	} heat;			// Heat index of the spot
-} spotHeat;
+} SpotHeat;
 
 int generateHeatmap();
 
 void checkHeat(MazeStruct maze);
+
+void printHeatmap(SpotHeat heatArray[]);
 
 
 

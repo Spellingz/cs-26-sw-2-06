@@ -30,14 +30,6 @@ function sendmazeinfo(){
     };
     let str = new URLSearchParams(Object.entries(mazeVariables)).toString();
 
-    // var str = [];
-    // for (var key in mazeVariables) {
-    //     if(Object.hasOwnProperty(key)) {
-    //         str.push(`${ encodeURIComponent(key) } = ${ encodeURIComponent(mazeVariables[key]) }`);
-    //         console.log(key + " -> " + mazeVariables[key]);
-    //     }
-    // }
-    // str.join("&");
 
     console.log("body input string: '" + str + "'");
 
@@ -55,28 +47,70 @@ function sendmazeinfo(){
         console.log("response: ", maze.id, maze.horizontalWalls, maze.verticalWalls);
     });
 
-
-    // fetch ('WWW.com', {method: 'POST', body: JSON.stringify(mazeVariables)})
-    // .then(response => response.json())
-    // .then(response => {
-    //     maze.horizontalWalls = response.serverHorizontalWalls;
-    //     maze.verticalWalls = response.serverVerticalWalls;
-    //     maze.height = height;
-    //     maze.width = width;
-
-    //     visualMaze();
-    // })
+    visualMaze();
 }
 
-//from array to visual maze printet on website
+//from array to visual maze printed on website
 function visualMaze() {
-    let generatedMaze  ;//set all the gathered JSON-output into this variable
+    let generatedMaze = maze;//set all the gathered JSON-output into this variable
+
+    let buttonArrVertical;
+    let buttonArrHorizontal;
+
+    let boxWidth = document.getElementById('generatedBoks').style.width; 
+    let widthPerOffset = boxWidth / maze.width;
+    let boxHeight = document.getElementById('generatedBoks').style.height;
+    let heightPerOffset = boxHeight / maze.height;
+
+    let wallButtonWidth = widthPerOffset/4;
+    let wallButtonHeight = heightPerOffset;
+
+    for (let i = 0; i < maze.x_size; i++) // Vertical wall loop
+    {
+        let xPos = (i % maze.verticalWalls) * widthPerOffset*2 + wallButtonWidth;
+        let yPos = (Math.floor(i / maze.verticalWalls)) * heightPerOffset;
+
+        //
+        //      Draw mazeWalls as canvas and get cursor position when clicking inside mazeBox (make it a button)
+        //
+
+        let html =`
+        <div id="generatedBoks">
+            <canvas id="mazeCanvas" height=" 
+        </div>
+        `;
+
+        buttonArrVertical[i] = button
+
+    }
+
+    for (let i = 0; i < maze.y_size; i++) // Horizontal wall loop
+    {
+        let xPos 
+    }
+
+
 
     let html =`
         <div id="generatedBoks">
-            ${generatedMaze}
+            <button class="wallButton"
+                style="background-color: transparent;
+                    alignitems: center; font-size: large;"
+            ${buttonArrVertical}>
+            |</button>
+
+            <button class="wallButton"
+                style="background-color: transparent;
+                    alignitems: center; font-size: large;"
+            ${buttonArrHorizontal}
+            -</button>
         </div>
     `;
+
+    for (x) // Set width, height and color 
+    {
+
+    }
     
     //printing into boks
     const output = document.getElementById("generatedOutput"); 

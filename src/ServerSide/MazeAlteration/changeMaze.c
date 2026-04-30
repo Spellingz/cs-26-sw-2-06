@@ -80,13 +80,3 @@ AlterationExportData alterMaze(AlterationData data) {
 
 
 }
-
-
-int main(void) {
-    AlterationData data = {
-        7, true, false, 2, toggleWall
-    };
-
-    alterMaze(data);
-    return 0;
-}

@@ -137,3 +137,11 @@ void SaveMaze(Maze maze, int id) {
     free(fileContents);
     free(_buffer);
 }
+
+void FreeMaze(Maze *maze) {
+    if (maze) {
+        if (maze->horizontalWalls) free(maze->horizontalWalls);
+        if (maze->verticalWalls) free(maze->verticalWalls);
+        free(maze);
+    }
+}

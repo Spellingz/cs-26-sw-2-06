@@ -37,9 +37,7 @@ AlterationExportData alterMaze(AlterationData data) {
                 wall->type = !wall->type;
                 SaveMaze(*maze, data.id);
 
-                free(maze->horizontalWalls);
-                free(maze->verticalWalls);
-                free(maze);
+                FreeMaze(maze);
 
                 AlterationExportData returnData;
                 returnData.succeded = true;

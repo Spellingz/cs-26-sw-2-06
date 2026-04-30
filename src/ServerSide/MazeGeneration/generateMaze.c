@@ -160,8 +160,10 @@ Wall *GenerationWallArrToWallArr(const GenerationWall* arr, unsigned long size) 
     return wallArr;
 }
 
-Maze GenerationMazeToMaze(GenerationMaze generationMaze) {
-    Maze maze = {
+Maze *GenerationMazeToMaze(GenerationMaze generationMaze) {
+    Maze* maze = malloc(sizeof(maze));
+    if (!maze) return NULL;
+    *maze = (Maze) {
         generationMaze.size,
         GenerationWallArrToWallArr(generationMaze.horizontalWalls, generationMaze.wallCount.horizontal),
         GenerationWallArrToWallArr(generationMaze.verticalWalls,   generationMaze.wallCount.vertical),
@@ -401,11 +403,10 @@ ExportData GenerateMaze(GenerationData data) {
     // printMaze(*maze, size);
 
 
-    Maze properMaze = GenerationMazeToMaze(*maze);
-    if (properMaze.horizontalWalls && properMaze.verticalWalls) SaveMaze(properMaze, 7);
+    Maze *properMaze = GenerationMazeToMaze(*maze);
+    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, 7);
 
-    if (properMaze.horizontalWalls) free(properMaze.horizontalWalls);
-    if (properMaze.verticalWalls)   free(properMaze.verticalWalls);
+    FreeMaze(properMaze);
 
 
     bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);

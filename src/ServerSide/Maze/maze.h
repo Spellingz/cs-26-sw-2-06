@@ -55,5 +55,6 @@ Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize);
 //Save/load
 Maze* LoadMaze(int id);
 void SaveMaze(Maze maze, int id);
+void FreeMaze(Maze *maze);
 
 #endif //HTTP_TEST_MAZE_H

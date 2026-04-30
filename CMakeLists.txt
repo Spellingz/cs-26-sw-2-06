@@ -16,7 +16,6 @@ set(SOURCES
 )
 
 add_executable(HTTP_test ${SOURCES})
-add_executable(Unnamed src/ServerSide/MazeAlteration/changeMaze.c src/ServerSide/Maze/maze.c)
 
 
 target_link_libraries(HTTP_test PRIVATE microhttpd)

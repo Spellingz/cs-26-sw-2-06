@@ -26,6 +26,12 @@ int GetLowerWallIndex(Point pos, MazeSize size) {
     return pos.y + pos.x * (size.y - 1);
 }
 
+/**
+ * RIGHT\n
+ * LEFT\n
+ * DOWN\n
+ * UP\n
+ */
 int *GetNeighbourWallIndices(MazeSize size, Point pos) {
     //GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
     int *indices = malloc(sizeof(int) * 4);

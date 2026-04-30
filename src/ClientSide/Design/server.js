@@ -54,6 +54,10 @@ function sendmazeinfo(){
 function visualMaze() {
     let generatedMaze = maze;//set all the gathered JSON-output into this variable
 
+    var canvas = document.getElementById("mazeCanvas");
+    var ctx = canvas.getContext("2d");
+    
+
     let buttonArrVertical;
     let buttonArrHorizontal;
 
@@ -62,58 +66,67 @@ function visualMaze() {
     let boxHeight = document.getElementById('generatedBoks').style.height;
     let heightPerOffset = boxHeight / maze.height;
 
-    let wallButtonWidth = widthPerOffset/4;
-    let wallButtonHeight = heightPerOffset;
-
-    for (let i = 0; i < maze.x_size; i++) // Vertical wall loop
+    for (let i = 1; i < maze.horizontalWalls.length; i++) // Vertical wall loop
     {
-        let xPos = (i % maze.verticalWalls) * widthPerOffset*2 + wallButtonWidth;
-        let yPos = (Math.floor(i / maze.verticalWalls)) * heightPerOffset;
+        let xPos = (i % maze.width) * widthPerOffset + wallButtonWidth;
+        let yPos = (Math.floor(i-1 / maze.height)) * heightPerOffset;
 
+        ctx.moveTo(xPos,yPos);
+        ctx.lineTo(xPos,yPos+heightPerOffset);
+        ctx.strokeStyle = buttonArrVertical[i-1] == 0 ? '#222222' : '#BBBBBB';
+        ctx.lineWidth = 2;
+        
+        ctx.stroke();
+        
+        // let html =`
+        // <div id="generatedBoks">
+        // <canvas id="mazeCanvas" height=" 
+        // </div>
+        // `;
+        // buttonArrVertical[i] = button
+        
+        
         //
         //      Draw mazeWalls as canvas and get cursor position when clicking inside mazeBox (make it a button)
         //
-
-        let html =`
-        <div id="generatedBoks">
-            <canvas id="mazeCanvas" height=" 
-        </div>
-        `;
-
-        buttonArrVertical[i] = button
-
     }
 
-    for (let i = 0; i < maze.y_size; i++) // Horizontal wall loop
+    for (let i = 1; i < maze.verticalWalls.length; i++) // Horizontal wall loop
     {
-        let xPos 
+        let xPos = (Math.floor(i-1 / maze.width)) * widthPerOffset;
+        let yPos = (i % maze.height) * heightPerOffset + wallButtonHeight;
+
+        ctx.moveTo(xPos,yPos);
+        ctx.lineTo(xPos+widthPerOffset,yPos);
+        ctx.strokeStyle = buttonArrHorizontal[i-1] == 0 ? '#222222' : '#BBBBBB';
+        ctx.lineWidth = 2;
+        
+        ctx.stroke();
     }
 
 
 
     let html =`
-        <div id="generatedBoks">
-            <button class="wallButton"
-                style="background-color: transparent;
-                    alignitems: center; font-size: large;"
-            ${buttonArrVertical}>
-            |</button>
-
-            <button class="wallButton"
-                style="background-color: transparent;
-                    alignitems: center; font-size: large;"
-            ${buttonArrHorizontal}
-            -</button>
-        </div>
-    `;
-
-    for (x) // Set width, height and color 
-    {
-
-    }
+    <div id="generatedBoks">
+        <canvas id="mazeCanvas" width=${boxWidth} height=${boxHeight} style="border:3px solid #000000;">></canvas>
     
+        <button class="wallButton"
+            style="background-color: transparent;
+                alignitems: center; font-size: large;"
+        ${buttonArrVertical}>
+        |</button>
+    
+        <button class="wallButton"
+            style="background-color: transparent;
+                alignitems: center; font-size: large;"
+        ${buttonArrHorizontal}
+        -</button>
+    </div>
+        `;
+
+            
     //printing into boks
-    const output = document.getElementById("generatedOutput"); 
-    output.innerHTML = '';
-    output.insertAdjacentHTML('beforeend', html);
+    // const output = document.getElementById("generatedOutput"); 
+    // output.innerHTML = '';
+    // output.insertAdjacentHTML('beforeend', html);
 }

@@ -30,11 +30,39 @@ int StepTowardsRoot(const Direction *neighbourDirections, Point *point) {
 }
 
 
-void MoveRoot(Maze maze, MazeSize size, Point newRoot) {
+void MoveRoot(Maze *maze, MazeSize size, Point newRoot) {
+    Wall **path = malloc(sizeof(Wall) * size.x * size.y);
+    int pathLength = 0;
 
-    //for (Point point = newRoot; !(point.x == maze.root.x && point.y == maze.root.y); point = StepTowardsRoot(maze, size, point)) {
+    Point point = newRoot;
+    while (!(point.x == maze->root.x && point.y == maze->root.y)) {
+        int *indices = GetNeighbourWallIndices(size, point);
+        Wall *neighbours[4] = {
+            indices[0] ? &maze->horizontalWalls[indices[0]] : NULL,
+            indices[1] ? &maze->horizontalWalls[indices[1]] : NULL,
+            indices[2] ? &maze->verticalWalls[indices[2]]   : NULL,
+            indices[3] ? &maze->verticalWalls[indices[3]]   : NULL,
+        };
+        free(indices);
+        
+        Direction directions[4] = {
+            neighbours[0] ? neighbours[0]->direction : -1,
+            neighbours[1] ? neighbours[1]->direction : -1,
+            neighbours[2] ? neighbours[2]->direction : -1,
+            neighbours[3] ? neighbours[3]->direction : -1,
+        };
 
-    //}
+        int chosenNeighbourIndex = StepTowardsRoot(directions, &point);
+        if (chosenNeighbourIndex != -1)
+            path[pathLength++] = neighbours[chosenNeighbourIndex];
+    }
+
+    for (int i = 0; i < pathLength; i++) {
+        path[pathLength]->direction = !path[pathLength]->direction;
+    }
+    free(path);
+
+    maze->root = newRoot;
 }
 
 

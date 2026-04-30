@@ -108,7 +108,7 @@ int sizeOfFile(FILE* f) {
         while (getc(f) != EOF) {
             count++;
         }
-        return count;
+        return count + 1;
     }
     fseek(f, 0, SEEK_END);
     int length = ftell(f);
@@ -526,19 +526,18 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             // Process data
             // void* request = transformRequest(con_info->jsonData, con_info->requestType);
-            ExportData responseData;
-
+            char* responseString;
             if (con_info->requestType == 0)     // generationData
             {
                 GenerationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                responseData = GenerateMaze(*request);
+                ExportData responseData = GenerateMaze(*request);
+                responseString = exportDataToString(responseData);
             }
             else {                          // alterationData
                 AlterationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                responseData = alterMaze(*request);
+                AlterationExportData responseData = alterMaze(*request);
+                responseString = alterationExportDataToString(responseData);
             }
-
-            char* responseString = exportDataToString(responseData);
 
 
             headersStruct headers = {

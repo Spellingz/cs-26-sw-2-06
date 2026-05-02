@@ -4,14 +4,14 @@ void* transformRequest(char *uploadstring, bool type)
 {
     if (type == 0)
     {
-        GenerationData *request = malloc(sizeof(GenerationData));
+        generationData *request = malloc(sizeof(generationData));
         // sscanf(uploadstring, "%d|%lf|%d|%d|%lf|%lf|%lf", &request->id, &request->door, &request->x_size, &request->y_size, &request->branches, &request->loops, &request->straightness);
         sscanf(uploadstring, "{(id, %d), (door, %lf), (x_size, %d), (y_size, %d), (branches, %lf), (loops, %lf), (straightness, %lf), }", &request->id, &request->door, &request->x_size, &request->y_size, &request->branches, &request->loops, &request->straightness);
         // printf("scanf: %d\n", sscanf(uploadstring, "{(id, %d), (door, %lf), (x_size, %d), (y_size, %d), (branches, %lf), (loops, %lf), (straightness, %lf), }", &request->id, &request->door, &request->x_size, &request->y_size, &request->branches, &request->loops, &request->straightness));
         return request;
     }
     else {
-        AlterationData *request = malloc(sizeof(AlterationData));
+        alterationData *request = malloc(sizeof(alterationData));
         sscanf(uploadstring, "(id, %d), (isHorizontal, %d), (wallIndex, %d), (alterationType, %d), ", &request->id, (int*)&request->isHorizontal, &request->wallIndex, &request->alterationType);
         return request;
     }

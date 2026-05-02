@@ -108,7 +108,7 @@ int sizeOfFile(FILE* f) {
         while (getc(f) != EOF) {
             count++;
         }
-        return count;
+        return count + 1;
     }
     fseek(f, 0, SEEK_END);
     int length = ftell(f);
@@ -249,6 +249,27 @@ char *exportDataToString(ExportData data)
     return responseString;
 }
 
+char* alterationExportDataToString(AlterationExportData data) {
+    char* responseString = malloc(sizeof(char) * (data.wallCount * 8 + 200));
+    if (!responseString) return "";
+    char* _buffer = malloc(sizeof(char) * (data.wallCount * 8 + 200));
+    if (!_buffer) {
+        free(responseString);
+        return "";
+    }
+    responseString[0] = _buffer[0] = '\n';
+
+    sprintf(responseString, "{\n  \"walls\": [");
+
+    for (int i = 0; i < data.wallCount; i++) {
+        sprintf(_buffer, i != data.wallCount - 1 ? "[%d, %d], " : "[%d, %d]",
+            data.walls[i].isHorizontal, data.walls[i].index);
+        strcat(responseString, _buffer);
+    }
+    strcat(responseString,  "]\n}");
+    free(_buffer);
+    return responseString;
+}
 
 
 //////////////////////////////////
@@ -515,19 +536,18 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             // Process data
             // void* request = transformRequest(con_info->jsonData, con_info->requestType);
-            ExportData responseData;
-
+            char* responseString;
             if (con_info->requestType == 0)     // generationData
             {
-                generationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                responseData = generateMaze(*request);
+                GenerationData *request = transformRequest(con_info->jsonData, con_info->requestType);
+                ExportData responseData = GenerateMaze(*request);
+                responseString = exportDataToString(responseData);
             }
             else {                          // alterationData
-                alterationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                responseData = alterMaze(*request);
+                AlterationData *request = transformRequest(con_info->jsonData, con_info->requestType);
+                AlterationExportData responseData = alterMaze(*request);
+                responseString = alterationExportDataToString(responseData);
             }
-
-            char* responseString = exportDataToString(responseData);
 
 
             headersStruct headers = {

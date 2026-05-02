@@ -1,38 +1,13 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include "../DataTypes/requestDataTypes.h"
-#include "../Maze/maze.h"
+#include "../DataTypes/mazeDataTypes.h"
 #include "generateMaze.h"
 
-
-typedef struct {
-    bool type;
-    bool direction;
-    union {
-        bool isLoop;
-        char closedSides;
-    };
-} GenerationWall;
-
-const GenerationWall DEFAULT_WALL = {
-    .type = WALL,
-    .direction = 0,
-    .closedSides = 0,
-};
-
-typedef struct {
-    MazeSize size;
-    MazeWallCount wallCount;
-    GenerationWall *horizontalWalls;
-    GenerationWall *verticalWalls;
-    Point root;
-} GenerationMaze;
-
-
-
-void PrintMaze(GenerationMaze maze, MazeSize size) {
+void printMaze(MazeStruct maze, MazeSize size) {
     int h = 0, v = 0;
     printf("+");
     for (int i = 0; i < size.x * 2 - 1; i++) printf("-");
@@ -41,7 +16,7 @@ void PrintMaze(GenerationMaze maze, MazeSize size) {
         if (i % 2 == 0) {
             printf("|");
             for(int j = 0; j < size.x - 1; j++, h++) {
-                GenerationWall wall = maze.horizontalWalls[h];
+                Wall wall = maze.horizontalArr[h];
                 printf(" %c", wall.type ? wall.closedSides == 1 ? 'I' : '|' : wall.direction ? '>' : '<');
             }
             printf(" |");
@@ -49,7 +24,7 @@ void PrintMaze(GenerationMaze maze, MazeSize size) {
         else {
             printf("+");
             for(int j = 0; j < size.x; j++, v++) {
-                GenerationWall wall = maze.verticalWalls[(v % size.x) * (size.y - 1) + v/size.x];
+                Wall wall = maze.verticalArr[(v % size.x) * (size.y - 1) + v/size.x];
                 printf("%c+", wall.type ? wall.closedSides == 1 ? '~' : '-' : wall.direction ? 'v' : '^');
             }
         }
@@ -60,55 +35,78 @@ void PrintMaze(GenerationMaze maze, MazeSize size) {
     printf("+\n\n");
 }
 
-void FreeMemory(GenerationMaze* maze, GenerationWall** frontiers) {
-    if (maze && maze->horizontalWalls) free(maze->horizontalWalls);
+void freeMemory(MazeStruct* maze, Wall** frontiers) {
+    if (maze && maze->horizontalArr) free(maze->horizontalArr);
     if (maze) free(maze);
     if (frontiers) free(frontiers);
 }
 
-GenerationMaze *FillWalls(MazeSize size) {
+MazeStruct *fillWalls(MazeSize size) {
     //Amount of horizontal walls are (width-1) times height. Opposite for vertical
     MazeWallCount wallCount = {(size.x - 1) * size.y, (size.y - 1) * size.x};
-    GenerationMaze *maze = malloc(sizeof(GenerationMaze));
-    if (!maze) return FreeMemory(maze, NULL), NULL;
+    MazeStruct *maze = malloc(sizeof(MazeStruct));
+    if (!maze) return freeMemory(maze, NULL), NULL;
     //Allocating a memory block that can hold both arrays. This increases cache friendliness
-    GenerationWall *block = malloc(sizeof(GenerationWall) * wallCount.horizontal + sizeof(GenerationWall) * wallCount.vertical);
-    if (!block) return FreeMemory(maze, NULL), NULL;
-    maze->size = size;
+    Wall *block = malloc(sizeof(Wall) * wallCount.horizontal + sizeof(Wall) * wallCount.vertical);
+    if (!block) return freeMemory(maze, NULL), NULL;
     maze->wallCount = wallCount;
-    maze->horizontalWalls = block; //First array begins at the start of the block
-    maze->verticalWalls = block + maze->wallCount.horizontal; //Second array begins right after the first one
+    maze->horizontalArr = block; //First array begins at the start of the block
+    maze->verticalArr = block + maze->wallCount.horizontal; //Second array begins right after the first one
 
     for (int i = 0; i < maze->wallCount.horizontal; i++) {
-        maze->horizontalWalls[i] = DEFAULT_WALL;
+        maze->horizontalArr[i] = DefaultWall;
     }
     for (int j = 0; j < maze->wallCount.vertical ; j++) {
-        maze->verticalWalls[j] = DEFAULT_WALL;
+        maze->verticalArr[j] = DefaultWall;
     }
     return maze;
 }
 
-GenerationWall **GetNeighbourWalls(GenerationMaze maze, MazeSize size, Point pos) {
-    int* indices = GetNeighbourWallIndices(size, pos);
-    if (!indices) return NULL;
+int getRightWallIndex(Point pos, MazeSize size) {
+    //Returns the index in horizontalArr of the wall to the right of the point
+    if (pos.x < 0 || pos.x >= size.x - 1 || pos.y < 0 || pos.y >= size.y)
+        //Out of bounds
+        return -1;
 
-    GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
+    return pos.x + pos.y * (size.x - 1);
+}
+
+int getLowerWallIndex(Point pos, MazeSize size) {
+    //Returns the index in verticalArr of the wall below the point
+    if (pos.x < 0 || pos.x >= size.x || pos.y < 0 || pos.y >= size.y - 1)
+        //Out of bounds
+        return -1;
+
+    return pos.y + pos.x * (size.y - 1);
+}
+
+Wall **getNeighbourWalls(MazeStruct maze, MazeSize size, Point pos) {
+    Wall **neighbourWalls = malloc(sizeof(Wall*)*4);
+
+    //Gets the indexes of the neighbouring walls in their respective arrays
+    int index[4] = {
+        getRightWallIndex((Point){pos.x, pos.y}, size),
+        getRightWallIndex((Point){pos.x-1, pos.y}, size),
+        getLowerWallIndex((Point){pos.x, pos.y}, size),
+        getLowerWallIndex((Point){pos.x, pos.y-1}, size),
+    };
+
     //Uses the indexes to get pointers to the neighbouring walls
     for (int i = 0; i < 4; i++) {
-        if (indices[i] == -1)
+        if (index[i] == -1) 
             neighbourWalls[i] = NULL;
         else if (i<2)
-            neighbourWalls[i] = &maze.horizontalWalls[indices[i]];
+            neighbourWalls[i] = &maze.horizontalArr[index[i]];
         else
-            neighbourWalls[i] = &maze.verticalWalls[indices[i]];
+            neighbourWalls[i] = &maze.verticalArr[index[i]];
     }
-    free(indices);
     return neighbourWalls;
 }
 
-void AddNeighboursToFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze, MazeSize size, Point pos) {
+
+void addNeighboursToFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, MazeSize size, Point pos) {
     //Adds the up to four neighbour walls of a point to the frontier array if they have not been added already
-    GenerationWall **neighbourWalls = GetNeighbourWalls(maze, size, pos);
+    Wall **neighbourWalls = getNeighbourWalls(maze, size, pos);
     for (int i = 0; i < 4; i++) {
         //Skips the wall if it does not exist, or if it has at least one side in the maze.
         //Also increases the closed sides of the wall by one, since "pos" point is now becoming closed.
@@ -121,61 +119,47 @@ void AddNeighboursToFrontier(GenerationWall **frontier, int *frontierSize, Gener
     free(neighbourWalls);
 }
 
-typedef struct {
+typedef struct ArrIndexResult {
     bool isHorizontal;
     int index;
 } ArrIndexResult;
 
-ArrIndexResult GetArrayIndex(GenerationMaze maze, GenerationWall *frontierWall) {
+ArrIndexResult getArrayIndex(MazeStruct maze, Wall *frontierWall) {
     //Returns the index of the wall in its respective array, and whether it is in the horizontal array or not
 
     //If the pointer is between the first and last pointer in the vertical array
-    if (frontierWall >= maze.verticalWalls && frontierWall < maze.verticalWalls + maze.wallCount.vertical)
+    if (frontierWall >= maze.verticalArr && frontierWall < maze.verticalArr + maze.wallCount.vertical)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (ArrIndexResult){false, (int)(frontierWall - maze.verticalWalls)};
+        return (ArrIndexResult){0, (int)(frontierWall - maze.verticalArr)};
 
     //If the pointer is between the first and last pointer in the horizontal array
-    else if (frontierWall >= maze.horizontalWalls && frontierWall < maze.horizontalWalls + maze.wallCount.horizontal)
+    else if (frontierWall >= maze.horizontalArr && frontierWall < maze.horizontalArr + maze.wallCount.horizontal)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (ArrIndexResult){true, (int)(frontierWall - maze.horizontalWalls)};
+        return (ArrIndexResult){1, (int)(frontierWall - maze.horizontalArr)};
     else {
         printf("No Index Found!");
-        return (ArrIndexResult){false, -1}; //FallBack
+        return (ArrIndexResult){0, -1}; //FallBack
     }
 }
 
-bool *GenerationWallArrToBoolArr(const GenerationWall* arr, int size) {
-    bool *boolArr = malloc(sizeof(bool) * size);
-    if (!boolArr) return NULL;
+Point indexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
+    if (isHorizontal)
+        //Returns the position of the point just left of the wall.
+        return (Point){index % (mazeSize.x-1), index / (mazeSize.x-1)};
+    else
+        //Returns the position of the point just above the wall.
+        return (Point){index / (mazeSize.y-1), index % (mazeSize.y-1)};
+}
+bool *convertWallArrToBoolArr(Wall* arr, int size)
+{
+    bool* boolArr= malloc(sizeof(bool)*size);
     for (int i = 0; i < size; i++)
         boolArr[i] = arr[i].type;
     return boolArr;
 }
 
-Wall *GenerationWallArrToWallArr(const GenerationWall* arr, unsigned long size) {
-    Wall *wallArr = malloc(sizeof(Wall) * size);
-    if (!wallArr) return NULL;
-    for (int i = 0; i < size; i++)
-        wallArr[i] = (Wall) {arr[i].type, arr[i].direction};
-    return wallArr;
-}
 
-Maze *GenerationMazeToMaze(GenerationMaze generationMaze) {
-    Maze* maze = malloc(sizeof(maze));
-    if (!maze) return NULL;
-    *maze = (Maze) {
-        generationMaze.size,
-        GenerationWallArrToWallArr(generationMaze.horizontalWalls, generationMaze.wallCount.horizontal),
-        GenerationWallArrToWallArr(generationMaze.verticalWalls,   generationMaze.wallCount.vertical),
-        generationMaze.wallCount,
-        generationMaze.root
-    };
-    return maze;
-}
-
-
-float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMaze maze, MazeSize size,
-                       float straightnessPriority, float branchPriority) {
+float *frontierWeights(Wall **frontier, int frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority, float branchPriority) {
     float *frontierWeights = malloc(sizeof(float) * frontierSize);
     //We create an array with weights for each frontier, its just as big as the frontier array and each matches
     if (frontierWeights == NULL) return NULL;
@@ -191,9 +175,9 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
 
         for (int x = 0; x < size.x; x++) {
             Point position = {x, y};
-            int index = GetRightWallIndex(position, size);
+            int index = getRightWallIndex(position, size);
 
-            if (index != -1 && maze.horizontalWalls[index].type == AIR) {
+            if (index != -1 && maze.horizontalArr[index].type == AIR) {
                 //After getting all neighbors we are checking if if the right side, cuz we are moving right, is open
                 max_len_count++; //if yes, max_len_count is increased
             }
@@ -213,9 +197,9 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
 
         for (int y = 0; y < size.y; y++) {
             Point position = {x, y};
-            int index = GetLowerWallIndex(position, size);
+            int index = getLowerWallIndex(position, size);
 
-            if (index != -1 && maze.verticalWalls[index].type == AIR) {
+            if (index != -1 && maze.verticalArr[index].type == AIR) {
                 max_len_count++;
             } else {
                 if (max_len_count > max_len) {
@@ -230,13 +214,13 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
     //getting branch potential
     for (int i = 0; i < frontierSize; i++)
     {
-        ArrIndexResult arr = GetArrayIndex(maze, frontier[i]);
+        ArrIndexResult arr = getArrayIndex(maze, frontier[i]);
         //we use the get ArrindexResult to get the index of our frontier
 
-        Point position = IndexToPos(arr.isHorizontal, arr.index, size);
+        Point position = indexToPos(arr.isHorizontal, arr.index, size);
         //Then we get our position by using the indexToPos function
 
-        GenerationWall **neighbors = GetNeighbourWalls(maze, size, position);
+        Wall **neighbors = getNeighbourWalls(maze, size, position);
 
         if (arr.isHorizontal && frontier[i]->direction == LEFT)
         //now the indexToPos automatically shifts us to the left side, however, if our direction is left, we need to be on the right side
@@ -267,7 +251,7 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
 
         //Calculate straightness potential
         int straightnesscount = 0;
-        arr = GetArrayIndex(maze, frontier[i]);
+        arr = getArrayIndex(maze, frontier[i]);
         bool keepGoing = true;
 
         int index = arr.index;
@@ -275,7 +259,7 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
             if (arr.isHorizontal && frontier[i]->direction == LEFT)
             // four copies of the same function, I know its inefficient but dont touch.
             {
-                if ((index + 1) / (size.x-1) == index / (size.x-1) && maze.horizontalWalls[++index].type == AIR)
+                if ((index + 1) / (size.x-1) == index / (size.x-1) && maze.horizontalArr[++index].type == AIR)
                 //we are checking if the next step is open, if yes, we keep going and counting
                 {
                     straightnesscount++;
@@ -285,7 +269,7 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
             }
 
             else if (arr.isHorizontal && frontier[i]->direction == RIGHT) {
-                if ((index - 1) / (size.x-1) == index / (size.x-1) && maze.horizontalWalls[--index].type == AIR) {
+                if ((index - 1) / (size.x-1) == index / (size.x-1) && maze.horizontalArr[--index].type == AIR) {
                     straightnesscount++;
                 } else {
                     keepGoing = false;
@@ -293,7 +277,7 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
             }
 
             else if (!arr.isHorizontal && frontier[i]->direction == UP) {
-                if ((index + 1) / (size.y-1) == index / (size.y-1) && maze.verticalWalls[++index].type == AIR) {
+                if ((index + 1) / (size.y-1) == index / (size.y-1) && maze.verticalArr[++index].type == AIR) {
                     straightnesscount++;
                 } else {
                     keepGoing = false;
@@ -301,7 +285,7 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
             }
 
             else if (!arr.isHorizontal && frontier[i]->direction == DOWN) {
-                if ((index - 1) / (size.y-1) == index / (size.y-1) && maze.verticalWalls[--index].type == AIR) {
+                if ((index - 1) / (size.y-1) == index / (size.y-1) && maze.verticalArr[--index].type == AIR) {
                     straightnesscount++;
                 } else {
                     keepGoing = false;
@@ -325,9 +309,9 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
     return frontierWeights;
 }
 
-GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze, MazeSize size,
-                                  float straightnessPriority, float branchPriority) {
-    float *weights = FrontierWeights(frontier, *frontierSize, maze, size, straightnessPriority, branchPriority);
+Wall *popRandomFrontier(Wall **frontier, int *frontierSize, MazeStruct maze, MazeSize size, float straightnessPriority,
+                        float branchPriority) {
+    float *weights = frontierWeights(frontier, *frontierSize, maze, size, straightnessPriority, branchPriority);
 
     float total = 0.0f;
 
@@ -358,7 +342,7 @@ GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, 
     //Indexes: 0: 0.35, 1: 0.74, 2: 1.12, 3: 1.37 etc
     // 0.73 is below index 1 0.74. So our chosen index is 1.
 
-    GenerationWall *poppedFrontier = frontier[chosenIndex]; //now the frontier with index 2 is the one to get removed
+    Wall *poppedFrontier = frontier[chosenIndex]; //now the frontier with index 2 is the one to get removed
     //Moves the last element in the frontier to the deleted element's place
     frontier[chosenIndex] = frontier[--(*frontierSize)];
 
@@ -368,52 +352,48 @@ GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, 
 }
 
 
-ExportData GenerateMaze(GenerationData data) {
+
+
+ExportData generateMaze(generationData data) {
     MazeSize size = {data.x_size, data.y_size};
     // MazeSize size = {24,26};
-    GenerationMaze *maze = FillWalls(size);
+    MazeStruct *maze = fillWalls(size);
     if (!maze) return (ExportData){-1}; //crash
 
     int frontierSize = 0;
-    GenerationWall** frontiers = malloc(
-        sizeof(GenerationWall*) * maze->wallCount.horizontal +
-        sizeof(GenerationWall*) * maze->wallCount.vertical);
-    if (!frontiers)  return FreeMemory(maze, frontiers), (ExportData){-1}; //crash
+    Wall** frontiers = malloc(
+        sizeof(Wall*) * maze->wallCount.horizontal +
+        sizeof(Wall*) * maze->wallCount.vertical);
+    if (!frontiers)  return freeMemory(maze, frontiers), (ExportData){-1}; //crash
 
-    maze->root = (Point) {rand() % size.x, rand() % size.y};
-    AddNeighboursToFrontier(frontiers, &frontierSize, *maze, size, maze->root);
+    Point startPos = {rand() % size.x, rand() % size.y};
+    addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, startPos);
     while (frontierSize > 0) {
-        GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, size, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
+        Wall *rndFrontier = popRandomFrontier(frontiers, &frontierSize, *maze, size, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
         //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
         if (rndFrontier->closedSides >= 2) continue;
 
         //Gets the index of the wall in its corresponding array
-        ArrIndexResult arrIndex = GetArrayIndex(*maze, rndFrontier);
-        if (arrIndex.index == -1) return FreeMemory(maze, frontiers), (ExportData){-1}; //crash
+        ArrIndexResult arrIndex = getArrayIndex(*maze, rndFrontier);
+        if (arrIndex.index == -1) return freeMemory(maze, frontiers), (ExportData){-1}; //crash
 
         //Uses the index to get the position just above/to the left of the wall.
-        Point frontierPos = IndexToPos(arrIndex.isHorizontal, arrIndex.index, size);
+        Point frontierPos = indexToPos(arrIndex.isHorizontal, arrIndex.index, size);
         //If the wall has a positive direction, shift the point 1 down/to the right
         if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
         if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y++;
-        AddNeighboursToFrontier(frontiers, &frontierSize, *maze, size, frontierPos);
+        addNeighboursToFrontier(frontiers, &frontierSize, *maze, size, frontierPos);
 
         rndFrontier->type = AIR;
     }
     printMaze(*maze, size);
 
+    bool* horizontalBoolArr = convertWallArrToBoolArr(maze->horizontalArr, maze->wallCount.horizontal);
+    bool* verticalBoolArr = convertWallArrToBoolArr(maze->verticalArr, maze->wallCount.vertical);
 
-    Maze *properMaze = GenerationMazeToMaze(*maze);
-    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, 7);
+    ExportData finishedMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalBoolArr, verticalBoolArr};
 
-    FreeMaze(properMaze);
+    freeMemory(maze, frontiers);
 
-
-    bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);
-    bool* verticalBoolArr = GenerationWallArrToBoolArr(maze->verticalWalls, maze->wallCount.vertical);
-
-    ExportData exportMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalBoolArr, verticalBoolArr};
-
-    FreeMemory(maze, frontiers);
-    return exportMaze;
+    return finishedMaze;
 }

@@ -21,6 +21,7 @@ typedef enum {
 typedef struct {
     int type;
     int direction;
+    bool partOfLoop;
 } Wall;
 
 typedef struct {

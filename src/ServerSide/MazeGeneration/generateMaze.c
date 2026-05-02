@@ -417,3 +417,253 @@ ExportData GenerateMaze(GenerationData data) {
     FreeMemory(maze, frontiers);
     return exportMaze;
 }
+
+
+
+
+
+int howMuchLoop(MazeStruct maze) {
+    int loopCount = 0;
+
+    for (int i = 0; i < maze.wallCount.horizontal; i++) {
+        if (maze.horizontalArr[i].partOfLoop) {
+            loopCount++;
+        }
+    }
+
+    for (int i = 0; i < maze.wallCount.vertical; i++) {
+        if (maze.verticalArr[i].partOfLoop) {
+            loopCount++;
+        }
+    }
+
+    return loopCount;
+}
+
+
+int AddLoops(maze, size, data.loops) {
+    srand(time(NULL));
+
+    int loopAmount = data.loops*10*;
+
+    
+
+
+
+
+
+
+
+
+    // testing with 100x100
+
+    // smallLoop = 3–29;
+    // midLoop = 30–119;
+    // bigLoop = 120–499;
+    // giantLoop = 500–1199;
+
+    int currentLoopSizeNumber = 87; //example number
+
+    int currentLoopSize;
+
+    if (currentLoopSizeNumber >= 3 &&  <= 29) {
+        currentLoopSize = 1
+    } else if (currentLoopSizeNumber >= 30 &&  <= 119) {
+        currentLoopSize = 2
+    } else if (currentLoopSizeNumber >= 120 &&  <= 499) {
+        currentLoopSize = 3
+    } else if (currentLoopSizeNumber >= 120 &&  <= 499) {
+        currentLoopSize = 4
+    }
+
+
+    bool switcheroo = true;
+
+
+
+
+while (count <){     // some number
+
+
+
+    if (switcheroo) {
+        //horizontal ie side to side
+        //maze.horizontalarr
+        int randomNumber = min + rand() % (maze.horizontalArr + 1);
+
+        int chosenWall = maze.horizontalArr[randomNumber];
+        maze.horizontalArr[randomNumber].partOfLoop=true;
+
+        ArrIndexResult arr = getArrayIndex(maze, chosenWall);
+
+        Point position = indexToPos(arr.isHorizontal, arr.index, size);
+
+        Point position2 = position;
+        position2.x++; //So we shift to the right cell
+
+
+        Wall **oneNeighbors = getNeighbourWalls(maze, size, position)
+
+        oneNeighbors[0]; // right wall of position
+        oneNeighbors[1]; // left wall of position
+        bool found = false;
+        int oneCount = 0;
+        int twoCount = 0;
+
+
+        while (found) {
+            if (oneNeighbors[0] != NULL && oneNeighbors[0]->type == AIR && oneNeighbors[0]->direction == LEFT) {
+                // parent is to the RIGHT
+                StepTowardsRoot(oneNeighbors[0], position)
+                oneCount++;
+            } else if (oneNeighbors[1] != NULL && oneNeighbors[1]->type == AIR && oneNeighbors[1]->direction == RIGHT) {
+                // parent is to the LEFT
+                StepTowardsRoot(oneNeighbors[1], position)
+                oneCount++;
+            }
+
+
+            Wall **twoNeighbors = getNeighbourWalls(maze, size, position2)
+
+            twoNeighbors[0];
+            twoNeighbors[1];
+
+            if (twoNeighbors[0] != NULL && twoNeighbors[0]->type == AIR && twoNeighbors[0]->direction == LEFT) {
+                // parent is to the RIGHT
+                StepTowardsRoot(twoNeighbors[0], position2)
+                twoCount++;
+            } else if (twoNeighbors[1] != NULL && twoNeighbors[1]->type == AIR && twoNeighbors[1]->direction == RIGHT) {
+                // parent is to the LEFT
+                StepTowardsRoot(twoNeighbors[1], position2)
+                twoCount++;
+            }
+
+
+            if (position == position2) {
+                found = true;
+            }
+        }
+
+        int trueCount = oneCount + twoCount;
+
+
+        if (currentLoopSize == 1) {
+            if (trueCount >= 3 && trueCount <= 29) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        } else if (currentLoopSize == 2) {
+            if (trueCount >= 30 && trueCount <= 119) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        } else if (currentLoopSize == 3) {
+            if (trueCount >= 120 && trueCount <= 449) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        } else if (currentLoopSize == 4) {
+            if (trueCount >= 500 && trueCount <= 1199) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        }
+    } else if (!switcheroo){
+        //vertical
+        //maze.verticalarr
+        int randomNumber = min + rand() % (maze.verticalArr + 1);
+
+        int chosenWall = maze.verticalArr[randomNumber];
+        maze.verticalArr[randomNumber].partOfLoop=true;
+
+        ArrIndexResult arr = getArrayIndex(maze, chosenWall);
+
+        Point position = indexToPos(arr.!isHorizontal, arr.index, size);
+
+        Point position2 = position;
+        position2.x++; //So we shift to the right cell
+
+
+        Wall **oneNeighbors = getNeighbourWalls(maze, size, position)
+
+        oneNeighbors[2]; // down wall of position
+        oneNeighbors[3]; // up wall of position
+        bool found = false;
+        int oneCount = 0;
+        int twoCount = 0;
+
+
+        while (found) {
+            if (oneNeighbors[2] != NULL && oneNeighbors[2]->type == AIR && oneNeighbors[2]->direction == DOWN) {
+                // parent is to the RIGHT
+                StepTowardsRoot(oneNeighbors[2], position)
+                oneCount++;
+            } else if (oneNeighbors[3] != NULL && oneNeighbors[3]->type == AIR && oneNeighbors[3]->direction == UP) {
+                // parent is to the LEFT
+                StepTowardsRoot(oneNeighbors[3], position)
+                oneCount++;
+            }
+
+
+            Wall **twoNeighbors = getNeighbourWalls(maze, size, position2)
+
+            twoNeighbors[2];
+            twoNeighbors[3];
+
+            if (twoNeighbors[2] != NULL && twoNeighbors[2]->type == AIR && twoNeighbors[2]->direction == DOWN) {
+                // parent is to the RIGHT
+                StepTowardsRoot(twoNeighbors[2], position2)
+                twoCount++;
+            } else if (twoNeighbors[3] != NULL && twoNeighbors[3]->type == AIR && twoNeighbors[3]->direction == UP) {
+                // parent is to the LEFT
+                StepTowardsRoot(twoNeighbors[3], position2)
+                twoCount++;
+            }
+
+
+            if (position == position2) {
+                found = true;
+            }
+        }
+
+        int trueCount = oneCount + twoCount;
+
+
+        if (currentLoopSize == 1) {
+            if (trueCount >= 3 && trueCount <= 29) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        } else if (currentLoopSize == 2) {
+            if (trueCount >= 30 && trueCount <= 119) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        } else if (currentLoopSize == 3) {
+            if (trueCount >= 120 && trueCount <= 449) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        } else if (currentLoopSize == 4) {
+            if (trueCount >= 500 && trueCount <= 1199) {
+                // some condition
+                chosenWall.type == AIR
+                found = true;
+            } 
+        }
+    }
+
+}
+}
+
+
+
+
+

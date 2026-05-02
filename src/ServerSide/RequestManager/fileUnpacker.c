@@ -18,7 +18,7 @@ void unpackFile(bool type, int id, void* data)
 
     if (!type) // generationData
     {
-        generationData* data = (generationData*)data;
+        GenerationData* data = (GenerationData*)data;
 
         fscanf(file,
         "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",
@@ -32,7 +32,7 @@ void unpackFile(bool type, int id, void* data)
             );
     } 
     else { //alterationData
-        alterationData* data = (alterationData*)data;
+        AlterationData* data = (AlterationData*)data;
 
         // fscanf(file,
         // "{ \"SessionID\": %d, \"door\": %lf, \"x_size\": %d, \"y_size\": %d, \"branches\": %lf, \"loops\": %lf, \"straightness\": %lf }",

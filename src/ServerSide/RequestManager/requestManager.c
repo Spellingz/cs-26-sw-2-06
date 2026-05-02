@@ -18,9 +18,9 @@ TopRequest popTopRequest(Queue *queue){
     TopRequest request;
     request.type = node->dataType;
     if (!request.type) // generationData
-        request.data = malloc(sizeof(generationData));
+        request.data = malloc(sizeof(GenerationData));
     else // alterationData
-        request.data = malloc(sizeof(alterationData));
+        request.data = malloc(sizeof(AlterationData));
 
     unpackFile(request.type, id, request.data);
 

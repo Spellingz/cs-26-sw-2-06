@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include "../DataTypes/requestDataTypes.h"
 #include "../Maze/maze.h"
 #include "generateMaze.h"
@@ -10,15 +11,14 @@
 typedef struct {
     bool type;
     bool direction;
-    union {
-        bool isLoop;
-        char closedSides;
-    };
+    bool isLoop;
+    char closedSides;   //removed union
 } GenerationWall;
 
 const GenerationWall DEFAULT_WALL = {
     .type = WALL,
     .direction = 0,
+    .isLoop = false,
     .closedSides = 0,
 };
 
@@ -422,248 +422,371 @@ ExportData GenerateMaze(GenerationData data) {
 
 
 
-int howMuchLoop(MazeStruct maze) {
-    int loopCount = 0;
-
-    for (int i = 0; i < maze.wallCount.horizontal; i++) {
-        if (maze.horizontalArr[i].partOfLoop) {
-            loopCount++;
-        }
-    }
-
-    for (int i = 0; i < maze.wallCount.vertical; i++) {
-        if (maze.verticalArr[i].partOfLoop) {
-            loopCount++;
-        }
-    }
-
-    return loopCount;
-}
 
 
-int AddLoops(maze, size, data.loops) {
+
+
+
+
+
+int AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {
     srand(time(NULL));
 
-    int loopAmount = data.loops*10*;
+    int cellCount = size.x * size.y;
+    int count = 0;
+    int maxLoops = cellCount / 50;
+    int loopAmount = (int)(maxLoops * loopInput);
+    double scale = (double)cellCount / 10000;
+    int outerAttempts = 0;
+    int maxOuterAttempts = loopAmount * 50;
 
-    
-
-
-
-
-
-
-
-
-    // testing with 100x100
-
-    // smallLoop = 3–29;
-    // midLoop = 30–119;
-    // bigLoop = 120–499;
-    // giantLoop = 500–1199;
-
-    int currentLoopSizeNumber = 87; //example number
-
-    int currentLoopSize;
-
-    if (currentLoopSizeNumber >= 3 &&  <= 29) {
-        currentLoopSize = 1
-    } else if (currentLoopSizeNumber >= 30 &&  <= 119) {
-        currentLoopSize = 2
-    } else if (currentLoopSizeNumber >= 120 &&  <= 499) {
-        currentLoopSize = 3
-    } else if (currentLoopSizeNumber >= 120 &&  <= 499) {
-        currentLoopSize = 4
-    }
+    int loopAmountSmall = (int)loopAmount * 0.6;
+    int loopAmountMid = (int)loopAmount * 0.25;
+    int loopAmountBig = (int)loopAmount * 0.10;
+    int loopAmountGiant = (int)loopAmount * 0.05;
+                                        //temporary, to ensure we get giant loops, make the maze at least 32x32
+    int loopAmountSmalltemp = 0;
+    int loopAmountMidtemp = 0;
+    int loopAmountBigtemp = 0;
+    int loopAmountGianttemp = 0;
 
 
     bool switcheroo = true;
 
 
+    int smallMin = 3;
+    int smallMax = (int) (29 * scale);
+
+    if (smallMax < smallMin)
+        smallMax = smallMin;
+
+    int midMin = smallMax + 1;
+    int midMax = (int) (119 * scale);
+
+    if (midMax < midMin)
+        midMax = midMin;
+
+    int bigMin = midMax + 1;
+    int bigMax = (int) (499 * scale);
+
+    if (bigMax < bigMin)
+        bigMax = bigMin;
+
+    int giantMin = bigMax + 1;
+    int giantMax = (int) (1199 * scale);
+
+    if (giantMax < giantMin)
+        giantMax = giantMin;
 
 
-while (count <){     // some number
+    while (count < loopAmount && outerAttempts < maxOuterAttempts) {
+        outerAttempts++;
+        int currentLoopSizeNumber = smallMin + rand() % (giantMax - smallMin + 1);
 
+        int currentLoopSize = 0;
 
-
-    if (switcheroo) {
-        //horizontal ie side to side
-        //maze.horizontalarr
-        int randomNumber = min + rand() % (maze.horizontalArr + 1);
-
-        int chosenWall = maze.horizontalArr[randomNumber];
-        maze.horizontalArr[randomNumber].partOfLoop=true;
-
-        ArrIndexResult arr = getArrayIndex(maze, chosenWall);
-
-        Point position = indexToPos(arr.isHorizontal, arr.index, size);
-
-        Point position2 = position;
-        position2.x++; //So we shift to the right cell
-
-
-        Wall **oneNeighbors = getNeighbourWalls(maze, size, position)
-
-        oneNeighbors[0]; // right wall of position
-        oneNeighbors[1]; // left wall of position
-        bool found = false;
-        int oneCount = 0;
-        int twoCount = 0;
-
-
-        while (found) {
-            if (oneNeighbors[0] != NULL && oneNeighbors[0]->type == AIR && oneNeighbors[0]->direction == LEFT) {
-                // parent is to the RIGHT
-                StepTowardsRoot(oneNeighbors[0], position)
-                oneCount++;
-            } else if (oneNeighbors[1] != NULL && oneNeighbors[1]->type == AIR && oneNeighbors[1]->direction == RIGHT) {
-                // parent is to the LEFT
-                StepTowardsRoot(oneNeighbors[1], position)
-                oneCount++;
-            }
-
-
-            Wall **twoNeighbors = getNeighbourWalls(maze, size, position2)
-
-            twoNeighbors[0];
-            twoNeighbors[1];
-
-            if (twoNeighbors[0] != NULL && twoNeighbors[0]->type == AIR && twoNeighbors[0]->direction == LEFT) {
-                // parent is to the RIGHT
-                StepTowardsRoot(twoNeighbors[0], position2)
-                twoCount++;
-            } else if (twoNeighbors[1] != NULL && twoNeighbors[1]->type == AIR && twoNeighbors[1]->direction == RIGHT) {
-                // parent is to the LEFT
-                StepTowardsRoot(twoNeighbors[1], position2)
-                twoCount++;
-            }
-
-
-            if (position == position2) {
-                found = true;
-            }
+        if (currentLoopSizeNumber >= smallMin &&  currentLoopSizeNumber <= smallMax) {
+            currentLoopSize = 1;
+        } else if (currentLoopSizeNumber >= midMin && currentLoopSizeNumber <= midMax) {
+            currentLoopSize = 2;
+        } else if (currentLoopSizeNumber >= bigMin && currentLoopSizeNumber <= bigMax) {
+            currentLoopSize = 3;
+        } else if (currentLoopSizeNumber >= giantMin && currentLoopSizeNumber <= giantMax) {
+            currentLoopSize = 4;
+        } else if (currentLoopSize == 0) {
+            continue;
         }
 
-        int trueCount = oneCount + twoCount;
 
+        if (switcheroo) {
+            //horizontal ie side to side
+            int attempts = 0;
+            int maxAttempts = maze->wallCount.horizontal 50; // picking double the amount, incase it choses the same wall multiple times
+            bool tempbreak = true;
+            int randomNumber = -1;
+            GenerationWall *chosenWall = NULL;
 
-        if (currentLoopSize == 1) {
-            if (trueCount >= 3 && trueCount <= 29) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
+            while (tempbreak){
+            randomNumber = rand() % maze->wallCount.horizontal;
+            if (maze->horizontalWalls[randomNumber].isLoop==false && maze->horizontalWalls[randomNumber].type == WALL){
+            chosenWall = &maze->horizontalWalls[randomNumber];
+            tempbreak = false;
             } 
-        } else if (currentLoopSize == 2) {
-            if (trueCount >= 30 && trueCount <= 119) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
+            attempts++;
+            if (attempts >= maxAttempts){ 
+                break;
+            }
+            }
+
+               if (chosenWall == NULL) {
+                 switcheroo = false;
+                 continue;
+              }
+
+              if (chosenWall == NULL) {
+    switcheroo = true;
+    continue;
+}
+
+            ArrIndexResult arr = GetArrayIndex(*maze, chosenWall);
+
+            Point position = IndexToPos(arr.isHorizontal, arr.index, size);
+
+            Point position2 = position;
+            position2.x++; //So we shift to the right cell
+
+
+            bool found = false;
+            int oneCount = 0;
+            int twoCount = 0;
+            
+
+            while (!found) {
+                GenerationWall **oneNeighbors = GetNeighbourWalls(*maze, size, position);
+
+
+                oneNeighbors[0]; // right wall of position
+                oneNeighbors[1]; // left wall of position
+                oneNeighbors[2]; // down wall of position
+                oneNeighbors[3]; // up wall of position
+
+                GenerationWall **twoNeighbors = GetNeighbourWalls(*maze, size, position2);
+
+                if (oneNeighbors[0] != NULL && oneNeighbors[0]->type == AIR && oneNeighbors[0]->direction == LEFT) {
+                    // parent is to the RIGHT
+                    position.x++;
+                    oneCount++;
+                } else if (oneNeighbors[1] != NULL && oneNeighbors[1]->type == AIR && oneNeighbors[1]->direction == RIGHT) {
+                    // parent is to the LEFT
+                    position.x--;
+                    oneCount++;
+                } else if (oneNeighbors[2] != NULL && oneNeighbors[2]->type == AIR && oneNeighbors[2]->direction == UP) {
+                    // parent is to the DOWN
+                    position.y++;
+                    oneCount++;
+                } else if (oneNeighbors[3] != NULL && oneNeighbors[3]->type == AIR && oneNeighbors[3]->direction == DOWN) {
+                    // parent is to the UP
+                    position.y--;
+                    oneCount++;
+                }
+
+
+
+                if (twoNeighbors[0] != NULL && twoNeighbors[0]->type == AIR && twoNeighbors[0]->direction == LEFT) {
+                    // parent is to the RIGHT
+                    position2.x++;
+                    twoCount++;
+                } else if (twoNeighbors[1] != NULL && twoNeighbors[1]->type == AIR && twoNeighbors[1]->direction == RIGHT) {
+                    // parent is to the LEFT
+                    position2.x--;
+                    twoCount++;
+                } else if (twoNeighbors[2] != NULL && twoNeighbors[2]->type == AIR && twoNeighbors[2]->direction == UP) {
+                    // parent is to the DOWN
+                    position2.y++;
+                    twoCount++;
+                } else if (twoNeighbors[3] != NULL && twoNeighbors[3]->type == AIR && twoNeighbors[3]->direction == DOWN) {
+                    // parent is to the UP
+                    position2.y--;
+                    twoCount++;
+                }
+
+
+
+                if (position.x == position2.x && position.y == position2.y) {
+                    found = true;
+                }
+                free(oneNeighbors);
+                free(twoNeighbors);
+            }
+            
+
+            int trueCount = oneCount + twoCount;
+
+
+            if (currentLoopSize == 1) {
+                if (trueCount >= smallMin && trueCount <= smallMax) {
+                    if (loopAmountSmalltemp < loopAmountSmall) {
+                        chosenWall->type = AIR;
+                        maze->horizontalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountSmalltemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            } else if (currentLoopSize == 2) {
+                if (trueCount >= midMin && trueCount <= midMax) {
+                    if (loopAmountMidtemp < loopAmountMid) {
+                        chosenWall->type = AIR;
+                        maze->horizontalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountMidtemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            } else if (currentLoopSize == 3) {
+                if (trueCount >= bigMin && trueCount <= bigMax) {
+                    if (loopAmountBigtemp < loopAmountBig) {
+                        chosenWall->type = AIR;
+                        maze->horizontalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountBigtemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            } else if (currentLoopSize == 4) {
+                if (trueCount >= giantMin && trueCount <= giantMax) {
+                    if (loopAmountGianttemp < loopAmountGiant) {
+                        chosenWall->type = AIR;
+                        maze->horizontalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountGianttemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            }
+            switcheroo=false;
+        } else if (!switcheroo) {
+            //vertical
+            //maze.verticalarr
+            int attempts = 0;
+            int maxAttempts = maze->wallCount.vertical * 50; // picking double the amount, incase it choses the same wall multiple times
+            bool tempbreak = true;
+            int randomNumber = -1;
+            GenerationWall *chosenWall = NULL;
+            while (tempbreak){
+            randomNumber = rand() % maze->wallCount.vertical;
+            if (maze->verticalWalls[randomNumber].isLoop==false && maze->verticalWalls[randomNumber].type == WALL){
+            chosenWall = &maze->verticalWalls[randomNumber];
+            tempbreak = false;
             } 
-        } else if (currentLoopSize == 3) {
-            if (trueCount >= 120 && trueCount <= 449) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
-            } 
-        } else if (currentLoopSize == 4) {
-            if (trueCount >= 500 && trueCount <= 1199) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
-            } 
-        }
-    } else if (!switcheroo){
-        //vertical
-        //maze.verticalarr
-        int randomNumber = min + rand() % (maze.verticalArr + 1);
-
-        int chosenWall = maze.verticalArr[randomNumber];
-        maze.verticalArr[randomNumber].partOfLoop=true;
-
-        ArrIndexResult arr = getArrayIndex(maze, chosenWall);
-
-        Point position = indexToPos(arr.!isHorizontal, arr.index, size);
-
-        Point position2 = position;
-        position2.x++; //So we shift to the right cell
-
-
-        Wall **oneNeighbors = getNeighbourWalls(maze, size, position)
-
-        oneNeighbors[2]; // down wall of position
-        oneNeighbors[3]; // up wall of position
-        bool found = false;
-        int oneCount = 0;
-        int twoCount = 0;
-
-
-        while (found) {
-            if (oneNeighbors[2] != NULL && oneNeighbors[2]->type == AIR && oneNeighbors[2]->direction == DOWN) {
-                // parent is to the RIGHT
-                StepTowardsRoot(oneNeighbors[2], position)
-                oneCount++;
-            } else if (oneNeighbors[3] != NULL && oneNeighbors[3]->type == AIR && oneNeighbors[3]->direction == UP) {
-                // parent is to the LEFT
-                StepTowardsRoot(oneNeighbors[3], position)
-                oneCount++;
+            attempts++;
+            if (attempts > maxAttempts) {
+                break;
+            }
             }
 
 
-            Wall **twoNeighbors = getNeighbourWalls(maze, size, position2)
+            ArrIndexResult arr = GetArrayIndex(*maze, chosenWall);
 
-            twoNeighbors[2];
-            twoNeighbors[3];
+            Point position = IndexToPos(arr.isHorizontal, arr.index, size);
 
-            if (twoNeighbors[2] != NULL && twoNeighbors[2]->type == AIR && twoNeighbors[2]->direction == DOWN) {
-                // parent is to the RIGHT
-                StepTowardsRoot(twoNeighbors[2], position2)
-                twoCount++;
-            } else if (twoNeighbors[3] != NULL && twoNeighbors[3]->type == AIR && twoNeighbors[3]->direction == UP) {
-                // parent is to the LEFT
-                StepTowardsRoot(twoNeighbors[3], position2)
-                twoCount++;
+            Point position2 = position;
+            position2.y++; // shift to the cell below
+
+
+
+            bool found = false;
+            int oneCount = 0;
+            int twoCount = 0;
+
+
+            while (!found) {
+            GenerationWall **oneNeighbors = GetNeighbourWalls(*maze, size, position);
+
+
+            GenerationWall **twoNeighbors = GetNeighbourWalls(*maze, size, position2);
+
+
+                if (oneNeighbors[0] != NULL && oneNeighbors[0]->type == AIR && oneNeighbors[0]->direction == LEFT) {
+                    // parent is to the RIGHT
+                    position.x++;
+                    oneCount++;
+                } else if (oneNeighbors[1] != NULL && oneNeighbors[1]->type == AIR && oneNeighbors[1]->direction == RIGHT) {
+                    // parent is to the LEFT
+                    position.x--;
+                    oneCount++;
+                } else if (oneNeighbors[2] != NULL && oneNeighbors[2]->type == AIR && oneNeighbors[2]->direction == UP) {
+                    // parent is to the DOWN
+                    position.y++;
+                    oneCount++;
+                } else if (oneNeighbors[3] != NULL && oneNeighbors[3]->type == AIR && oneNeighbors[3]->direction == DOWN) {
+                    // parent is to the UP
+                    position.y--;
+                    oneCount++;
+                }
+
+
+                if (twoNeighbors[0] != NULL && twoNeighbors[0]->type == AIR && twoNeighbors[0]->direction == LEFT) {
+                    // parent is to the RIGHT
+                    position2.x++;
+                    twoCount++;
+                } else if (twoNeighbors[1] != NULL && twoNeighbors[1]->type == AIR && twoNeighbors[1]->direction == RIGHT) {
+                    // parent is to the LEFT
+                    position2.x--;
+                    twoCount++;
+                } else if (twoNeighbors[2] != NULL && twoNeighbors[2]->type == AIR && twoNeighbors[2]->direction == UP) {
+                    // parent is to the DOWN
+                    position2.y++;
+                    twoCount++;
+                } else if (twoNeighbors[3] != NULL && twoNeighbors[3]->type == AIR && twoNeighbors[3]->direction == DOWN) {
+                    // parent is to the UP
+                    position2.y--;
+                    twoCount++;
+                }
+
+                if (position.x == position2.x && position.y == position2.y) {
+                    found = true;
+                }
+                free(oneNeighbors);
+                free(twoNeighbors);
             }
 
+            int trueCount = oneCount + twoCount;
 
-            if (position == position2) {
-                found = true;
+
+            if (currentLoopSize == 1) {
+                if (trueCount >= smallMin && trueCount <= smallMax) {
+                    if (loopAmountSmalltemp < loopAmountSmall) {
+                        chosenWall->type = AIR;
+                        maze->verticalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountSmalltemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            } else if (currentLoopSize == 2) {
+                if (trueCount >= midMin && trueCount <= midMax) {
+                    if (loopAmountMidtemp < loopAmountMid) {
+                        chosenWall->type = AIR;
+                        maze->verticalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountMidtemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            } else if (currentLoopSize == 3) {
+                if (trueCount >= bigMin && trueCount <= bigMax) {
+                    if (loopAmountBigtemp < loopAmountBig) {
+                        chosenWall->type = AIR;
+                        maze->verticalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountBigtemp++;
+                        count++;
+                        continue;
+                    };
+                }
+            } else if (currentLoopSize == 4) {
+                if (trueCount >= giantMin && trueCount <= giantMax) {
+                    if (loopAmountGianttemp < loopAmountGiant) {
+                        chosenWall->type = AIR;
+                        maze->verticalWalls[randomNumber].isLoop = true;
+                        found = true;
+                        loopAmountGianttemp++;
+                        count++;
+                        continue;
+                    };
+                }
             }
-        }
-
-        int trueCount = oneCount + twoCount;
-
-
-        if (currentLoopSize == 1) {
-            if (trueCount >= 3 && trueCount <= 29) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
-            } 
-        } else if (currentLoopSize == 2) {
-            if (trueCount >= 30 && trueCount <= 119) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
-            } 
-        } else if (currentLoopSize == 3) {
-            if (trueCount >= 120 && trueCount <= 449) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
-            } 
-        } else if (currentLoopSize == 4) {
-            if (trueCount >= 500 && trueCount <= 1199) {
-                // some condition
-                chosenWall.type == AIR
-                found = true;
-            } 
+            switcheroo=true;
         }
     }
-
 }
-}
-
-
 
 
 

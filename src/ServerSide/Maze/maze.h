@@ -44,6 +44,11 @@ typedef struct {
     Point root;
 } Maze;
 
+typedef struct {
+    bool isHorizontal;
+    long index;
+} WallReference;
+
 //Pos to index
 int GetRightWallIndex(Point pos, MazeSize size);
 int GetLowerWallIndex(Point pos, MazeSize size);

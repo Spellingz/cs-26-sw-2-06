@@ -535,7 +535,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
             else {                          // alterationData
                 AlterationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                AlterationExportData responseData = alterMaze(*request);
+                AlterationExportData responseData = AlterMaze(*request);
                 responseString = alterationExportDataToString(responseData);
             }
 

@@ -46,6 +46,10 @@ int *GetNeighbourWallIndices(MazeSize size, Point pos) {
     return indices;
 }
 
+
+/**
+ * LEFT or UP
+ */
 Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
     if (isHorizontal)
         //Returns the position of the point just left of the wall.
@@ -70,8 +74,8 @@ Maze* LoadMaze(int id) {
         return NULL;
     }
 
-    fscanf(f, "{ \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"root\": [%ld, %ld], ",
-        &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->root.x, &maze->root.y);
+    fscanf(f, "{ \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"size\": [%ld, %ld], \"root\": [%ld, %ld], ",
+        &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->size.x, &maze->size.y, &maze->root.x, &maze->root.y);
     maze->horizontalWalls = malloc(sizeof(Wall) * maze->wallCount.horizontal);
     if (!maze->horizontalWalls) {
         free(maze);
@@ -122,8 +126,8 @@ void SaveMaze(Maze maze, int id) {
     }
     fileContents[0] = _buffer[0] = '\n';
 
-    sprintf(fileContents, "{\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n  \"root\": [%ld, %ld],\n",
-        maze.wallCount.horizontal, maze.wallCount.vertical, maze.root.x, maze.root.y);
+    sprintf(fileContents, "{\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n  \"size\": [%ld, %ld],\n  \"root\": [%ld, %ld],\n",
+        maze.wallCount.horizontal, maze.wallCount.vertical, maze.size.x, maze.size.y, maze.root.x, maze.root.y);
 
     for (int arrayNumber = 0; arrayNumber < 2; arrayNumber++) {
         strcat(fileContents, arrayNumber == 0 ? "  \"horizontalMazeArr\": [" : "  \"verticalMazeArr\": [");

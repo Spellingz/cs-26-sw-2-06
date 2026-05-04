@@ -16,6 +16,8 @@ typedef enum {
 typedef enum {
     AIR = 0,
     WALL = 1,
+    MARKED_AIR = 2,
+    MARKED_WALL = 3
 } Type;
 
 typedef struct {

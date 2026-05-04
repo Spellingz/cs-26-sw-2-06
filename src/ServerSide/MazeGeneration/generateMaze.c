@@ -8,8 +8,8 @@
 
 
 typedef struct {
-    bool type;
-    bool direction;
+    char type;
+    char direction;
     union {
         bool isLoop;
         char closedSides;

@@ -456,26 +456,25 @@ ExportData GenerateMaze(GenerationData data) {
 void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should be optimized, takes like a billion years to generate a 200x200 maze
     int cellCount = size.x * size.y;                                   //or we should limit maze size to 100x100
     int count = 0;
-    int maxLoops = cellCount / 10;
-    int loopAmount = (int) (maxLoops * loopInput);
-    double scale = (double) cellCount / 10000;
+    int maxLoops = cellCount / 10;       
+    int loopAmount = (int) (maxLoops * loopInput); //how many loops we max can have
     int outerAttempts = 0;
     int maxOuterAttempts = loopAmount * 50;
 
-    int loopAmountSmall = (int) loopAmount * 0.6;
-    int loopAmountMid = (int) loopAmount * 0.25;
+    int loopAmountSmall = (int) loopAmount * 0.6;   //total amount of "small loops allowed"
+    int loopAmountMid = (int) loopAmount * 0.25;   //same etc
     int loopAmountBig = (int) loopAmount * 0.10;
-    int loopAmountGiant = loopAmount - loopAmountSmall - loopAmountMid - loopAmountBig;
+    int loopAmountGiant = loopAmount - loopAmountSmall - loopAmountMid - loopAmountBig; 
     int loopAmountSmalltemp = 0;
     int loopAmountMidtemp = 0;
     int loopAmountBigtemp = 0;
     int loopAmountGianttemp = 0;
 
 
-    bool switcheroo = true;
+    bool switcheroo = true;       //to switch between vertical and horizontal
 
 
-    int smallMin = 3;
+    int smallMin = 3;    //definitions for each
     int smallMax = 12;
 
 
@@ -491,7 +490,7 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
     int giantMax = bigMax + 1 + cellCount / 4;
 
 
-    while (count < loopAmount && outerAttempts < maxOuterAttempts) {
+    while (count < loopAmount && outerAttempts < maxOuterAttempts) {  //we are choosing which kind of loop(size) we want
         outerAttempts++;
         int roll = rand() % 100 + 1;
         int currentLoopSize = 0;
@@ -509,56 +508,54 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
         }
 
 
-        if (switcheroo) {
+        if (switcheroo) {      // we start horizontally
             //horizontal ie side to side
             int attempts = 0;
-            int maxAttempts = maze->wallCount.horizontal * 50;
-            // picking double the amount, incase it choses the same wall multiple times
+            int maxAttempts = maze->wallCount.horizontal * 50;      //to ensure it stops at some point incase something breaks (its my code so its gonna break eventually)
+            // picking 50 times the amount, incase it chooses the same wall multiple times
             bool tempbreak = true;
             int randomNumber = -1;
-            GenerationWall *chosenWall = NULL;
+            GenerationWall *chosenWall = NULL;   
 
             while (tempbreak) {
-                randomNumber = rand() % maze->wallCount.horizontal;
-                if (maze->horizontalWalls[randomNumber].isLoop == false && maze->horizontalWalls[randomNumber].type ==
-                    WALL) {
-                    chosenWall = &maze->horizontalWalls[randomNumber];
-                    tempbreak = false;
+                randomNumber = rand() % maze->wallCount.horizontal;    //we create a random number that is at most as big as there are horizontal walls
+                if (maze->horizontalWalls[randomNumber].isLoop == false && maze->horizontalWalls[randomNumber].type == WALL) {   
+                    chosenWall = &maze->horizontalWalls[randomNumber]; //if the horizontal wall is NOT a loop already, and if its a wall, we remove it
+                    tempbreak = false; //and we stop
                 }
-                attempts++;
-                if (attempts >= maxAttempts) {
+                attempts++;                    
+                if (attempts >= maxAttempts) {    //if we keep trying but its always AIR or already a loop, we give up
                     break;
                 }
             }
 
-            if (chosenWall == NULL) {
+            if (chosenWall == NULL) {  //if we dont get a valid wall, we move on and just go to vertical
                 switcheroo = false;
                 continue;
             }
 
 
-            ArrIndexResult arr = GetArrayIndex(*maze, chosenWall);
+            ArrIndexResult arr = GetArrayIndex(*maze, chosenWall); //we get our wall info like isHorizontal and index
 
-            Point position = IndexToPos(arr.isHorizontal, arr.index, size);
+            Point position = IndexToPos(arr.isHorizontal, arr.index, size);    //we get the two cells next two our wall
 
-            Point position2 = position;
+            Point position2 = position;    //second cell
             position2.x++; //So we shift to the right cell
 
-            int trueCount = -1;
+            int trueCount = -1;      //to count how long till shared ancestor
 
 
-            bool foundFirst = false;
+            bool foundFirst = false;             //NOW WE MOVE
             int oneCount = 0;
-            Point *initialArr = malloc(cellCount * sizeof(Point));
+            Point *initialArr = malloc(cellCount * sizeof(Point));   //array to hold cells from start to root
             int initialCount = 0;
 
-            while (!foundFirst) {
+            while (!foundFirst) {     
                 bool moved = false;
 
-                GenerationWall **oneNeighbors = GetNeighbourWalls(*maze, size, position);
+                GenerationWall **oneNeighbors = GetNeighbourWalls(*maze, size, position);  //we get our neighbors of the FIRST cell ie the left one
 
-
-                if (position.x == maze->root.x && position.y == maze->root.y) {
+                if (position.x == maze->root.x && position.y == maze->root.y) { //if our current cell is the root, we add it to our array and break loop
                     if (initialCount < cellCount) {
                         initialArr[initialCount++] = position;
                     }
@@ -610,7 +607,7 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
 
                 free(oneNeighbors);
 
-                if (!moved) {
+                if (!moved) {       //if we didnt move, stop cuz something is wrong
                     break;
                 }
             }
@@ -621,7 +618,7 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
             Point *secondaryArr = malloc(cellCount * sizeof(Point));
             int secondaryCount = 0;
 
-            while (!foundSecond) {
+            while (!foundSecond) {                     //now we repeat the exact same process but with the right cell
                 bool moved = false;
                 GenerationWall **twoNeighbors = GetNeighbourWalls(*maze, size, position2);
 
@@ -679,34 +676,35 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
             bool foundCommon = false;
 
 
-            for (int initial = 0; initial < initialCount && !foundCommon; initial++) {
-                for (int secondary = 0; secondary < secondaryCount; secondary++) {
+            for (int initial = 0; initial < initialCount && !foundCommon; initial++) {  //We run both arrays until they encounter each other, while also counting with initial and secondary (which should probably just be i and j instead)
+                for (int secondary = 0; secondary < secondaryCount; secondary++) {    //then we add the initial and secondary together which is the total route
                     if (initialArr[initial].x == secondaryArr[secondary].x && initialArr[initial].y == secondaryArr[
                             secondary].y) {
                         trueCount = initial + secondary;
-                        foundCommon = true;
+                        foundCommon = true;                 //then we found out that they have a common ancestor, if they dont we just skip
                         break;
                     }
                 }
             }
-            if (foundFirst && foundSecond) {
+            if (foundFirst && foundSecond) {   //these two are seperated for literally no reason other than because I can
                 if (foundCommon) {
-                    if (currentLoopSize == 1) {
-                        if (trueCount >= smallMin && trueCount <= smallMax) {
-                            if (loopAmountSmalltemp < loopAmountSmall) {
-                                chosenWall->type = AIR;
-                                chosenWall->isLoop = true;
-                                loopAmountSmalltemp++;
-                                switcheroo = false;
-                                count++;
-
-                                free(initialArr);
-                                free(secondaryArr);
-
+                    if (currentLoopSize == 1) {                                 //now we check what loopsize we are on again, in this case small
+                        if (trueCount >= smallMin && trueCount <= smallMax) {   //if our count is within small, then the wall is changed to air
+                            if (loopAmountSmalltemp < loopAmountSmall) {        //and we can move on, if not since there is too many small loops
+                                chosenWall->type = AIR;                         //we just skip and try another one. Now that I am reading this 
+                                chosenWall->isLoop = true;                      //myself, I realize that this whole thing of forcing there to be a
+                                loopAmountSmalltemp++;                          //a set number of small, mid, big and giant loops which is what caused 
+                                count++;                                        //this cursed function to be so long is pretty pointless since even
+                                switcheroo = false;                             //if we just took random walls, it would spawn different sized loops
+                                                                                //anyway. So why the fuck did I make it like this. But I already spent
+                                                                                //a weekend making it so DO NOT DELETE. Wait I remember, Alex said
+                                free(initialArr);                               //something about root and parents when making the loops, like going
+                                free(secondaryArr);                             //from parent back to root to make loops. Damn you Alex. Give me my
+                                                                                //weekend back.
                                 continue;
                             };
                         }
-                    } else if (currentLoopSize == 2) {
+                    } else if (currentLoopSize == 2) {            //same here with mid sized
                         if (trueCount >= midMin && trueCount <= midMax) {
                             if (loopAmountMidtemp < loopAmountMid) {
                                 chosenWall->type = AIR;
@@ -758,8 +756,8 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
             free(initialArr);
             free(secondaryArr);
 
-            switcheroo = false;
-        } else if (!switcheroo) {
+            switcheroo = false;    //after all of that, we set switcheroo to false so it moved on to vertical on the next iteration, to ensure an even balance of both vertical and horizontal
+        } else if (!switcheroo) {  //literally the exact same code just vertical instead of horizontal
             //vertical
             //maze.verticalarr
             int attempts = 0;
@@ -776,7 +774,7 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput) {  //Should
                     tempbreak = false;
                 }
                 attempts++;
-                if (attempts > maxAttempts) {
+                if (attempts >= maxAttempts) {
                     break;
                 }
             }

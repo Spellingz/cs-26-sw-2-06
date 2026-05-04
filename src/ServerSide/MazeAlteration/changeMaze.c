@@ -3,20 +3,32 @@
 #include "changeMaze.h"
 
 
+AlterationExportData ToggleWallNonPerfect(Maze *maze, bool isHorizontal, long index, int id);
 AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index, int id);
+AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, int id);
+AlterationExportData AddMarkedWallPerfect(Maze *maze, bool isHorizontal, long index, int id);
+AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long index, int id);
+
 bool MoveRoot(Maze *maze, Point newRoot);
 Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]);
 Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]);
+void UnmarkMazeWalls(Maze maze);
+int StepTowardsRoot(const Direction *neighbourDirections, Point *point);
+
+void BranchTraverse(Maze maze, Point point,
+    void (*OnPathTraverse)   (Maze, WallReference, void*), void* onPathTraverseReturn,
+    void (*OnNotPathTraverse)(Maze, WallReference, void*), void* onNotPathTraverseReturn);
+void ToggleWallMark(Maze maze, WallReference wallRef, void* returnValue);
+void CountMarkableWalls(Maze maze, WallReference wallRef, void* count);
+void MarkWall(Maze maze, WallReference wallRef, void* markedWalls);
 
 const AlterationExportData ALTERATION_EXPORT_FAILURE = {false, 0, NULL};
-
+const AlterationExportData ALTERATION_EXPORT_NO_MARKS = {true, 0, NULL};
 
 AlterationExportData AlterMaze(AlterationData data) {
     Maze* maze = LoadMaze(data.id);
     if (!maze) {
-        AlterationExportData returnData;
-        returnData.succeded = false;
-        return returnData;
+        return ALTERATION_EXPORT_FAILURE;
     }
 
     switch (data.alterationType) {
@@ -24,40 +36,259 @@ AlterationExportData AlterMaze(AlterationData data) {
             Wall *arr = data.isHorizontal ? maze->horizontalWalls : maze->verticalWalls;
             Wall *wall = &arr[data.wallIndex];
             if (data.perfectMaze == false) {
-                wall->type = !wall->type;
-
-                SaveMaze(*maze, data.id);
-                FreeMaze(maze);
-
-                AlterationExportData returnData;
-                returnData.succeded = true;
-                returnData.wallCount = 0;
-                returnData.walls = NULL;
-                return returnData;
+                return ToggleWallNonPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
             }
-            else {
-                switch (wall->type) {
-                    case WALL:
-                        return RemoveWallPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
-
-                    case AIR:
-                        //return AddWallPerfect();
-                        break;
-                }
+            switch (wall->type) {
+                case WALL:
+                    return RemoveWallPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
+                case AIR:
+                    return AddWallPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
+                case MARKED_WALL:
+                    return RemoveMarkedWallPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
+                case MARKED_AIR:
+                    return AddMarkedWallPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
+                default:
+                    FreeMaze(maze);
             }
 
         case toggleDoor:
-            break;
 
         default:
-            free(maze->horizontalWalls);
-            free(maze->verticalWalls);
-            free(maze);
+            FreeMaze(maze);
             return ALTERATION_EXPORT_FAILURE;
     }
 }
 
 
+AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
+    AlterationExportData returnData;
+
+    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
+    Point newRoot = IndexToPos(isHorizontal, index, maze->size);
+    //The root is set to the point that wall points to
+    if (isHorizontal && wall->direction == RIGHT)
+        newRoot.x++;
+    else if (!isHorizontal && wall->direction == DOWN)
+        newRoot.y++;
+
+    bool moveSucces = MoveRoot(maze, newRoot);
+    if (!moveSucces) {
+        FreeMaze(maze);
+        return ALTERATION_EXPORT_FAILURE;
+    }
+
+    //Open the wall pointing to the root, creating a loop
+    wall->type = AIR;
+
+
+    //Count the loop length
+    int length = 0;
+    Point currentPoint = maze->root;
+    do {
+        Direction neighbourDirections[4];
+        LoadNeighbourPathDirections(*maze, currentPoint, neighbourDirections);
+        StepTowardsRoot(neighbourDirections, &currentPoint);
+        length++;
+    } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
+
+    //Fill loop with wall references
+    WallReference* loop = malloc(sizeof(WallReference) * length);
+    if (!loop) {
+        FreeMaze(maze);
+        return ALTERATION_EXPORT_FAILURE;
+    }
+    currentPoint = maze->root;
+    int wallsAdded = 0;
+    do {
+        int neighbourIndices[4];
+        Direction neighbourDirections[4];
+        Wall *neighbours[4];
+        LoadNeighbourWallIndices(maze->size, currentPoint, neighbourIndices);
+        LoadNeighbourPathDirections(*maze, currentPoint, neighbourDirections);
+        LoadNeighbourWallPointers(*maze, currentPoint, neighbours);
+
+        int chosenNeighbourIndex = StepTowardsRoot(neighbourDirections, &currentPoint);
+        loop[wallsAdded++] = (WallReference) {chosenNeighbourIndex < 2, neighbourIndices[chosenNeighbourIndex]};
+        neighbours[chosenNeighbourIndex]->type = MARKED_AIR;
+    } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
+
+    SaveMaze(*maze, id);
+    FreeMaze(maze);
+
+    returnData.wallCount = length;
+    returnData.walls = loop;
+    returnData.succeded = true;
+    return returnData;
+}
+
+AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
+    AlterationExportData returnData;
+
+    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
+    Point newRoot = IndexToPos(isHorizontal, index, maze->size);
+    //The root is set to the point that "wall" points to
+    if (isHorizontal && wall->direction == RIGHT)
+        newRoot.x++;
+    else if (!isHorizontal && wall->direction == DOWN)
+        newRoot.y++;
+
+    bool moveSucces = MoveRoot(maze, newRoot);
+    if (!moveSucces) {
+        FreeMaze(maze);
+        return ALTERATION_EXPORT_FAILURE;
+    }
+
+    //Close the path pointing to the root, splitting the maze in two.
+    wall->type = WALL;
+
+    BranchTraverse(*maze, maze->root, ToggleWallMark, NULL, NULL, NULL);
+    int markedWallCount = 0;
+    BranchTraverse(*maze, maze->root, NULL, NULL, CountMarkableWalls, &markedWallCount);
+    WallReference *markedWalls = malloc(sizeof(WallReference) * markedWallCount);
+    if (!markedWalls) {
+        FreeMaze(maze);
+        return ALTERATION_EXPORT_FAILURE;
+    }
+    BranchTraverse(*maze, maze->root, NULL, NULL, MarkWall, markedWalls);
+    BranchTraverse(*maze, maze->root, ToggleWallMark, NULL, NULL, NULL);
+
+    SaveMaze(*maze, id);
+    FreeMaze(maze);
+
+    returnData.wallCount = markedWallCount;
+    returnData.succeded = true;
+    returnData.walls = markedWalls;
+    return returnData;
+}
+
+AlterationExportData ToggleWallNonPerfect(Maze *maze, bool isHorizontal, long index, int id) {
+    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
+
+    if (maze->status == MARKED)
+        UnmarkMazeWalls(*maze);
+
+    maze->status = NOT_PERFECT;
+    wall->type = !wall->type;
+
+    SaveMaze(*maze, id);
+    FreeMaze(maze);
+
+    return ALTERATION_EXPORT_NO_MARKS;
+}
+
+AlterationExportData AddMarkedWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
+    UnmarkMazeWalls(*maze);
+
+    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
+
+    //The root is set to where the soon to be wall is pointing. It is the only "wall" pointing at it, so no more changes needed.
+    Point newRoot = IndexToPos(isHorizontal, index, maze->size);
+    if (isHorizontal && wall->direction == RIGHT) newRoot.x++;
+    if (!isHorizontal && wall->direction == DOWN) newRoot.y++;
+    maze->root = newRoot;
+
+    wall->type = WALL;
+
+    SaveMaze(*maze, id);
+    FreeMaze(maze);
+
+    return ALTERATION_EXPORT_NO_MARKS;
+}
+
+AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
+    UnmarkMazeWalls(*maze);
+
+    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
+
+    //The maze is split into two submazes, each with their own root on both sides of the wall that was added.
+    //Submaze A has the "real" root. The single wall between the roots of both submazes points from submaze A to submaze B.
+    //The wall that will be removed always points from submaze A to submaze B.
+    //Moving both the roots to be next to the wall that will be removed, and removing it will connect the maze and give it a root in submaze A.
+    Point rootA = maze->root;
+    Point rootB;
+    for (int i = 0; i < 4; i++) {
+        Point rootBCandidate = rootA;
+        if(i == 0)
+            rootBCandidate.x++;
+        if(i == 1)
+            rootBCandidate.x--;
+        if(i == 2)
+            rootBCandidate.y++;
+        if(i == 3)
+            rootBCandidate.y--;
+        Direction candidateNeighbourDirections[4];
+        LoadNeighbourPathDirections(*maze, rootBCandidate, candidateNeighbourDirections);
+        //If the candidate could not step further towards a root, it is a root.
+        if (StepTowardsRoot(candidateNeighbourDirections, &rootBCandidate) == -1){
+            rootB = rootBCandidate;
+            break;
+        }
+    }
+
+    Point newRootA = IndexToPos(isHorizontal, index, maze->size);
+    Point newRootB = newRootA;
+    if (isHorizontal) {
+        if (wall->direction == RIGHT) newRootB.x++;
+        else newRootA.x++;
+    }
+    else {
+        if (wall->direction == DOWN) newRootB.y++;
+        else newRootA.y++;
+    }
+
+    //MoveRoot shenanigans:
+    MoveRoot(maze, newRootA);
+    maze->root = rootB;
+    MoveRoot(maze, newRootB);
+    maze->root = newRootA;
+
+    wall->type = AIR;
+
+    SaveMaze(*maze, id);
+    FreeMaze(maze);
+
+    return ALTERATION_EXPORT_NO_MARKS;
+}
+
+
+void UnmarkMazeWalls(Maze maze) {
+    for (int i = 0; i < maze.wallCount.horizontal; i++) {
+        if (maze.horizontalWalls[i].type == MARKED_AIR) {
+            maze.horizontalWalls[i].type = AIR;
+        }
+        else if (maze.horizontalWalls[i].type == MARKED_WALL) {
+            maze.horizontalWalls[i].type = WALL;
+        }
+    }
+    for (int i = 0; i < maze.wallCount.vertical; i++) {
+        if (maze.verticalWalls[i].type == MARKED_AIR) {
+            maze.verticalWalls[i].type = AIR;
+        }
+        else if (maze.verticalWalls[i].type == MARKED_WALL) {
+            maze.verticalWalls[i].type = WALL;
+        }
+    }
+}
+
+void ToggleWallMark(Maze maze, WallReference wallRef, void* returnValue) {
+    Wall * wallArr = wallRef.isHorizontal ? maze.horizontalWalls : maze.verticalWalls;
+    Wall *wall = &wallArr[wallRef.index];
+    switch (wall->type) {
+        case AIR:
+            wall->type = MARKED_AIR;
+            break;
+        case WALL:
+            wall->type = MARKED_WALL;
+            break;
+        case MARKED_AIR:
+            wall->type = AIR;
+            break;
+        case MARKED_WALL:
+            wall->type = WALL;
+            break;
+        default:
+    }
+}
 
 /**
  *
@@ -152,80 +383,6 @@ Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbo
     return neighbourDirections;
 }
 
-AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
-    AlterationExportData returnData;
-
-    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
-    Point newRoot = IndexToPos(isHorizontal, index, maze->size);
-    //The root is set to the point that wall points to
-    if (isHorizontal && wall->direction == RIGHT)
-        newRoot.x++;
-    else if (!isHorizontal && wall->direction == DOWN)
-        newRoot.y++;
-
-    bool moveSucces = MoveRoot(maze, newRoot);
-    if (!moveSucces) return ALTERATION_EXPORT_FAILURE;
-
-    //Open the wall pointing to the root, creating a loop
-    wall->type = AIR;
-
-
-    //Count the loop length
-    int length = 0;
-    Point currentPoint = maze->root;
-    do {
-        Direction neighbourDirections[4];
-        LoadNeighbourPathDirections(*maze, currentPoint, neighbourDirections);
-        StepTowardsRoot(neighbourDirections, &currentPoint);
-        length++;
-    } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
-
-    //Fill loop with wall references
-    WallReference* loop = malloc(sizeof(WallReference) * length);
-    if (!loop) return ALTERATION_EXPORT_FAILURE;
-    currentPoint = maze->root;
-    int wallsAdded = 0;
-    do {
-        int neighbourIndices[4];
-        Direction neighbourDirections[4];
-        Wall *neighbours[4];
-        LoadNeighbourWallIndices(maze->size, currentPoint, neighbourIndices);
-        LoadNeighbourPathDirections(*maze, currentPoint, neighbourDirections);
-        LoadNeighbourWallPointers(*maze, currentPoint, neighbours);
-
-        int chosenNeighbourIndex = StepTowardsRoot(neighbourDirections, &currentPoint);
-        loop[wallsAdded++] = (WallReference) {chosenNeighbourIndex < 2, neighbourIndices[chosenNeighbourIndex]};
-        neighbours[chosenNeighbourIndex]->type = MARKED_AIR;
-    } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
-
-    SaveMaze(*maze, id);
-    FreeMaze(maze);
-
-    returnData.wallCount = length;
-    returnData.walls = loop;
-    returnData.succeded = true;
-    return returnData;
-}
-
-void ToggleWallMark(Maze maze, WallReference wallRef, void* returnValue) {
-    Wall * wallArr = wallRef.isHorizontal ? maze.horizontalWalls : maze.verticalWalls;
-    Wall *wall = &wallArr[wallRef.index];
-    switch (wall->type) {
-        case AIR:
-            wall->type = MARKED_AIR;
-            break;
-        case WALL:
-            wall->type = MARKED_WALL;
-            break;
-        case MARKED_AIR:
-            wall->type = AIR;
-            break;
-        case MARKED_WALL:
-            wall->type = WALL;
-            break;
-    }
-}
-
 
 Type GetPointPathType(Maze maze, Point point) {
     Wall *pointNeighbours[4];
@@ -262,8 +419,15 @@ void MarkWall(Maze maze, WallReference wallRef, void* markedWalls) {
         Type point2PathType = GetPointPathType(maze, point2);
 
         if (point1PathType != -1 && point2PathType != -1 && point1PathType != point2PathType) {
-            wall->type = MARKED_WALL;
+            //Store and mark the wall.
             ((WallReference*) markedWalls)[markedWallCount++] = wallRef;
+            wall->type = MARKED_WALL;
+
+            //Make the wall point away from the marked branch
+            if (point1PathType == MARKED_AIR) //If the marked branch is up/left of the wall
+                wall->direction = 1; //down/right
+            else
+                wall->direction = 0; //up/left
         }
     }
 }
@@ -336,38 +500,4 @@ void BranchTraverse(Maze maze, Point point,
     }
     else if (OnNotPathTraverse)
         OnNotPathTraverse(maze, (WallReference) {false, neighbourIndices[3]}, onNotPathTraverseReturn);
-}
-
-
-AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
-    AlterationExportData returnData;
-    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
-    Point newRoot = IndexToPos(isHorizontal, index, maze->size);
-    //The root is set to the point that "wall" points to
-    if (isHorizontal && wall->direction == RIGHT)
-        newRoot.x++;
-    else if (!isHorizontal && wall->direction == DOWN)
-        newRoot.y++;
-
-    bool moveSucces = MoveRoot(maze, newRoot);
-    if (!moveSucces) return ALTERATION_EXPORT_FAILURE;
-
-    //Close the path pointing to the root, splitting the maze in two.
-    wall->type = WALL;
-
-    BranchTraverse(*maze, maze->root, ToggleWallMark, NULL, NULL, NULL);
-    int markedWallCount = 0;
-    BranchTraverse(*maze, maze->root, NULL, NULL, CountMarkableWalls, &markedWallCount);
-    WallReference *markedWalls = malloc(sizeof(WallReference) * markedWallCount);
-    if (!markedWalls) return ALTERATION_EXPORT_FAILURE;
-    BranchTraverse(*maze, maze->root, NULL, NULL, MarkWall, markedWalls);
-    BranchTraverse(*maze, maze->root, ToggleWallMark, NULL, NULL, NULL);
-
-    SaveMaze(*maze, id);
-    FreeMaze(maze);
-
-    returnData.wallCount = markedWallCount;
-    returnData.succeded = true;
-    returnData.walls = markedWalls;
-    return returnData;
 }

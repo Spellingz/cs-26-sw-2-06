@@ -20,6 +20,12 @@ typedef enum {
     MARKED_WALL = 3
 } Type;
 
+typedef enum {
+    PERFECT = 0,
+    MARKED = 1,
+    NOT_PERFECT = 2,
+} MazeStatus;
+
 typedef struct {
     int type;
     int direction;
@@ -39,9 +45,10 @@ typedef struct {
 } Point;
 
 typedef struct {
-    MazeSize size;
+    MazeStatus status;
     Wall *verticalWalls;
     Wall *horizontalWalls;
+    MazeSize size;
     MazeWallCount wallCount;
     Point root;
 } Maze;

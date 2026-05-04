@@ -57,7 +57,7 @@ function exsport() {
     //trying with hardcode, so that it is ready for when we have the correct names 
     const JSONToFile = (obj, filename) => {
         const blob = new Blob([JSON.stringify(obj, null, 2)], {
-        type: 'text/plain',
+        type: 'application/JSON',
     });
   
     const url = URL.createObjectURL(blob);
@@ -69,6 +69,6 @@ function exsport() {
     };
 
     //a test that confirms that there is connection and that it works
-    JSONToFile({ test: 'is passed' }, 'testJsonFile');
+    JSONToFile(maze, 'maze');
     // downloads the object as 'testJsonFile.txt'
 }

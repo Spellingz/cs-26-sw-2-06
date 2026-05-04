@@ -16,7 +16,7 @@ typedef struct ExportData ExportData;
 
 int main(void)
 {
-
+srand(time(NULL));
 Queue *queue = malloc(sizeof(Queue));
 queue->first = NULL  ;
 queue->last = NULL;

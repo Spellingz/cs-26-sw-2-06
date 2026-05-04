@@ -6,6 +6,16 @@
 
 int arraySize;
 
+/*
+find alle felter som er main path ved at kigge på omkringliggende vægge
+
+for alle felter der ikke er main, find væg med korteste path til main path
+
+tjek om korteste path til main er den længste set indtil videre, og gem længden hvis ja
+*/
+
+
+
 void checkHeat(MazeStruct maze) {
 	arraySize = maze.wallCount.horizontal*maze.wallCount.vertical;
 	SpotHeat *mazeSpots = calloc(arraySize, sizeof(SpotHeat));
@@ -15,18 +25,6 @@ void checkHeat(MazeStruct maze) {
 			mazeSpots[k].posX = j;
 			mazeSpots[k].posY = i;
 			mazeSpots[k].heat = ceil(((abs(j-(maze.wallCount.horizontal/2))+abs(i-(maze.wallCount.vertical/2)))/((maze.wallCount.horizontal/2)+(maze.wallCount.vertical)))*6);
-			if (i == 19 && j == 19) {
-				printf("\n\nMax width divided by two: %ld", maze.wallCount.horizontal/2);
-				printf("\nSubtract horizontal position: %f", j-(maze.wallCount.horizontal/2));
-				printf("\nAbsolute value: %d", abs(j-(maze.wallCount.horizontal/2)));
-
-				printf("\n\nMax height divided by two: %ld", maze.wallCount.vertical/2);
-				printf("\nSubtract vertical position: %f", i-(maze.wallCount.vertical/2));
-				printf("\nAbsolute value: %d", abs(i-(maze.wallCount.vertical/2)));
-				
-				printf("\n\nRounded up value of %f", ceil(((abs(j-(maze.wallCount.horizontal/2))+abs(i-(maze.wallCount.vertical/2)))/((maze.wallCount.horizontal/2)+(maze.wallCount.vertical)))*6));
-				printf("\nResulting in heat index %d", mazeSpots[k].heat);
-			}
 			k++;
 		}
 	}

@@ -45,18 +45,21 @@
         <div id= "modificationOutput"></div>
     </div>
 
+     <!--Connection to js.files-->
+     <script src="FunctionParameters.js"></script>
+     <script src="FunctionMazeGenerated.js"></script>
+     <script src="MoreAndAbout.js"></script>
+     <script src="server.js"></script>
+
     <div id="generatedOutput">
         <!--This is just to visualise the boks until the data is ready, then delete this below (ONLY "generatedBoks")-->
         <div id="generatedBoks">
             <canvas id="mazeCanvas"></canvas>
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", visualizeMaze);
+        </script>
     </div>
-
-    <!--Connection to js.files-->
-    <script src="FunctionParameters.js"></script>
-    <script src="FunctionMazeGenerated.js"></script>
-    <script src="MoreAndAbout.js"></script>
-    <script src="server.js"></script>
         
 </body>
 </html>

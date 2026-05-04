@@ -62,8 +62,8 @@ function visualMaze() {
     const ctx = canvas.getContext("2d");
     
 
-    const buttonArrVertical;
-    const buttonArrHorizontal;
+    let buttonArrVertical;
+    let buttonArrHorizontal;
 
     canvas.boxWidth = box.clientWidth; 
     const widthPerOffset = boxWidth / maze.width;

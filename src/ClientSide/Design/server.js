@@ -48,17 +48,24 @@ function sendmazeinfo(){
         maze.horizontalWalls = result.horiArr;
         maze.verticalWalls = result.vertArr;
         console.log("response: ", maze.id, maze.horizontalWalls, maze.verticalWalls);
-        visualMaze();
+        saveVisualData();
     });
 }
 
 
 //from array to visual maze printed on website
-function visualMaze() {
-    let generatedMaze = maze;//set all the gathered JSON-output into this variable
+function saveVisualData() {
+    localStorage.setItem("mazeVariables", JSON.stringify(maze))
+    window.location.replace("MazeGenerated.html");
+}
 
+
+function visualizeMaze() {
+    const stored = localStorage.getItem("mazeVariables")
+    if (!stored) return
+    
     const box = document.getElementById("generatedBoks");
-    const canvas = document.getElementById("mazeCanvas");
+    const canvas = document.getElementById("storedCanvas");
     const ctx = canvas.getContext("2d");
     
 
@@ -66,20 +73,22 @@ function visualMaze() {
     let buttonArrHorizontal;
 
     canvas.boxWidth = box.clientWidth; 
-    const widthPerOffset = boxWidth / maze.width;
+    const widthPerOffset = boxWidth / stored.width;
     canvas.boxHeight = box.clientHeight;
-    const heightPerOffset = boxHeight / maze.height;
+    const heightPerOffset = boxHeight / stored.height;
 
     ctx.clearRect(0, 0, canvas.boxWidth, canvas.boxHeight); // reset canvas pixels
     ctx.lineWidth = 3; // reset line style
     ctx.strokeStyle = '#222';
 
-    for (let i = 0; i < maze.verticalWalls.length; i++){ // Vertical wall loop
+    // drawstoredWalls(ctx, canvas);
 
-        if (maze.verticalWalls[i] !== 0) continue;
+    for (let i = 0; i < stored.verticalWalls.length; i++){ // Vertical wall loop
 
-        const xPos = (i % maze.width) * widthPerOffset + wallButtonWidth;
-        const yPos = (Math.floor((i - 1) / maze.height)) * heightPerOffset;
+        if (stored.verticalWalls[i] !== 0) continue;
+
+        const xPos = (i % stored.width) * widthPerOffset + wallButtonWidth;
+        const yPos = (Math.floor((i - 1) / stored.height)) * heightPerOffset;
 
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
@@ -88,26 +97,14 @@ function visualMaze() {
         ctx.lineWidth = 2;
         
         ctx.stroke();
-        
-        // let html =`
-        // <div id="generatedBoks">
-        // <canvas id="mazeCanvas" height=" 
-        // </div>
-        // `;
-        // buttonArrVertical[i] = button
-        
-        
-        //
-        //      Draw mazeWalls as canvas and get cursor position when clicking inside mazeBox (make it a button)
-        //
     }
 
-    for (let i = 0; i < maze.horizontalWalls.length; i++){ // Horizontal wall loop
+    for (let i = 0; i < stored.horizontalWalls.length; i++){ // Horizontal wall loop
 
-        if (maze.horizontalWalls[i] !== 0) continue;
+        if (stored.horizontalWalls[i] !== 0) continue;
 
-        const xPos = (Math.floor(i-1 / maze.width)) * widthPerOffset;
-        const yPos = (i % maze.height) * heightPerOffset + wallButtonHeight;
+        const xPos = (Math.floor(i-1 / stored.width)) * widthPerOffset;
+        const yPos = (i % stored.height) * heightPerOffset + wallButtonHeight;
 
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
@@ -119,26 +116,4 @@ function visualMaze() {
     }
 
 
-    //let html =`
-    //<div id="generatedBoks">
-    //    <canvas id="mazeCanvas" width=${boxWidth} height=${boxHeight} style="border:3px solid #000000;">></canvas>
-    //
-    //    <button class="wallButton"
-    //        style="background-color: transparent;
-    //            alignitems: center; font-size: large;"
-    //    ${buttonArrVertical}>
-    //    |</button>
-    
-    //    <button class="wallButton"
-    //      style="background-color: transparent;
-    //            alignitems: center; font-size: large;"
-    //    ${buttonArrHorizontal}
-    //    -</button>
-    //</div>
-    //    `;
-            
-    //printing into boks
-    // const output = document.getElementById("generatedOutput"); 
-    // output.innerHTML = '';
-    // output.insertAdjacentHTML('beforeend', html);
 }

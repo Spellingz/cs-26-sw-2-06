@@ -52,7 +52,7 @@ typedef struct {
 //Pos to index
 int GetRightWallIndex(Point pos, MazeSize size);
 int GetLowerWallIndex(Point pos, MazeSize size);
-int *GetNeighbourWallIndices(MazeSize size, Point pos);
+int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]);
 
 //Index to pos
 Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize);

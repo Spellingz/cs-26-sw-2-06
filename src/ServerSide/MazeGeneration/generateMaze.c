@@ -89,8 +89,8 @@ GenerationMaze *FillWalls(MazeSize size) {
 }
 
 GenerationWall **GetNeighbourWalls(GenerationMaze maze, MazeSize size, Point pos) {
-    int* indices = GetNeighbourWallIndices(size, pos);
-    if (!indices) return NULL;
+    int indices[4];
+    LoadNeighbourWallIndices(size, pos, indices);
 
     GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
     //Uses the indexes to get pointers to the neighbouring walls
@@ -102,7 +102,6 @@ GenerationWall **GetNeighbourWalls(GenerationMaze maze, MazeSize size, Point pos
         else
             neighbourWalls[i] = &maze.verticalWalls[indices[i]];
     }
-    free(indices);
     return neighbourWalls;
 }
 
@@ -227,9 +226,9 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
     }
 
 
-    //getting branch potential
     for (int i = 0; i < frontierSize; i++)
     {
+        //getting branch potential
         ArrIndexResult arr = GetArrayIndex(maze, frontier[i]);
         //we use the get ArrindexResult to get the index of our frontier
 

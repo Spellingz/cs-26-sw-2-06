@@ -32,10 +32,8 @@ int GetLowerWallIndex(Point pos, MazeSize size) {
  * DOWN\n
  * UP\n
  */
-int *GetNeighbourWallIndices(MazeSize size, Point pos) {
+int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]) {
     //GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
-    int *indices = malloc(sizeof(int) * 4);
-    if (!indices) return NULL;
 
     //Gets the indexes of the neighbouring walls in their respective arrays
     indices[0] = GetRightWallIndex((Point){pos.x, pos.y}, size);
@@ -76,19 +74,16 @@ Maze* LoadMaze(int id) {
 
     fscanf(f, "{ \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"size\": [%ld, %ld], \"root\": [%ld, %ld], ",
         &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->size.x, &maze->size.y, &maze->root.x, &maze->root.y);
-    maze->horizontalWalls = malloc(sizeof(Wall) * maze->wallCount.horizontal);
-    if (!maze->horizontalWalls) {
+    Wall *memoryBlock = malloc(sizeof(Wall) * (maze->wallCount.horizontal + maze->wallCount.vertical));
+    if (!memoryBlock) {
         free(maze);
         fclose(f);
         return NULL;
     }
-    maze->verticalWalls = malloc(sizeof(Wall) * maze->wallCount.vertical);
-    if (!maze->verticalWalls) {
-        free(maze->horizontalWalls);
-        free(maze);
-        fclose(f);
-        return NULL;
-    }
+
+    maze->horizontalWalls = memoryBlock;
+    maze->verticalWalls = memoryBlock + maze->wallCount.horizontal;
+
 
     fscanf(f, " \"horizontalMazeArr\": [");
     for (int i = 0; fscanf(f, "[%d, %d]",
@@ -151,7 +146,6 @@ void SaveMaze(Maze maze, int id) {
 void FreeMaze(Maze *maze) {
     if (maze) {
         if (maze->horizontalWalls) free(maze->horizontalWalls);
-        if (maze->verticalWalls) free(maze->verticalWalls);
         free(maze);
     }
 }

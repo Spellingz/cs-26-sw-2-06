@@ -4,10 +4,9 @@
 
 
 AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index, int id);
-AlterationExportData AlterMaze(AlterationData data);
-void MoveRoot(Maze *maze, Point newRoot);
-Wall **GetNeighbourWallPointers(Maze maze, Point point);
-Direction *GetNeighbourDirections(Maze maze, Point point);
+bool MoveRoot(Maze *maze, Point newRoot);
+Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]);
+Direction *LoadNeighbourDirections(Maze maze, Point point, Direction neighbourDirections[4]);
 
 const AlterationExportData ALTERATION_EXPORT_FAILURE = {false, 0, NULL};
 
@@ -38,22 +37,36 @@ int StepTowardsRoot(const Direction *neighbourDirections, Point *point) {
     return -1;
 }
 
-void MoveRoot(Maze *maze, Point newRoot) {
-    Wall **path = malloc(sizeof(Wall*) * maze->size.x * maze->size.y);
-    int pathLength = 0;
+bool MoveRoot(Maze *maze, Point newRoot) {
+    Wall **path;
+    int pathLength, wallsAdded;
+    Point currentPoint;
 
-    Point point = newRoot;
+    pathLength = 0;
+    currentPoint = newRoot;
     //While point is not the root
-    while (!(point.x == maze->root.x && point.y == maze->root.y)) {
-        Wall **neighbours = GetNeighbourWallPointers(*maze, point);
-        Direction *directions = GetNeighbourDirections(*maze, point);
+    while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y)) {
+        Direction neighbourDirections[4];
+        LoadNeighbourDirections(*maze, currentPoint, neighbourDirections);
+        StepTowardsRoot(neighbourDirections, &currentPoint);
+        pathLength++;
+    }
 
-        int chosenNeighbourIndex = StepTowardsRoot(directions, &point);
+    path = malloc(sizeof(Wall*) * pathLength);
+    if (!path) return false;
+
+    wallsAdded = 0;
+    currentPoint = newRoot;
+    //While point is not the root
+    while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y)) {
+        Wall *neighbours[4];
+        Direction neighbourDirections[4];
+        LoadNeighbourWallPointers(*maze, currentPoint, neighbours);
+        LoadNeighbourDirections(*maze, currentPoint, neighbourDirections);
+
+        int chosenNeighbourIndex = StepTowardsRoot(neighbourDirections, &currentPoint);
         if (chosenNeighbourIndex != -1)
-            path[pathLength++] = neighbours[chosenNeighbourIndex];
-
-        free(neighbours);
-        free(directions);
+            path[wallsAdded++] = neighbours[chosenNeighbourIndex];
     }
 
     for (int i = 0; i < pathLength; i++) {
@@ -62,6 +75,7 @@ void MoveRoot(Maze *maze, Point newRoot) {
     free(path);
 
     maze->root = newRoot;
+    return true;
 }
 
 
@@ -111,15 +125,9 @@ AlterationExportData AlterMaze(AlterationData data) {
     }
 }
 
-Wall **GetNeighbourWallPointers(Maze maze, Point point) {
-    int *neighbourIndices = GetNeighbourWallIndices(maze.size, point);
-    if (!neighbourIndices)
-        return NULL;
-    Wall **neighbours = malloc(sizeof(Wall*) * 4);
-    if (!neighbours) {
-        free(neighbourIndices);
-        return NULL;
-    }
+Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]) {
+    int neighbourIndices[4];
+    LoadNeighbourWallIndices(maze.size, point, neighbourIndices);
     for (int i = 0; i < 4; i++) {
         Wall *wallArr = i < 2 ? maze.horizontalWalls : maze.verticalWalls;
         if (neighbourIndices[i] == -1)
@@ -127,19 +135,12 @@ Wall **GetNeighbourWallPointers(Maze maze, Point point) {
         else
             neighbours[i] = &wallArr[neighbourIndices[i]];
     }
-    free(neighbourIndices);
     return neighbours;
 }
 
-Direction *GetNeighbourDirections(Maze maze, Point point) {
-    Wall **neighbours = GetNeighbourWallPointers(maze, point);
-    if (!neighbours)
-        return NULL;
-    Direction *neighbourDirections = malloc(sizeof(Direction) * 4);
-    if (!neighbourDirections) {
-        free(neighbours);
-        return NULL;
-    }
+Direction *LoadNeighbourDirections(Maze maze, Point point, Direction neighbourDirections[4]) {
+    Wall *neighbours[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
 
     for (int i = 0; i < 4; i++) {
         if (!neighbours[i])
@@ -147,7 +148,6 @@ Direction *GetNeighbourDirections(Maze maze, Point point) {
         else
             neighbourDirections[i] = neighbours[i]->direction;
     }
-    free(neighbours);
     return neighbourDirections;
 }
 
@@ -156,13 +156,14 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
 
     Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
     Point newRoot = IndexToPos(isHorizontal, index, maze->size);
-    //The root is the point that wall points from, and otherwall is at the other side.
+    //The root is set to the point that wall points to
     if (isHorizontal && wall->direction == RIGHT)
         newRoot.x++;
     else if (!isHorizontal && wall->direction == DOWN)
         newRoot.y++;
 
-    MoveRoot(maze, newRoot);
+    bool moveSucces = MoveRoot(maze, newRoot);
+    if (!moveSucces) return ALTERATION_EXPORT_FAILURE;
 
     //Open the wall between the root and otherPoint, creating a loop
     wall->type = AIR;
@@ -172,11 +173,10 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
     int length = 0;
     Point currentPoint = maze->root;
     do {
-        Direction *neighbourDirections = GetNeighbourDirections(*maze, currentPoint);
-        if (!neighbourDirections) return ALTERATION_EXPORT_FAILURE;
+        Direction neighbourDirections[4];
+        LoadNeighbourDirections(*maze, currentPoint, neighbourDirections);
         StepTowardsRoot(neighbourDirections, &currentPoint);
         length++;
-        free(neighbourDirections);
     } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
 
     //Fill loop with wall references
@@ -185,23 +185,13 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
     currentPoint = maze->root;
     int wallsAdded = 0;
     do {
-        int *neighbourIndices = GetNeighbourWallIndices(maze->size, currentPoint);
-        if (!neighbourIndices) {
-            free(loop);
-            return ALTERATION_EXPORT_FAILURE;
-        }
-        Direction *neighbourDirections = GetNeighbourDirections(*maze, currentPoint);
-        if (!neighbourDirections) {
-            free(loop);
-            free(neighbourIndices);
-            return ALTERATION_EXPORT_FAILURE;
-        }
+        int neighbourIndices[4];
+        Direction neighbourDirections[4];
+        LoadNeighbourWallIndices(maze->size, currentPoint, neighbourIndices);
+        LoadNeighbourDirections(*maze, currentPoint, neighbourDirections);
 
         int chosenNeighbourIndex = StepTowardsRoot(neighbourDirections, &currentPoint);
         loop[wallsAdded++] = (WallReference) {chosenNeighbourIndex < 2, neighbourIndices[chosenNeighbourIndex]};
-
-        free(neighbourIndices);
-        free(neighbourDirections);
     } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
 
     SaveMaze(*maze, id);
@@ -211,4 +201,11 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
     returnData.walls = loop;
     returnData.succeded = true;
     return returnData;
+}
+
+AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
+    AlterationExportData returnData;
+    Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
+
+
 }

@@ -202,6 +202,11 @@ button:active {
     box-sizing: border-box;
     overflow: auto;
 }
+#mazeCanvas {
+    z-index: 500;
+    width: min(600px, calc(100vw - 40px));
+    height: 600px;
+}
 
 
 

@@ -113,7 +113,8 @@ int sizeOfFile(FILE* f) {
     fseek(f, 0, SEEK_END);
     int length = ftell(f);
     fseek(f,0,SEEK_SET);
-    return length;
+    printf("fizeLength: %d\n", length);
+    return length+1;
 }
 
 
@@ -336,6 +337,9 @@ static enum MHD_Result respond(struct MHD_Connection *con,
     // ADD HEADERS
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, headers.contentType);
     MHD_add_response_header(response, MHD_HTTP_HEADER_CACHE_CONTROL, headers.cacheControl);
+
+    printf("%s, len: %d", buffer, (int)bufferLen);
+
     //SEND RESPONSE
     result = MHD_queue_response (con, MHD_HTTP_OK, response);
     MHD_destroy_response (response);
@@ -457,10 +461,16 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
 
             if (SERVERTYPE == 1)
+            {
+                printf("length: %d", (int)length);
                 fread(page, 1, length, f);
+                page[length] = '\0';
+                printf("strlen: %d", (int)strlen(page));
+            }
             else
                 readTextFile(f, page);
             fclose (f);
+
 
             // struct  MHD_Response *response;
             // enum MHD_Result ret;
@@ -548,7 +558,6 @@ static enum MHD_Result answer_to_connection (void *cls,
                 AlterationExportData responseData = alterMaze(*request);
                 responseString = alterationExportDataToString(responseData);
             }
-
 
             headersStruct headers = {
                 .contentType = "application/json",

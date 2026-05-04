@@ -400,7 +400,7 @@ ExportData GenerateMaze(GenerationData data) {
 
         rndFrontier->type = AIR;
     }
-    printMaze(*maze, size);
+    PrintMaze(*maze, size);
 
 
     Maze *properMaze = GenerationMazeToMaze(*maze);

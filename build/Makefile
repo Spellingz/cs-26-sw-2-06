@@ -136,6 +136,30 @@ HTTP_test/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/build
 .PHONY : HTTP_test/fast
 
+src/ServerSide/Maze/maze.o: src/ServerSide/Maze/maze.c.o
+.PHONY : src/ServerSide/Maze/maze.o
+
+# target to build an object file
+src/ServerSide/Maze/maze.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/src/ServerSide/Maze/maze.c.o
+.PHONY : src/ServerSide/Maze/maze.c.o
+
+src/ServerSide/Maze/maze.i: src/ServerSide/Maze/maze.c.i
+.PHONY : src/ServerSide/Maze/maze.i
+
+# target to preprocess a source file
+src/ServerSide/Maze/maze.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/src/ServerSide/Maze/maze.c.i
+.PHONY : src/ServerSide/Maze/maze.c.i
+
+src/ServerSide/Maze/maze.s: src/ServerSide/Maze/maze.c.s
+.PHONY : src/ServerSide/Maze/maze.s
+
+# target to generate assembly for a file
+src/ServerSide/Maze/maze.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HTTP_test.dir/build.make CMakeFiles/HTTP_test.dir/src/ServerSide/Maze/maze.c.s
+.PHONY : src/ServerSide/Maze/maze.c.s
+
 src/ServerSide/MazeAlteration/changeMaze.o: src/ServerSide/MazeAlteration/changeMaze.c.o
 .PHONY : src/ServerSide/MazeAlteration/changeMaze.o
 
@@ -290,6 +314,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... HTTP_test"
+	@echo "... src/ServerSide/Maze/maze.o"
+	@echo "... src/ServerSide/Maze/maze.i"
+	@echo "... src/ServerSide/Maze/maze.s"
 	@echo "... src/ServerSide/MazeAlteration/changeMaze.o"
 	@echo "... src/ServerSide/MazeAlteration/changeMaze.i"
 	@echo "... src/ServerSide/MazeAlteration/changeMaze.s"

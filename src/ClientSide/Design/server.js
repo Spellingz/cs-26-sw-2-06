@@ -66,7 +66,7 @@ function visualizeMaze() {
     console.log(stored);
     
     const box = document.getElementById("generatedBoks");
-    const canvas = document.getElementById("storedCanvas");
+    const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
     
 

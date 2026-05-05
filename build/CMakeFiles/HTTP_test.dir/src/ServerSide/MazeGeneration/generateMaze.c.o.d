@@ -10,9 +10,7 @@ CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: \
  /usr/include/bits/types.h /usr/include/bits/typesizes.h \
  /usr/include/bits/time64.h /usr/include/bits/wchar.h \
  /usr/include/bits/stdint-intn.h /usr/include/bits/stdint-uintn.h \
- /usr/include/bits/stdint-least.h \
- /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdbool.h \
- /usr/include/stdlib.h \
+ /usr/include/bits/stdint-least.h /usr/include/stdlib.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stddef.h \
  /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
  /usr/include/bits/floatn.h /usr/include/bits/floatn-common.h \
@@ -44,5 +42,6 @@ CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o: \
  /usr/include/bits/mathcalls.h /usr/include/bits/mathcalls-narrow.h \
  /usr/include/bits/iscanonical.h \
  /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/../DataTypes/requestDataTypes.h \
- /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/../DataTypes/mazeDataTypes.h \
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include/stdbool.h \
+ /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/../Maze/maze.h \
  /home/kianh/stuff/p2/cs-26-sw-2-06/src/ServerSide/MazeGeneration/generateMaze.h

@@ -1,5 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/HTTP_test.dir/link.d"
+  "CMakeFiles/HTTP_test.dir/src/ServerSide/Maze/maze.c.o"
+  "CMakeFiles/HTTP_test.dir/src/ServerSide/Maze/maze.c.o.d"
   "CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o"
   "CMakeFiles/HTTP_test.dir/src/ServerSide/MazeAlteration/changeMaze.c.o.d"
   "CMakeFiles/HTTP_test.dir/src/ServerSide/MazeGeneration/generateMaze.c.o"

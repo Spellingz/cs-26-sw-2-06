@@ -12,8 +12,8 @@ typedef struct {
     bool type;
     bool direction;
     union {
-    bool isLoop;
-    char closedSides;
+        bool isLoop;
+        char closedSides;
     };
 } GenerationWall;
 

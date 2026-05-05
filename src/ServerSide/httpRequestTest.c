@@ -113,7 +113,6 @@ int sizeOfFile(FILE* f) {
     fseek(f, 0, SEEK_END);
     int length = ftell(f);
     fseek(f,0,SEEK_SET);
-    printf("fizeLength: %d\n", length);
     return length+1;
 }
 
@@ -187,7 +186,6 @@ static enum MHD_Result process_post (void *coninfo_cls,
     if (keyIndex == -1)
         return MHD_YES;
 
-    printf("kvp: %s, %s\n", key, data);
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
@@ -338,7 +336,6 @@ static enum MHD_Result respond(struct MHD_Connection *con,
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, headers.contentType);
     MHD_add_response_header(response, MHD_HTTP_HEADER_CACHE_CONTROL, headers.cacheControl);
 
-    printf("%s, len: %d", buffer, (int)bufferLen);
 
     //SEND RESPONSE
     result = MHD_queue_response (con, MHD_HTTP_OK, response);
@@ -462,10 +459,8 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             if (SERVERTYPE == 1)
             {
-                printf("length: %d", (int)length);
                 fread(page, 1, length, f);
                 page[length] = '\0';
-                printf("strlen: %d", (int)strlen(page));
             }
             else
                 readTextFile(f, page);

@@ -32,6 +32,8 @@ typedef struct {
 } GenerationMaze;
 
 
+void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput);
+
 
 void PrintMaze(GenerationMaze maze, MazeSize size) {
     int h = 0, v = 0;
@@ -162,7 +164,7 @@ Wall *GenerationWallArrToWallArr(const GenerationWall* arr, unsigned long size) 
 }
 
 Maze *GenerationMazeToMaze(GenerationMaze generationMaze) {
-    Maze* maze = malloc(sizeof(maze));
+    Maze* maze = malloc(sizeof(Maze));
     if (!maze) return NULL;
     *maze = (Maze) {
         generationMaze.size,
@@ -405,14 +407,10 @@ ExportData GenerateMaze(GenerationData data) {
     AddLoops(maze,size,data.loops);
 
 
-    // printMaze(*maze, size);
-
-
     Maze *properMaze = GenerationMazeToMaze(*maze);
     if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, 7);
 
     FreeMaze(properMaze);
-
 
     bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);
     bool* verticalBoolArr = GenerationWallArrToBoolArr(maze->verticalWalls, maze->wallCount.vertical);
@@ -423,7 +421,7 @@ ExportData GenerateMaze(GenerationData data) {
     return exportMaze;
 }
 
-void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loopSizeInput)
+void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput)
 {                                    // Should be optimized, takes like a billion years to generate a 200x200 maze
     int cellCount = size.x * size.y; // or we should limit maze size to 100x100
     int count = 0;

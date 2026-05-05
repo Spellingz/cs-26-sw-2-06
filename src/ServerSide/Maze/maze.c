@@ -32,6 +32,50 @@ int GetLowerWallIndex(Point pos, MazeSize size) {
  * DOWN\n
  * UP\n
  */
+int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]) {
+    //GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
+
+    //Gets the indexes of the neighbouring walls in their respective arrays
+    indices[0] = GetRightWallIndex((Point){pos.x, pos.y}, size);    // Right
+    indices[1] = GetRightWallIndex((Point){pos.x-1, pos.y}, size);  // Left
+    indices[2] = GetLowerWallIndex((Point){pos.x, pos.y}, size);    // Down
+    indices[3] = GetLowerWallIndex((Point){pos.x, pos.y-1}, size);  // UP
+
+    return indices;
+}
+
+Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]) {
+    int neighbourIndices[4];
+    LoadNeighbourWallIndices(maze.size, point, neighbourIndices);
+    for (int i = 0; i < 4; i++) {
+        Wall *wallArr = i < 2 ? maze.horizontalWalls : maze.verticalWalls;
+        if (neighbourIndices[i] == -1)
+            neighbours[i] = NULL;
+        else
+            neighbours[i] = &wallArr[neighbourIndices[i]];
+    }
+    return neighbours;
+}
+
+Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]) {
+    Wall *neighbours[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
+
+    for (int i = 0; i < 4; i++) {
+        if (!neighbours[i] || neighbours[i]->type == WALL || neighbours[i]->type == MARKED_WALL)
+            neighbourDirections[i] = -1;
+        else
+            neighbourDirections[i] = neighbours[i]->direction;
+    }
+    return neighbourDirections;
+}
+
+/**
+ * RIGHT\n
+ * LEFT\n
+ * DOWN\n
+ * UP\n
+ */
 int *GetNeighbourWallIndices(MazeSize size, Point pos) {
     //GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
     int *indices = malloc(sizeof(int) * 4);

@@ -26,7 +26,7 @@ typedef struct {
 
 int generateHeatmap();
 
-void checkHeat(Maze maze);
+void checkHeat(int id);
 
 void printHeatmap(SpotHeat heatArray[]);
 

@@ -16,6 +16,8 @@ typedef enum {
 typedef enum {
     AIR = 0,
     WALL = 1,
+    MARKED_AIR = 2,
+    MARKED_WALL = 3
 } Type;
 
 typedef struct {
@@ -47,6 +49,9 @@ typedef struct {
 //Pos to index
 int GetRightWallIndex(Point pos, MazeSize size);
 int GetLowerWallIndex(Point pos, MazeSize size);
+int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]);
+Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]);
+Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]);
 int *GetNeighbourWallIndices(MazeSize size, Point pos);
 
 //Index to pos

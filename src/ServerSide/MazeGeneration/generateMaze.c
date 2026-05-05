@@ -708,7 +708,6 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
             }
         }
 
-        bool foundCommon = false;
 
         int i = 1;
         while (i <= initialCount && i <= secondaryCount &&
@@ -717,12 +716,9 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
             i++;
         }
         trueCount = initialCount - (i - 1) + secondaryCount - (i - 1) + 1;
-        foundCommon = true; // then we found out that they have a common ancestor, if they dont we just skip
         
         if (foundFirst && foundSecond)
         { // these two are seperated for literally no reason other than because I can
-            if (foundCommon)
-            {
                 if (currentLoopSize == 1)
                 { // now we check what loopsize we are on again, in this case small
                     if (trueCount >= smallMin && trueCount <= smallMax)
@@ -800,9 +796,6 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
                         };
                     }
                 }
-            } else {
-                printf("Death");
-            }
         }
 
         free(initialArr);

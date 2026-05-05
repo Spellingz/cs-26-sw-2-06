@@ -422,88 +422,62 @@ ExportData GenerateMaze(GenerationData data) {
     return exportMaze;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loopSizeInput) {  //Should be optimized, takes like a billion years to generate a 200x200 maze
-    int cellCount = size.x * size.y;                                   //or we should limit maze size to 100x100
+void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loopSizeInput)
+{                                    // Should be optimized, takes like a billion years to generate a 200x200 maze
+    int cellCount = size.x * size.y; // or we should limit maze size to 100x100
     int count = 0;
-    int maxLoops = cellCount / 10;       
-    int loopAmount = (int) (maxLoops * loopInput); //how many loops we max can have
+    int maxLoops = cellCount / 10;
+    int loopAmount = (int)(maxLoops * loopInput); // how many loops we max can have
     int outerAttempts = 0;
     int maxOuterAttempts = loopAmount * 50;
 
-    int loopAmountSmall = (int) loopAmount * 0.6;   //total amount of "small loops allowed"
-    int loopAmountMid = (int) loopAmount * 0.25;   //same etc
-    int loopAmountBig = (int) loopAmount * 0.10;
-    int loopAmountGiant = loopAmount - loopAmountSmall - loopAmountMid - loopAmountBig; 
+    int loopAmountSmall = (int)loopAmount * 0.6; // total amount of "small loops allowed"
+    int loopAmountMid = (int)loopAmount * 0.25;  // same etc
+    int loopAmountBig = (int)loopAmount * 0.10;
+    int loopAmountGiant = loopAmount - loopAmountSmall - loopAmountMid - loopAmountBig;
     int loopAmountSmalltemp = 0;
     int loopAmountMidtemp = 0;
     int loopAmountBigtemp = 0;
     int loopAmountGianttemp = 0;
 
+    bool switcheroo = true; // to switch between vertical and horizontal
 
-    bool switcheroo = true;       //to switch between vertical and horizontal
-
-
-    int smallMin = 4;    //definitions for each
+    int smallMin = 4; // definitions for each
     int smallMax = 15;
-
 
     int midMin = smallMax + 1;
     int midMax = 50;
 
-
     int bigMin = midMax + 1;
     int bigMax = 150;
-
 
     int giantMin = bigMax + 1;
     int giantMax = bigMax + 1 + cellCount / 4;
 
-
-    while (count < loopAmount && outerAttempts < maxOuterAttempts) {  //we are choosing which kind of loop(size) we want
+    while (count < loopAmount && outerAttempts < maxOuterAttempts)
+    { // we are choosing which kind of loop(size) we want
         outerAttempts++;
         int roll = rand() % 100 + 1;
         int currentLoopSize = 0;
 
-        if (roll <= 60) {
+        if (roll <= 60)
+        {
             currentLoopSize = 1;
-        } else if (roll <= 85) {
+        }
+        else if (roll <= 85)
+        {
             currentLoopSize = 2;
-        } else if (roll <= 95) {
+        }
+        else if (roll <= 95)
+        {
             currentLoopSize = 3;
-        } else if (roll <= 100) {
+        }
+        else if (roll <= 100)
+        {
             currentLoopSize = 4;
-        } else if (currentLoopSize == 0) {
+        }
+        else if (currentLoopSize == 0)
+        {
             continue;
         }
 
@@ -537,7 +511,7 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
             if (wallArray[randomNumber].isLoop == false && wallArray[randomNumber].type == WALL)
             {
                 chosenWall = &wallArray[randomNumber]; // if the horizontal wall is NOT a loop already, and if its a wall, we remove it
-                tempbreak = false;                                 // and we stop
+                tempbreak = false;                     // and we stop
             }
             attempts++;
             if (attempts >= maxAttempts)
@@ -558,13 +532,14 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
 
         Point position2 = position; // second cell
 
-        if(switcheroo){
-        position2.x++;   
-        } else {
+        if (switcheroo)
+        {
+            position2.x++;
+        }
+        else
+        {
             position2.y++;
         }
-
-
 
         int trueCount = -1; // to count how long till shared ancestor
 
@@ -708,94 +683,94 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
             }
         }
 
-
         int i = 1;
         while (i <= initialCount && i <= secondaryCount &&
                initialArr[initialCount - i].x == secondaryArr[secondaryCount - i].x &&
-               initialArr[initialCount - i].y == secondaryArr[secondaryCount - i].y) {
+               initialArr[initialCount - i].y == secondaryArr[secondaryCount - i].y)
+        {
             i++;
         }
         trueCount = initialCount - (i - 1) + secondaryCount - (i - 1) + 1;
-        
+
         if (foundFirst && foundSecond)
         { // these two are seperated for literally no reason other than because I can
-                if (currentLoopSize == 1)
-                { // now we check what loopsize we are on again, in this case small
-                    if (trueCount >= smallMin && trueCount <= smallMax)
-                    { // if our count is within small, then the wall is changed to air
-                        if (loopAmountSmalltemp < loopAmountSmall)
-                        {                              // and we can move on, if not since there is too many small loops
-                            chosenWall->type = AIR;    // we just skip and try another one. Now that I am reading this
-                            chosenWall->isLoop = true; // myself, I realize that this whole thing of forcing there to be a
-                            loopAmountSmalltemp++;     // a set number of small, mid, big and giant loops which is what caused
-                            count++;                   // this cursed function to be so long is pretty pointless since even
-                            switcheroo = !switcheroo;        // if we just took random walls, it would spawn different sized loops
-                                                // anyway. So why the fuck did I make it like this. But I already spent
-                                                // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
-                            free(initialArr);   // something about root and parents when making the loops, like going
-                            free(secondaryArr); // from parent back to root to make loops. Damn you Alex. Give me my
-                                                // weekend back.
-                            continue;
-                        };
-                    }
+            if (currentLoopSize == 1)
+            { // now we check what loopsize we are on again, in this case small
+                if (trueCount >= smallMin && trueCount <= smallMax)
+                { // if our count is within small, then the wall is changed to air
+                    if (loopAmountSmalltemp < loopAmountSmall)
+                    {                              // and we can move on, if not since there is too many small loops
+                        chosenWall->type = AIR;    // we just skip and try another one. Now that I am reading this
+                        chosenWall->isLoop = true; // myself, I realize that this whole thing of forcing there to be a
+                        loopAmountSmalltemp++;     // a set number of small, mid, big and giant loops which is what caused
+                        count++;                   // this cursed function to be so long is pretty pointless since even
+                        switcheroo = !switcheroo;  // if we just took random walls, it would spawn different sized loops
+                                                   // anyway. So why the fuck did I make it like this. But I already spent
+                                                   // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
+                        free(initialArr);          // something about root and parents when making the loops, like going
+                        free(secondaryArr);        // from parent back to root to make loops. Damn you Alex. Give me my
+                                                   // weekend back.
+                        continue;
+                    };
                 }
-                else if (currentLoopSize == 2)
-                { // same here with mid sized
-                    if (trueCount >= midMin && trueCount <= midMax)
-                    {
-                        if (loopAmountMidtemp < loopAmountMid)
-                        {
-                            chosenWall->type = AIR;
-                            chosenWall->isLoop = true;
-                            loopAmountMidtemp++;
-                            switcheroo = !switcheroo;
-                            count++;
-
-                            free(initialArr);
-                            free(secondaryArr);
-
-                            continue;
-                        };
-                    }
-                }
-                else if (currentLoopSize == 3)
+            }
+            else if (currentLoopSize == 2)
+            { // same here with mid sized
+                if (trueCount >= midMin && trueCount <= midMax)
                 {
-                    if (trueCount >= bigMin && trueCount <= bigMax)
+                    if (loopAmountMidtemp < loopAmountMid)
                     {
-                        if (loopAmountBigtemp < loopAmountBig)
-                        {
-                            chosenWall->type = AIR;
-                            chosenWall->isLoop = true;
-                            loopAmountBigtemp++;
-                            switcheroo = !switcheroo;
-                            count++;
+                        chosenWall->type = AIR;
+                        chosenWall->isLoop = true;
+                        loopAmountMidtemp++;
+                        switcheroo = !switcheroo;
+                        count++;
 
-                            free(initialArr);
-                            free(secondaryArr);
+                        free(initialArr);
+                        free(secondaryArr);
 
-                            continue;
-                        };
-                    }
+                        continue;
+                    };
                 }
-                else if (currentLoopSize == 4)
+            }
+            else if (currentLoopSize == 3)
+            {
+                if (trueCount >= bigMin && trueCount <= bigMax)
                 {
-                    if (trueCount >= giantMin && trueCount <= giantMax)
+                    if (loopAmountBigtemp < loopAmountBig)
                     {
-                        if (loopAmountGianttemp < loopAmountGiant)
-                        {
-                            chosenWall->type = AIR;
-                            chosenWall->isLoop = true;
-                            loopAmountGianttemp++;
-                            switcheroo = !switcheroo;
-                            count++;
+                        chosenWall->type = AIR;
+                        chosenWall->isLoop = true;
+                        loopAmountBigtemp++;
+                        switcheroo = !switcheroo;
+                        count++;
 
-                            free(initialArr);
-                            free(secondaryArr);
+                        free(initialArr);
+                        free(secondaryArr);
 
-                            continue;
-                        };
-                    }
+                        continue;
+                    };
                 }
+            }
+            else if (currentLoopSize == 4)
+            {
+                if (trueCount >= giantMin && trueCount <= giantMax)
+                {
+                    if (loopAmountGianttemp < loopAmountGiant)
+                    {
+                        chosenWall->type = AIR;
+                        chosenWall->isLoop = true;
+                        loopAmountGianttemp++;
+                        switcheroo = !switcheroo;
+                        count++;
+
+                        free(initialArr);
+                        free(secondaryArr);
+
+                        continue;
+                    };
+                }
+            }
         }
 
         free(initialArr);

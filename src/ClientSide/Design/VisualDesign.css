@@ -200,6 +200,7 @@ button:active {
     border-radius: 12px;
     padding: 50px;
     box-sizing: border-box;
+    overflow: auto;
 }
 #mazeCanvas {
     z-index: 500;

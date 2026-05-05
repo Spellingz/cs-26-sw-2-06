@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "maze.h"
-
+#include <stdbool.h>
 
 int GetRightWallIndex(Point pos, MazeSize size) {
     //Returns the index in horizontalArr of the wall to the right of the point

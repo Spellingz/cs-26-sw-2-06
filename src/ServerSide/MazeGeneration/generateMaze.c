@@ -11,14 +11,15 @@
 typedef struct {
     bool type;
     bool direction;
+    union {
     bool isLoop;
-    char closedSides;   //removed union
+    char closedSides;
+    };
 } GenerationWall;
 
 const GenerationWall DEFAULT_WALL = {
     .type = WALL,
     .direction = 0,
-    .isLoop = false,
     .closedSides = 0,
 };
 
@@ -430,7 +431,6 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
     int loopAmount = (int)(maxLoops * loopInput); // how many loops we max can have
     int outerAttempts = 0;
     int maxOuterAttempts = loopAmount * 50;
-
     int loopAmountSmall = (int)loopAmount * 0.6; // total amount of "small loops allowed"
     int loopAmountMid = (int)loopAmount * 0.25;  // same etc
     int loopAmountBig = (int)loopAmount * 0.10;
@@ -453,6 +453,14 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
 
     int giantMin = bigMax + 1;
     int giantMax = bigMax + 1 + cellCount / 4;
+
+    for (int i=0; i<maze->wallCount.horizontal; i++){
+        maze->horizontalWalls[i].isLoop = false;
+    }
+
+    for (int i=0; i<maze->wallCount.vertical; i++){
+        maze->verticalWalls[i].isLoop = false;
+    }
 
     while (count < loopAmount && outerAttempts < maxOuterAttempts)
     { // we are choosing which kind of loop(size) we want

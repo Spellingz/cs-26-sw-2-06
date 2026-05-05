@@ -147,7 +147,7 @@ void SaveMaze(Maze maze, int id) {
 void FreeMaze(Maze *maze) {
     if (maze) {
         if (maze->horizontalWalls) free(maze->horizontalWalls);
-        if (maze->verticalWalls) free(maze->verticalWalls);
+        //if (maze->verticalWalls) free(maze->verticalWalls);
         free(maze);
     }
 }

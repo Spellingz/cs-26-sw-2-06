@@ -530,7 +530,7 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput, double loop
 
         if (chosenWall == NULL)
         { // if we dont get a valid wall, we move on and just go to vertical
-            switcheroo = false;
+            switcheroo = !switcheroo;
             continue;
         }
 

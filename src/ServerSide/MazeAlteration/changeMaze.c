@@ -25,6 +25,35 @@ void MarkWall(Maze maze, WallReference wallRef, void* markedWalls);
 const AlterationExportData ALTERATION_EXPORT_FAILURE = {false, 0, NULL};
 const AlterationExportData ALTERATION_EXPORT_NO_MARKS = {true, 0, NULL};
 
+void PrintMaze2(Maze maze, MazeSize size) {
+    int h = 0, v = 0;
+    printf("+");
+    for (int i = 0; i < size.x * 2 - 1; i++) printf("-");
+    printf("+\n");
+    for (int i = 0; i < size.y * 2 - 1; i++) {
+        if (i % 2 == 0) {
+            printf("|");
+            for(int j = 0; j < size.x - 1; j++, h++) {
+                Wall wall = maze.horizontalWalls[h];
+                printf(" %c", wall.type == WALL ? '|' : wall.type == MARKED_WALL ? 'I' : wall.type == AIR ? wall.direction ? '>' : '<' : wall.direction ? '}' : '{');
+            }
+            printf(" |");
+        }
+        else {
+            printf("+");
+            for(int j = 0; j < size.x; j++, v++) {
+                Wall wall = maze.verticalWalls[(v % size.x) * (size.y - 1) + v/size.x];
+                printf("%c+", wall.type == WALL ? '-' : wall.type == MARKED_WALL ? '~' : wall.type == AIR ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
+            }
+        }
+        printf("\n");
+    }
+    printf("+");
+    for (int i = 0; i < size.x * 2 - 1; i++) printf("-");
+    printf("+\n\n");
+}
+
+
 AlterationExportData AlterMaze(AlterationData data) {
     Maze* maze = LoadMaze(data.id);
     if (!maze) {
@@ -35,7 +64,7 @@ AlterationExportData AlterMaze(AlterationData data) {
         case toggleWall:
             Wall *arr = data.isHorizontal ? maze->horizontalWalls : maze->verticalWalls;
             Wall *wall = &arr[data.wallIndex];
-            if (data.perfectMaze == false) {
+            if (data.perfectMaze == false || maze->status == NOT_PERFECT) {
                 return ToggleWallNonPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
             }
             switch (wall->type) {
@@ -112,6 +141,8 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
         neighbours[chosenNeighbourIndex]->type = MARKED_AIR;
     } while (!(currentPoint.x == maze->root.x && currentPoint.y == maze->root.y));
 
+    maze->status = MARKED;
+    
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
@@ -152,6 +183,8 @@ AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, i
     BranchTraverse(*maze, maze->root, NULL, NULL, MarkWall, markedWalls);
     BranchTraverse(*maze, maze->root, ToggleWallMark, NULL, NULL, NULL);
 
+    maze->status = MARKED;
+    
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
@@ -187,6 +220,7 @@ AlterationExportData AddMarkedWallPerfect(Maze *maze, bool isHorizontal, long in
     if (!isHorizontal && wall->direction == DOWN) newRoot.y++;
     maze->root = newRoot;
 
+    maze->status = PERFECT;
     wall->type = WALL;
 
     SaveMaze(*maze, id);
@@ -205,7 +239,7 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
     //The wall that will be removed always points from submaze A to submaze B.
     //Moving both the roots to be next to the wall that will be removed, and removing it will connect the maze and give it a root in submaze A.
     Point rootA = maze->root;
-    Point rootB;
+    Point rootB = {-1, -1};
     for (int i = 0; i < 4; i++) {
         Point rootBCandidate = rootA;
         if(i == 0)
@@ -223,6 +257,10 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
             rootB = rootBCandidate;
             break;
         }
+    }
+    if (rootB.x == -1 && rootB.y == -1) {
+        FreeMaze(maze);
+        return ALTERATION_EXPORT_FAILURE;
     }
 
     Point newRootA = IndexToPos(isHorizontal, index, maze->size);
@@ -242,6 +280,7 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
     MoveRoot(maze, newRootB);
     maze->root = newRootA;
 
+    maze->status = PERFECT;
     wall->type = AIR;
 
     SaveMaze(*maze, id);
@@ -357,33 +396,6 @@ bool MoveRoot(Maze *maze, Point newRoot) {
     return true;
 }
 
-Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]) {
-    int neighbourIndices[4];
-    LoadNeighbourWallIndices(maze.size, point, neighbourIndices);
-    for (int i = 0; i < 4; i++) {
-        Wall *wallArr = i < 2 ? maze.horizontalWalls : maze.verticalWalls;
-        if (neighbourIndices[i] == -1)
-            neighbours[i] = NULL;
-        else
-            neighbours[i] = &wallArr[neighbourIndices[i]];
-    }
-    return neighbours;
-}
-
-Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]) {
-    Wall *neighbours[4];
-    LoadNeighbourWallPointers(maze, point, neighbours);
-
-    for (int i = 0; i < 4; i++) {
-        if (!neighbours[i] || neighbours[i]->type == WALL || neighbours[i]->type == MARKED_WALL)
-            neighbourDirections[i] = -1;
-        else
-            neighbourDirections[i] = neighbours[i]->direction;
-    }
-    return neighbourDirections;
-}
-
-
 Type GetPointPathType(Maze maze, Point point) {
     Wall *pointNeighbours[4];
     LoadNeighbourWallPointers(maze, point, pointNeighbours);
@@ -456,6 +468,7 @@ void CountMarkableWalls(Maze maze, WallReference wallRef, void* count) {
 void BranchTraverse(Maze maze, Point point,
     void (*OnPathTraverse)   (Maze, WallReference, void*), void* onPathTraverseReturn,
     void (*OnNotPathTraverse)(Maze, WallReference, void*), void* onNotPathTraverseReturn) {
+
     Direction neighbourDirections[4];
     int neighbourIndices[4];
     LoadNeighbourPathDirections(maze, point, neighbourDirections);
@@ -494,7 +507,7 @@ void BranchTraverse(Maze maze, Point point,
     if (neighbourDirections[3] == UP) {
         if (OnPathTraverse)
             OnPathTraverse(maze, (WallReference) {false, neighbourIndices[3]}, onPathTraverseReturn);
-        Point nextPoint = {point.x + 1, point.y - 1};
+        Point nextPoint = {point.x, point.y - 1};
         BranchTraverse(maze, nextPoint, OnPathTraverse, onPathTraverseReturn,
             OnNotPathTraverse, onNotPathTraverseReturn);
     }

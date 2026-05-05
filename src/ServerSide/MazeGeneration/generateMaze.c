@@ -32,15 +32,15 @@ typedef struct {
 
 
 
-void PrintMaze(GenerationMaze maze, MazeSize size) {
+void PrintMaze(GenerationMaze maze) {
     int h = 0, v = 0;
     printf("+");
-    for (int i = 0; i < size.x * 2 - 1; i++) printf("-");
+    for (int i = 0; i < maze.size.x * 2 - 1; i++) printf("-");
     printf("+\n");
-    for (int i = 0; i < size.y * 2 - 1; i++) {
+    for (int i = 0; i < maze.size.y * 2 - 1; i++) {
         if (i % 2 == 0) {
             printf("|");
-            for(int j = 0; j < size.x - 1; j++, h++) {
+            for(int j = 0; j < maze.size.x - 1; j++, h++) {
                 GenerationWall wall = maze.horizontalWalls[h];
                 printf(" %c", wall.type ? wall.closedSides == 1 ? 'I' : '|' : wall.direction ? '>' : '<');
             }
@@ -48,15 +48,15 @@ void PrintMaze(GenerationMaze maze, MazeSize size) {
         }
         else {
             printf("+");
-            for(int j = 0; j < size.x; j++, v++) {
-                GenerationWall wall = maze.verticalWalls[(v % size.x) * (size.y - 1) + v/size.x];
+            for(int j = 0; j < maze.size.x; j++, v++) {
+                GenerationWall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v/maze.size.x];
                 printf("%c+", wall.type ? wall.closedSides == 1 ? '~' : '-' : wall.direction ? 'v' : '^');
             }
         }
         printf("\n");
     }
     printf("+");
-    for (int i = 0; i < size.x * 2 - 1; i++) printf("-");
+    for (int i = 0; i < maze.size.x * 2 - 1; i++) printf("-");
     printf("+\n\n");
 }
 
@@ -159,13 +159,14 @@ Wall *GenerationWallArrToWallArr(const GenerationWall* arr, unsigned long size) 
     return wallArr;
 }
 
-Maze *GenerationMazeToMaze(GenerationMaze generationMaze) {
-    Maze* maze = malloc(sizeof(maze));
+Maze *GenerationMazeToMaze(GenerationMaze generationMaze, bool isPerfect) {
+    Maze* maze = malloc(sizeof(Maze));
     if (!maze) return NULL;
     *maze = (Maze) {
-        generationMaze.size,
+        isPerfect ? PERFECT : NOT_PERFECT,
         GenerationWallArrToWallArr(generationMaze.horizontalWalls, generationMaze.wallCount.horizontal),
         GenerationWallArrToWallArr(generationMaze.verticalWalls,   generationMaze.wallCount.vertical),
+        generationMaze.size,
         generationMaze.wallCount,
         generationMaze.root
     };
@@ -399,14 +400,11 @@ ExportData GenerateMaze(GenerationData data) {
 
         rndFrontier->type = AIR;
     }
-    // printMaze(*maze, size);
+    //PrintMaze(*maze);
 
-
-    Maze *properMaze = GenerationMazeToMaze(*maze);
-    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, 7);
-
+    Maze *properMaze = GenerationMazeToMaze(*maze, data.loops == 0);
+    if (properMaze && properMaze->horizontalWalls) SaveMaze(*properMaze, 7);
     FreeMaze(properMaze);
-
 
     bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);
     bool* verticalBoolArr = GenerationWallArrToBoolArr(maze->verticalWalls, maze->wallCount.vertical);

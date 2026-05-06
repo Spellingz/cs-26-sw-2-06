@@ -162,11 +162,7 @@ Wall *GenerationWallArrToWallArr(const GenerationWall* arr, unsigned long size) 
     return wallArr;
 }
 
-<<<<<<< Maze-alteration
 Maze *GenerationMazeToMaze(GenerationMaze generationMaze, bool isPerfect) {
-=======
-Maze *GenerationMazeToMaze(GenerationMaze generationMaze) {
->>>>>>> main
     Maze* maze = malloc(sizeof(Maze));
     if (!maze) return NULL;
     *maze = (Maze) {
@@ -407,19 +403,15 @@ ExportData GenerateMaze(GenerationData data) {
 
         rndFrontier->type = AIR;
     }
-<<<<<<< Maze-alteration
-    //PrintMaze(*maze);
-=======
 
     AddLoops(maze,size,data.loops);
 
 
     Maze *properMaze = GenerationMazeToMaze(*maze);
-    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, 7);
->>>>>>> main
+    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, data.id);
 
     Maze *properMaze = GenerationMazeToMaze(*maze, data.loops == 0);
-    if (properMaze && properMaze->horizontalWalls) SaveMaze(*properMaze, 7);
+    if (properMaze && properMaze->horizontalWalls) SaveMaze(*properMaze, data.id);
     FreeMaze(properMaze);
 
     bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);

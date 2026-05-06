@@ -138,6 +138,6 @@ function exsport() {
     };
 
     //a test that confirms that there is connection and that it works
-    JSONToFile({ id: 'maze.id', horizontalWalls: 'maze.horizontalWalls', verticalWalls: 'maze.verticalWalls'}, 'maze');
+    JSONToFile({stored}, 'maze');
     // downloads the object as 'testJsonFile.txt'
 }

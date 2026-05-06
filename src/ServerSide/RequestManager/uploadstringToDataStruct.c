@@ -10,7 +10,10 @@ GenerationData TransformGenerationRequest(char *uploadString) {
 
 AlterationData TransformAlterationRequest(char* uploadString) {
     AlterationData request;
-    sscanf(uploadString, "{(id, %d), (isHorizontal, %d), (wallIndex, %ld), (alterationType, %d), (perfectMaze, %d), }", &request.id, (int*)&request.isHorizontal, &request.wallIndex, &request.alterationType, (int*)&request.perfectMaze);
+    int _perfectMaze;
+    int successes = sscanf(uploadString, "{(id, %d), (isHorizontal, %d), (wallIndex, %ld), (alterationType, %d), (perfectMaze, %d), }", &request.id, (int*)&request.isHorizontal, &request.wallIndex, &request.alterationType, &_perfectMaze);
+    printf("Successes: %d", successes);
+    request.perfectMaze = (bool)_perfectMaze;
     return request;
 }
 

@@ -64,9 +64,17 @@ AlterationExportData AlterMaze(AlterationData data) {
         case toggleWall:
             Wall *arr = data.isHorizontal ? maze->horizontalWalls : maze->verticalWalls;
             Wall *wall = &arr[data.wallIndex];
-            if (data.perfectMaze == false || maze->status == NOT_PERFECT) {
+
+            if (!data.perfectMaze) {
                 return ToggleWallNonPerfect(maze, data.isHorizontal, data.wallIndex, data.id);
             }
+
+            if (maze->status == NOT_PERFECT ||
+                maze->status == MARKED && wall->type == WALL ||
+                maze->status == MARKED && wall->type == AIR) {
+                return ALTERATION_EXPORT_FAILURE;
+            }
+
             switch (wall->type) {
                 case WALL:
                     return RemoveWallPerfect(maze, data.isHorizontal, data.wallIndex, data.id);

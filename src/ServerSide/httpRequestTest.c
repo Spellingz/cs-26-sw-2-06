@@ -87,9 +87,9 @@ int stringEndsWith(const char* str, const char* end) {
 // FILE TYPE INFO FROM URL //
 /////////////////////////////
 
-const fileTypeInfoStruct *fileTypeInfoFromUrl (const char* url) {
+const fileTypeInfoStruct *FileTypeInfoFromAdress (const char* adress) {
     for (int i = 0; i < SUPPORTED_FILE_TYPE_COUNT; i++) {
-        if (stringEndsWith(url, SUPPORTED_FILE_TYPES[i].extension)) {
+        if (stringEndsWith(adress, SUPPORTED_FILE_TYPES[i].extension)) {
             return &SUPPORTED_FILE_TYPES[i];
         }
     }
@@ -167,16 +167,16 @@ static enum MHD_Result process_post (void *coninfo_cls,
                 const char *transfer_encoding, const char *data,
                 uint64_t off, size_t dataSize)
 {
-    if(VERBOSITY == ALL) printf("    Partially processing post of size %lu -> Key: %s, Data: %s\n", dataSize, key, data);
+    if(VERBOSITY == ALL) printf("    Partially processing post of size %llu -> Key: %s, Data: %s\n", (unsigned long long) dataSize, key, data);
     connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-    char *keyArray[9] = {"type", "id", "door", "x_size", "y_size", "branches", "loops", "straightness", NULL};
+    char *keyArray[] = {"type", "id", "door", "x_size", "y_size", "branches", "loops", "straightness", "isHorizontal", "wallIndex", "alterationType", "perfectMaze", NULL};
     int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
         return MHD_YES;
 
-    printf("kvp: %s, %s\n", key, data);
+    if (VERBOSITY == ALL) printf("kvp: %s, %s\n", key, data);
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
@@ -191,8 +191,8 @@ static enum MHD_Result process_post (void *coninfo_cls,
         char _addString[strlen(key)+7+dataSize];
         sprintf(_addString, "(%s, %s), ", key, data);
         strcat(con_info->jsonData, _addString); // "Key: Data"
-    } else 
-    {
+    }
+    else {
         if(VERBOSITY >= WARNINGS) printf("dataSize TOO BIG!!");
         return MHD_NO;
     }
@@ -201,7 +201,7 @@ static enum MHD_Result process_post (void *coninfo_cls,
 }
 
 
-char *exportDataToString(ExportData data)
+char *GenerationExportDataToString(ExportData data)
 {
     int horizontalArrStringSize = (data.horizontalMazeArraySize*3);
     int verticalArrStringSize= (data.verticalMazeArraySize*3);
@@ -214,11 +214,11 @@ char *exportDataToString(ExportData data)
     horizontalArrString[0] = '\0';
     for (int i = 0; i < data.horizontalMazeArraySize-1; i++)
     {
-        char _addString[4];
+        char _addString[4] = "";
         sprintf(_addString, "%d, ", (int)data.horizontalMazeArr[i]);
         strcat(horizontalArrString, _addString);
     }    
-    char _addString[2];
+    char _addString[2] = "";
     sprintf(_addString, "%d", (int)data.horizontalMazeArr[data.horizontalMazeArraySize-1]);
     strcat(horizontalArrString, _addString);
 
@@ -226,7 +226,7 @@ char *exportDataToString(ExportData data)
     verticalArrString[0] = '\0';
     for (int i = 0; i < data.verticalMazeArraySize-1; i++)
     {
-        char _addString[4];
+        char _addString[4] = "";
         sprintf(_addString, "%d, ", (int)data.verticalMazeArr[i]);
         strcat(verticalArrString, _addString);
     }
@@ -239,7 +239,7 @@ char *exportDataToString(ExportData data)
     return responseString;
 }
 
-char* alterationExportDataToString(AlterationExportData data) {
+char* AlterationExportDataToString(AlterationExportData data) {
     char* responseString = malloc(sizeof(char) * (data.wallCount * 8 + 200));
     if (!responseString) return "";
     char* _buffer = malloc(sizeof(char) * (data.wallCount * 8 + 200));
@@ -249,10 +249,10 @@ char* alterationExportDataToString(AlterationExportData data) {
     }
     responseString[0] = _buffer[0] = '\n';
 
-    sprintf(responseString, "{\n  \"walls\": [");
+    sprintf(responseString, "{\n  \"succeeded\": %d,\n  \"walls\": [", data.succeded);
 
     for (int i = 0; i < data.wallCount; i++) {
-        sprintf(_buffer, i != data.wallCount - 1 ? "[%d, %d], " : "[%d, %d]",
+        sprintf(_buffer, i != data.wallCount - 1 ? "[%d, %ld], " : "[%d, %ld]",
             data.walls[i].isHorizontal, data.walls[i].index);
         strcat(responseString, _buffer);
     }
@@ -367,7 +367,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             return respond_error(con, MHD_HTTP_INSUFFICIENT_STORAGE);
         }
 
-        con_info->fileTypeInfo = fileTypeInfoFromUrl(url);
+        con_info->fileTypeInfo = FileTypeInfoFromAdress(url);
 
         if (strcmp(method, "POST") == 0) {
             con_info->jsonData = malloc(MAX_ANSWER_SIZE);
@@ -529,14 +529,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             char* responseString;
             if (con_info->requestType == 0)     // generationData
             {
-                GenerationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                ExportData responseData = GenerateMaze(*request);
-                responseString = exportDataToString(responseData);
+                GenerationData request = TransformGenerationRequest(con_info->jsonData);
+                ExportData responseData = GenerateMaze(request);
+                responseString = GenerationExportDataToString(responseData);
             }
             else {                          // alterationData
-                AlterationData *request = transformRequest(con_info->jsonData, con_info->requestType);
-                AlterationExportData responseData = AlterMaze(*request);
-                responseString = alterationExportDataToString(responseData);
+                AlterationData request = TransformAlterationRequest(con_info->jsonData);
+                AlterationExportData responseData = AlterMaze(request);
+                responseString = AlterationExportDataToString(responseData);
             }
 
 

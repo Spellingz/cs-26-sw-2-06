@@ -1,4 +1,6 @@
 #include <stdio.h>
+
+#include "Heatmap/heatmapGen.h"
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -16,6 +18,7 @@
 #include "RequestManager/uploadstringToDataStruct.h"
 #include "MazeAlteration/changeMaze.h"
 #include "MazeGeneration/generateMaze.h"
+#include "Heatmap/heatmapGen.h"
 
 enum verbosity {
     NONE,
@@ -577,6 +580,20 @@ int main(void)
     daemon = MHD_start_daemon (MHD_USE_INTERNAL_POLLING_THREAD, PORT, NULL,
     NULL, &answer_to_connection, NULL, MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL, MHD_OPTION_END);
     if (NULL == daemon) return 1;
+
+    printf("\nRunning Maze Generation");
+    GenerationData data = {
+        12345,
+        0,
+        10,
+        10,
+        1,
+        0,
+        0.5
+    };
+    GenerateMaze(data);
+    printf("\nRunning Heatmap Generation");
+    checkHeat(12345);
 
     if(VERBOSITY >= MINIMAL) printf("Server running at http://localhost:%d", PORT);
     (void) getchar ();

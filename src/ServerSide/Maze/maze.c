@@ -2,10 +2,13 @@
 // Created by sebas on 29-04-2026.
 //
 
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "maze.h"
+
+#include <io.h>
 #include <stdbool.h>
 
 int GetRightWallIndex(Point pos, MazeSize size) {
@@ -106,16 +109,19 @@ Maze* LoadMaze(int id) {
     sprintf(fileName, "ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "r");
-    if (!f) return NULL;
-
+    if (!f) {
+        printf("\nno file found");
+        return NULL;
+    }
     Maze *maze = malloc(sizeof(Maze));
     if (!maze) {
         fclose(f);
         return NULL;
     }
 
-    fscanf(f, "{ \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"root\": [%ld, %ld], ",
+    int successes = fscanf(f, "{ \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"root\": [%ld, %ld], ",
         &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->root.x, &maze->root.y);
+    printf("\n\n\n%d\n\n\n",successes);
     maze->horizontalWalls = malloc(sizeof(Wall) * maze->wallCount.horizontal);
     if (!maze->horizontalWalls) {
         free(maze);
@@ -152,6 +158,10 @@ Maze* LoadMaze(int id) {
 
 void SaveMaze(Maze maze, int id) {
     char fileName[30];
+    struct stat buffer;
+    if (stat("ServerSide/Mazes", &buffer) != 0) {
+        mkdir("ServerSide/Mazes");
+    }
     sprintf(fileName, "ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "w");

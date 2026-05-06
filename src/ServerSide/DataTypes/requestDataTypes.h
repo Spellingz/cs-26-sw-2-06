@@ -2,6 +2,8 @@
 #define REQUESTDATATYPES_H
 #include <stdbool.h>
 
+#include "../Maze/maze.h"
+
 enum alterationType {
     toggleWall,
     toggleDoor,
@@ -9,9 +11,9 @@ enum alterationType {
 
 typedef struct {
     int id;
-    bool isHorizontal;
     bool perfectMaze;
-    int wallIndex;
+    bool isHorizontal;
+    long wallIndex;
     enum alterationType alterationType;
 }   AlterationData;
 
@@ -46,7 +48,7 @@ typedef struct {
 typedef struct {
     bool succeded;
     int wallCount;
-    ExportWall* walls;
+    WallReference* walls;
 } AlterationExportData;
 
 #endif

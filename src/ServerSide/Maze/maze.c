@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "maze.h"
-
+#include <stdbool.h>
 
 int GetRightWallIndex(Point pos, MazeSize size) {
     //Returns the index in horizontalArr of the wall to the right of the point
@@ -171,6 +171,10 @@ void SaveMaze(Maze maze, int id) {
 void FreeMaze(Maze *maze) {
     if (maze) {
         if (maze->horizontalWalls) free(maze->horizontalWalls);
+<<<<<<< Maze-alteration
+=======
+        //if (maze->verticalWalls) free(maze->verticalWalls);
+>>>>>>> main
         free(maze);
     }
 }

@@ -47,9 +47,9 @@ p2{
     align-items: right;
 
     .CreateMazeButton {
+        position: fixed;
         z-index: 500;
         color: #f0efeb;
-        margin-top: 15%;
         margin-right: 50px;
     }
 }
@@ -202,7 +202,8 @@ button:active {
     box-sizing: border-box;
     overflow: auto;
 }
-
-
-
-
+#mazeCanvas {
+    z-index: 500;
+    width: min(600px, calc(100vw - 40px));
+    height: 600px;
+}

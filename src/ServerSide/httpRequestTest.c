@@ -113,7 +113,7 @@ int sizeOfFile(FILE* f) {
     fseek(f, 0, SEEK_END);
     int length = ftell(f);
     fseek(f,0,SEEK_SET);
-    return length;
+    return length+1;
 }
 
 
@@ -171,12 +171,29 @@ static enum MHD_Result process_post (void *coninfo_cls,
     connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
+<<<<<<< Maze-alteration
     char *keyArray[] = {"type", "id", "door", "x_size", "y_size", "branches", "loops", "straightness", "isHorizontal", "wallIndex", "alterationType", "perfectMaze", NULL};
+=======
+    char *keyArray[9] = {
+        "type", 
+        "id", 
+        "door", 
+        "x_size", 
+        "y_size", 
+        "branches", 
+        "loops", 
+        "straightness", 
+        NULL
+        };
+>>>>>>> main
     int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
         return MHD_YES;
 
+<<<<<<< Maze-alteration
     if (VERBOSITY == ALL) printf("kvp: %s, %s\n", key, data);
+=======
+>>>>>>> main
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
@@ -326,6 +343,8 @@ static enum MHD_Result respond(struct MHD_Connection *con,
     // ADD HEADERS
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, headers.contentType);
     MHD_add_response_header(response, MHD_HTTP_HEADER_CACHE_CONTROL, headers.cacheControl);
+
+
     //SEND RESPONSE
     result = MHD_queue_response (con, MHD_HTTP_OK, response);
     MHD_destroy_response (response);
@@ -447,10 +466,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
 
             if (SERVERTYPE == 1)
+            {
                 fread(page, 1, length, f);
+                page[length] = '\0';
+            }
             else
                 readTextFile(f, page);
             fclose (f);
+
 
             // struct  MHD_Response *response;
             // enum MHD_Result ret;
@@ -538,7 +561,6 @@ static enum MHD_Result answer_to_connection (void *cls,
                 AlterationExportData responseData = AlterMaze(request);
                 responseString = AlterationExportDataToString(responseData);
             }
-
 
             headersStruct headers = {
                 .contentType = "application/json",

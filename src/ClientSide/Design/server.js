@@ -82,36 +82,37 @@ function visualizeMaze() {
     ctx.lineWidth = 4; // reset line style
     ctx.strokeStyle = '#222';
 
-    // drawstoredWalls(ctx, canvas);
+    for (let i = 0; i < stored.horizontalWalls.length; i++){ // Vertical wall loop
 
-    for (let i = 1; i < stored.verticalWalls.length; i++){ // Vertical wall loop
-
-        //if (stored.verticalWalls[i] !== 0) continue;
-
-        const xPos = (i % stored.width) * widthPerOffset;
-        const yPos = (Math.floor((i - 1) / stored.height)) * heightPerOffset;
+        const xPos = (i % (stored.width-1)+1) * widthPerOffset;
+        const yPos = (Math.floor(i / stored.height)) * heightPerOffset;
 
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos, yPos + heightPerOffset);
-        ctx.strokeStyle = buttonArrVertical[i - 1] == 1 ? '#222222' : '#CCCCCC';
+        ctx.lineTo(xPos, yPos+heightPerOffset);
+        ctx.strokeStyle = buttonArrHorizontal[i] == 1 ? '#222222' : '#DDDDDD';
         ctx.lineWidth = 4;
+
+        console.log(xPos/widthPerOffset, yPos/heightPerOffset)
         
         ctx.stroke();
     }
+    console.log("");
+    console.log("");
 
-    for (let i = 1; i < stored.horizontalWalls.length; i++){ // Horizontal wall loop
+    for (let i = 0; i < stored.verticalWalls.length; i++){ // Horizontal wall loop
 
-        //if (stored.horizontalWalls[i] !== 0) continue;
 
-        const xPos = (Math.floor(i-1 / stored.width)) * widthPerOffset;
-        const yPos = (i % stored.height) * heightPerOffset;
+        const xPos = (Math.floor(i / (stored.height-1))) * widthPerOffset;
+        const yPos = (i % (stored.height-1)+1) * heightPerOffset;
 
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos + widthPerOffset, yPos);
-        ctx.strokeStyle = buttonArrHorizontal[i - 1] == 1 ? '#222222' : '#CCCCCC';
+        ctx.strokeStyle = buttonArrVertical[i] == 1 ? '#222222' : '#DDDDDD';
         ctx.lineWidth = 4;
+
+        console.log(xPos/widthPerOffset, yPos/heightPerOffset)
         
         ctx.stroke();
     }

@@ -408,8 +408,7 @@ ExportData GenerateMaze(GenerationData data) {
 
 
     Maze *properMaze = GenerationMazeToMaze(*maze, data.loops == 0);
-    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, data.id);
-
+    if (properMaze && properMaze->horizontalWalls) SaveMaze(*properMaze, data.id);
     FreeMaze(properMaze);
 
     bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);
@@ -440,11 +439,11 @@ void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput)
 
     bool switcheroo = true; // to switch between vertical and horizontal
 
-    int smallMin = 4; // definitions for each
-    int smallMax = 15;
+    int smallMin = 6; // definitions for each
+    int smallMax = 20;
 
     int midMin = smallMax + 1;
-    int midMax = 50;
+    int midMax = 60;
 
     int bigMin = midMax + 1;
     int bigMax = 150;

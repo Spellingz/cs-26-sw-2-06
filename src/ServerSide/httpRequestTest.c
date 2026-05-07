@@ -195,9 +195,6 @@ static enum MHD_Result process_post (void *coninfo_cls,
     if (keyIndex == -1)
         return MHD_YES;
 
-    if (VERBOSITY == ALL) printf("kvp: %s, %s\n", key, data);
-
-
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
     {

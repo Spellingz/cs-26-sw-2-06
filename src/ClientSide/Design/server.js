@@ -73,45 +73,56 @@ function visualizeMaze() {
     let buttonArrVertical = stored.verticalWalls;
     let buttonArrHorizontal = stored.horizontalWalls;
 
-    canvas.width = box.clientWidth;
-    const widthPerOffset = box.clientWidth / stored.width;
-    canvas.height = box.clientHeight;
-    const heightPerOffset = box.clientHeight / stored.height;
+    const tileSize = Math.min(box.clientWidth / stored.width, box.clientHeight / stored.height);
+    const lineWidth = tileSize * 0.5
+    canvas.width = box.clientWidth + lineWidth;
+    canvas.height = box.clientHeight + lineWidth;
+
 
     ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
-    ctx.lineWidth = 4; // reset line style
     ctx.strokeStyle = '#222';
 
-    // drawstoredWalls(ctx, canvas);
+    ctx.beginPath();
+    ctx.moveTo(0 + lineWidth * 0.5,0);
+    ctx.lineWidth = lineWidth;
+    ctx.lineTo(0 + lineWidth * 0.5, tileSize * stored.height + lineWidth * 0.5);
+    ctx.lineTo(tileSize * stored.width + lineWidth * 0.5, tileSize * stored.height + lineWidth * 0.5);
+    ctx.lineTo(tileSize * stored.width + lineWidth * 0.5,0 + lineWidth * 0.5);
+    ctx.lineTo(0,0 + lineWidth * 0.5);
+    ctx.stroke();
 
-    for (let i = 1; i < stored.verticalWalls.length; i++){ // Vertical wall loop
 
-        //if (stored.verticalWalls[i] !== 0) continue;
 
-        const xPos = (i % stored.width) * widthPerOffset;
-        const yPos = (Math.floor((i - 1) / stored.height)) * heightPerOffset;
+    for (let i = 0; i < stored.horizontalWalls.length; i++){ // Vertical wall loop
+
+        const xPos = (i % (stored.width-1)+1) * tileSize + lineWidth * 0.5;
+        const yPos = (Math.floor(i / (stored.width-1))) * tileSize;
 
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos, yPos + heightPerOffset);
-        ctx.strokeStyle = buttonArrVertical[i - 1] == 1 ? '#222222' : '#CCCCCC';
-        ctx.lineWidth = 4;
+        ctx.lineTo(xPos, yPos + tileSize + lineWidth);
+        ctx.strokeStyle = buttonArrHorizontal[i] === 1 ? '#222222' : '#22222200';
+        ctx.lineWidth = lineWidth;
+
+        console.log(xPos/tileSize, yPos/tileSize);
         
         ctx.stroke();
     }
+    console.log("");
+    console.log("");
 
-    for (let i = 1; i < stored.horizontalWalls.length; i++){ // Horizontal wall loop
+    for (let i = 0; i < stored.verticalWalls.length; i++){ // Horizontal wall loop
 
-        //if (stored.horizontalWalls[i] !== 0) continue;
-
-        const xPos = (Math.floor(i-1 / stored.width)) * widthPerOffset;
-        const yPos = (i % stored.height) * heightPerOffset;
+        const xPos = (Math.floor(i / (stored.height-1))) * tileSize;
+        const yPos = (i % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
 
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos + widthPerOffset, yPos);
-        ctx.strokeStyle = buttonArrHorizontal[i - 1] == 1 ? '#222222' : '#CCCCCC';
-        ctx.lineWidth = 4;
+        ctx.lineTo(xPos + tileSize + lineWidth, yPos);
+        ctx.strokeStyle = buttonArrVertical[i] === 1 ? '#222222' : '#22222200';
+        ctx.lineWidth = lineWidth;
+
+        console.log(xPos/tileSize, yPos/tileSize);
         
         ctx.stroke();
     }

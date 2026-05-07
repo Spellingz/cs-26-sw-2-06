@@ -407,9 +407,6 @@ ExportData GenerateMaze(GenerationData data) {
     AddLoops(maze,size,data.loops);
 
 
-    Maze *properMaze = GenerationMazeToMaze(*maze);
-    if (properMaze && properMaze->horizontalWalls && properMaze->verticalWalls) SaveMaze(*properMaze, data.id);
-
     Maze *properMaze = GenerationMazeToMaze(*maze, data.loops == 0);
     if (properMaze && properMaze->horizontalWalls) SaveMaze(*properMaze, data.id);
     FreeMaze(properMaze);

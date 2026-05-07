@@ -12,6 +12,7 @@ set(SOURCES
         src/ServerSide/RequestManager/requestManager.c
         src/ServerSide/RequestManager/uploadstringToDataStruct.c
         src/ServerSide/Maze/maze.c
+        src/ServerSide/Heatmap/heatmapGen.c
 )
 
 add_executable(HTTP_test ${SOURCES})

@@ -1,4 +1,6 @@
 #include <stdio.h>
+
+#include "Heatmap/heatmapGen.h"
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -16,6 +18,7 @@
 #include "RequestManager/uploadstringToDataStruct.h"
 #include "MazeAlteration/changeMaze.h"
 #include "MazeGeneration/generateMaze.h"
+#include "Heatmap/heatmapGen.h"
 
 enum verbosity {
     NONE,
@@ -171,7 +174,9 @@ static enum MHD_Result process_post (void *coninfo_cls,
     connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-    char *keyArray[] = {"type",
+
+    char *keyArray[] = {
+        "type",
         "id",
         "door",
         "x_size",
@@ -183,7 +188,8 @@ static enum MHD_Result process_post (void *coninfo_cls,
         "wallIndex",
         "alterationType",
         "perfectMaze",
-        NULL};
+        NULL
+    };
 
     int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
@@ -580,7 +586,7 @@ int main(void)
     NULL, &answer_to_connection, NULL, MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL, MHD_OPTION_END);
     if (NULL == daemon) return 1;
 
-    if(VERBOSITY >= MINIMAL) printf("Server running at http://localhost:%d", PORT);
+    if(VERBOSITY >= MINIMAL) printf("\nServer running at http://localhost:%d", PORT);
     (void) getchar ();
     MHD_stop_daemon (daemon);
 

@@ -5,6 +5,7 @@
 #include "heatmapGen.h"
 
 #include <math.h>
+#include <unistd.h>
 
 int arraySize;
 int **posSteps;
@@ -30,147 +31,122 @@ når et felt rammes, tjekker om det er nået før
 */
 
 void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze) {
-	if (posSteps[currentPosX][currentPosY] >= stepCount) {
+	// printf("\nmazeStepper placed");
+	// printf("\ncurrent steps taken: %d", stepCount);
+	// printf("\nsteps recorded on current spot: %d", posSteps[currentPosX][currentPosY]);
+	if (posSteps[currentPosX][currentPosY] <= stepCount && posSteps[currentPosX][currentPosY] > -1) {
+		// printf("\nspot already reached, ending mazeStepper");
 		return;
 	}
+	//sleep(1);
 	posSteps[currentPosX][currentPosY] = stepCount;
+	// printf("\nSetting position x = %d,y = %d to %d",currentPosX,currentPosY,stepCount);
+	// printf("\nSteps of current position is now %d", posSteps[currentPosX][currentPosY]);
 	int neighborWallIndex;
 	LoadNeighbourWallPointers(*maze, (Point){currentPosX, currentPosY}, wallIndices);
 
 	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY-1}, maze->size);
 	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].type == AIR) {
+		// printf("\nsending mazeStepper up");
 		mazeStepper(currentPosX, currentPosY-1, stepCount+1, maze);
 	}
 	neighborWallIndex = GetRightWallIndex((Point){currentPosX-1, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].type == AIR) {
+		// printf("\nsending mazeStepper left");
 		mazeStepper(currentPosX-1, currentPosY, stepCount+1, maze);
 	}
 	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].type == AIR) {
+		// printf("\nsending mazeStepper down");
 		mazeStepper(currentPosX, currentPosY+1, stepCount+1, maze);
 	}
 	neighborWallIndex = GetRightWallIndex((Point){currentPosX, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].type == AIR) {
+		// printf("\nsending mazeStepper right");
 		mazeStepper(currentPosX+1, currentPosY, stepCount+1, maze);
 	}
 }
 
 void checkHeat(int id) {
-	printf("\nCreating heatmap variables, and allocating memory for 2D array: ");
+	// printf("\nCreating heatmap variables, and allocating memory for 2D array: ");
 	Maze *maze = LoadMaze(id);
 	if (maze == NULL) {
-		printf("\nSomething Went Wrong, no maze loaded");
+		// printf("\nSomething Went Wrong, no maze loaded");
+		return;
 	}
-	printf(".");
+	// printf(".");
 	arraySize = maze->size.x * maze->size.y;
-	printf("\ncreating array with size %d x %d", (int)maze->size.x, (int)maze->size.y);
+
+	// printf("\ncreating array with size %d x %d: ", (int)maze->size.x, (int)maze->size.y);
 	posSteps = (int **)calloc((int)maze->size.x, sizeof(int*));
 	printf(".");
 	if (!posSteps) {
-		printf("Unable to allocate memory for 2D array. Heatmap creation aborted.");
+		// printf("Unable to allocate memory for 2D array. Heatmap creation aborted.");
 		return;
 	}
-	printf("Memory allocated for 1D Array");
-	printf("\nAllocating memory for Array of Arrays: ");
+	// printf("Memory allocated for 1D Array");
+	// printf("\nAllocating memory for Array of Arrays: ");
 	for (int i = 0; i < maze->size.x; i++) {
-		posSteps[i] = (int*)calloc((int)maze->size.y, sizeof(int));
+		posSteps[i] = (int*)calloc((int)maze->size.y, sizeof(int*));
 		if (!posSteps[i]) {
-			printf("Unable to allocate memory for array column %d in 2D array. Heatmap creation aborted.", i);
-		} else {
-			memset(posSteps[i], -1, sizeof(*posSteps[i]));
+			// printf("Unable to allocate memory for array column %d in 2D array. Heatmap creation aborted.", i);
+			return;
 		}
+		memset(posSteps[i], -1, maze->size.x * sizeof(*posSteps));
+		// printf("\nMemory of %d array initialized as -1 for each index: ", i);
+		// printf("index for x = %d, y = 0 is %d", i, posSteps[i][0]);
 	}
-	printf("Memory allocated for 2D Array");
+	// printf("Memory allocated for 2D Array");
 
 	int startPosX = maze->root.x,
 		startPosY = maze->root.y,
 		stepCount = 0;
 
-	printf("\nRunning mazeStepper recursive function: ");
+	// printf("\nRunning mazeStepper recursive function: ");
 	mazeStepper(startPosX, startPosY, stepCount, maze);
-	printf("mazeStepper finished successfully");
+	// printf("\nmazeStepper finished successfully");
 
-	// int k = 0;
-	// for (int i = 0; i < (int)maze.wallCount.vertical; i++) {
-	// 	for (int j = 0; j < (int)maze.wallCount.horizontal; j++) {
-	// 		mazeSpots[k].posX = j;
-	// 		mazeSpots[k].posY = i;
-	// 		mazeSpots[k].heat = ceil(((abs(j-(maze.wallCount.horizontal/2))+abs(i-(maze.wallCount.vertical/2)))/(maze.wallCount.horizontal/2+maze.wallCount.vertical))*6);
-	// 		k++;
-	// 	}
-	// }
-	// printHeatmap(mazeSpots);
-	// free(mazeSpots);
 	farthestSpot = 0;
-	heatIndex = calloc(arraySize, sizeof(SpotHeat));
 	int k = 0;
-
-	printf("\nChecking farthest spot distance: ");
+	// printf("\nChecking farthest spot distance: ");
 	for (int currentX = 0; currentX < maze->size.x; currentX++) {
 		for (int currentY = 0; currentY < maze->size.y; currentY++) {
 			if (posSteps[currentX][currentY] > farthestSpot) farthestSpot = posSteps[currentX][currentY];
 		}
 	}
-	printf("Farthest spot found with distance %d", farthestSpot);
-	printf("\nCreating heatIndex and calculating heat for spots: ");
-	for (int currentX = 0; currentX < maze->size.x; currentX++) {
-		for (int currentY = 0; currentY < maze->size.y; currentY++) {
-			heatIndex[k].posX = currentX;
-			heatIndex[k].posY = currentY;
-			heatIndex[k].heat = ceil(posSteps[currentX][currentY]/farthestSpot);
-			k++;
+	// printf("Farthest spot found with distance %d", farthestSpot);
+	// printf("\nChecking for unaltered distances: ");
+	for (int i = 0; i < maze->size.x; i++) {
+		for (int j = 0; j < maze->size.y; j++) {
+			if (posSteps[i][j] < 0) {
+				// printf("unaltered distance found at x = %d, y = %d, distance is %d", i, j, posSteps[i][j]);
+			}
 		}
 	}
-	printf("heatIndex created");
+	// printf("no unaltered spots found");
+	// printf("\nPrinting heatmap to .txt: ");
+	printHeatmap();
+	// printf("complete");
 
-	printf("\nPrinting heatmap to .txt: ");
-	printHeatmap(heatIndex);
-	printf("complete");
-
-	printf("\nFreeing allocated memory:");
-	free(heatIndex);
-	printf("\nheatIndex freed");
+	// printf("\nFreeing allocated memory:");
 	for (int i = 0; i < maze->size.x; i++) {
 		free(posSteps[i]);
 	}
-	printf("\ninternal arrays of posSteps freed");
+	// printf("\ninternal arrays of posSteps freed");
 	free(posSteps);
-	printf("\nexternal array of posSteps freed");
+	// printf("\nexternal array of posSteps freed");
 	FreeMaze(maze);
-	printf("\nmaze freed");
+	// printf("\nmaze freed");
 }
 
-void printHeatmap(SpotHeat heatArray[]) {
-	FILE *heatmapFile;
-	heatmapFile = fopen("heatmap.txt", "w");
+void printHeatmap() {
+	FILE *heatmapFile = fopen("heatmap.txt", "w");
 
-	fprintf(heatmapFile, "Heatmap Array for each maze spot:\n");
-	for (int i = 0; i < 3; i++) {
-		fprintf(heatmapFile, "X coordinate: %d, Y coordinate: %d, Heat Index: ", heatArray[i].posX, heatArray[i].posY);
-		switch (heatArray[i].heat) {
-			case WARMEST:
-				fprintf(heatmapFile, "Warmest");
-				break;
-			case WARMER:
-				fprintf(heatmapFile, "Warmer");
-				break;
-			case WARM:
-				fprintf(heatmapFile, "Warm");
-				break;
-			case NEUTRAL:
-				fprintf(heatmapFile, "Neutral");
-				break;
-			case COLD:
-				fprintf(heatmapFile, "Cold");
-				break;
-			case COLDER:
-				fprintf(heatmapFile, "Colder");
-				break;
-			case COLDEST:
-				fprintf(heatmapFile, "Coldest");
-				break;
+	fprintf(heatmapFile, "Heatmap Array for each maze spot:");
+	for (int checkX = 0; checkX < 10; checkX++) {
+		for (int checkY = 0; checkY < 10; checkY++) {
+			fprintf(heatmapFile, "\nX = %d, Y = %d, distance = %d, heatIndex = %d", checkX, checkY, posSteps[checkX][checkY], (int)ceil(((double)posSteps[checkX][checkY]/(double)farthestSpot)*255));
 		}
-		fprintf(heatmapFile, "\n");
 	}
 	fclose(heatmapFile);
 }

@@ -174,29 +174,29 @@ static enum MHD_Result process_post (void *coninfo_cls,
     connection_info_struct *con_info = coninfo_cls;
 
     // RETURN IF KEY DOESN'T MATCH PREFERENCE
-<<<<<<< Maze-alteration
-    char *keyArray[] = {"type", "id", "door", "x_size", "y_size", "branches", "loops", "straightness", "isHorizontal", "wallIndex", "alterationType", "perfectMaze", NULL};
-=======
-    char *keyArray[9] = {
-        "type", 
-        "id", 
-        "door", 
-        "x_size", 
-        "y_size", 
-        "branches", 
-        "loops", 
-        "straightness", 
+
+    char *keyArray[] = {
+        "type",
+        "id",
+        "door",
+        "x_size",
+        "y_size",
+        "branches",
+        "loops",
+        "straightness",
+        "isHorizontal",
+        "wallIndex",
+        "alterationType",
+        "perfectMaze",
         NULL
-        };
->>>>>>> main
+    };
+
     int keyIndex = findKey(key, keyArray);
     if (keyIndex == -1)
         return MHD_YES;
 
-<<<<<<< Maze-alteration
     if (VERBOSITY == ALL) printf("kvp: %s, %s\n", key, data);
-=======
->>>>>>> main
+
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
     if ((dataSize > 0) && (dataSize <= 20))
@@ -589,21 +589,7 @@ int main(void)
     NULL, &answer_to_connection, NULL, MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL, MHD_OPTION_END);
     if (NULL == daemon) return 1;
 
-    printf("\nRunning Maze Generation");
-    GenerationData data = {
-        12345,
-        0,
-        10,
-        10,
-        1,
-        0,
-        0.5
-    };
-    GenerateMaze(data);
-    printf("\nRunning Heatmap Generation");
-    checkHeat(12345);
-
-    if(VERBOSITY >= MINIMAL) printf("Server running at http://localhost:%d", PORT);
+    if(VERBOSITY >= MINIMAL) printf("\nServer running at http://localhost:%d", PORT);
     (void) getchar ();
     MHD_stop_daemon (daemon);
 

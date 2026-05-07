@@ -28,7 +28,7 @@ int generateHeatmap();
 
 void checkHeat(int id);
 
-void printHeatmap(SpotHeat heatArray[]);
+void printHeatmap();
 
 
 

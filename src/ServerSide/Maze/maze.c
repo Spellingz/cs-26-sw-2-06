@@ -2,10 +2,12 @@
 // Created by sebas on 29-04-2026.
 //
 
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "maze.h"
+#include <io.h>
 #include <stdbool.h>
 
 int GetRightWallIndex(Point pos, MazeSize size) {
@@ -32,10 +34,8 @@ int GetLowerWallIndex(Point pos, MazeSize size) {
  * DOWN\n
  * UP\n
  */
-int *GetNeighbourWallIndices(MazeSize size, Point pos) {
+int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]) {
     //GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
-    int *indices = malloc(sizeof(int) * 4);
-    if (!indices) return NULL;
 
     //Gets the indexes of the neighbouring walls in their respective arrays
     indices[0] = GetRightWallIndex((Point){pos.x, pos.y}, size);
@@ -46,6 +46,35 @@ int *GetNeighbourWallIndices(MazeSize size, Point pos) {
     return indices;
 }
 
+Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]) {
+    int neighbourIndices[4];
+    LoadNeighbourWallIndices(maze.size, point, neighbourIndices);
+    for (int i = 0; i < 4; i++) {
+        Wall *wallArr = i < 2 ? maze.horizontalWalls : maze.verticalWalls;
+        if (neighbourIndices[i] == -1)
+            neighbours[i] = NULL;
+        else
+            neighbours[i] = &wallArr[neighbourIndices[i]];
+    }
+    return neighbours;
+}
+
+Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]) {
+    Wall *neighbours[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
+
+    for (int i = 0; i < 4; i++) {
+        if (!neighbours[i] || neighbours[i]->type == WALL || neighbours[i]->type == MARKED_WALL)
+            neighbourDirections[i] = -1;
+        else
+            neighbourDirections[i] = neighbours[i]->direction;
+    }
+    return neighbourDirections;
+}
+
+/**
+ * LEFT or UP
+ */
 Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
     if (isHorizontal)
         //Returns the position of the point just left of the wall.
@@ -62,29 +91,28 @@ Maze* LoadMaze(int id) {
     sprintf(fileName, "ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "r");
-    if (!f) return NULL;
-
+    if (!f) {
+        printf("\nno file found");
+        return NULL;
+    }
     Maze *maze = malloc(sizeof(Maze));
     if (!maze) {
         fclose(f);
         return NULL;
     }
 
-    fscanf(f, "{ \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"root\": [%ld, %ld], ",
-        &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->root.x, &maze->root.y);
-    maze->horizontalWalls = malloc(sizeof(Wall) * maze->wallCount.horizontal);
-    if (!maze->horizontalWalls) {
+    fscanf(f, "{ \"status\": %d, \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"size\": [%ld, %ld], \"root\": [%ld, %ld], ",
+        &maze->status, &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->size.x, &maze->size.y, &maze->root.x, &maze->root.y);
+    Wall *memoryBlock = malloc(sizeof(Wall) * (maze->wallCount.horizontal + maze->wallCount.vertical));
+    if (!memoryBlock) {
         free(maze);
         fclose(f);
         return NULL;
     }
-    maze->verticalWalls = malloc(sizeof(Wall) * maze->wallCount.vertical);
-    if (!maze->verticalWalls) {
-        free(maze->horizontalWalls);
-        free(maze);
-        fclose(f);
-        return NULL;
-    }
+
+    maze->horizontalWalls = memoryBlock;
+    maze->verticalWalls = memoryBlock + maze->wallCount.horizontal;
+
 
     fscanf(f, " \"horizontalMazeArr\": [");
     for (int i = 0; fscanf(f, "[%d, %d]",
@@ -108,6 +136,10 @@ Maze* LoadMaze(int id) {
 
 void SaveMaze(Maze maze, int id) {
     char fileName[30];
+    struct stat buffer;
+    if (stat("ServerSide/Mazes", &buffer) != 0) {
+        mkdir("ServerSide/Mazes");
+    }
     sprintf(fileName, "ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "w");
@@ -122,8 +154,8 @@ void SaveMaze(Maze maze, int id) {
     }
     fileContents[0] = _buffer[0] = '\n';
 
-    sprintf(fileContents, "{\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n  \"root\": [%ld, %ld],\n",
-        maze.wallCount.horizontal, maze.wallCount.vertical, maze.root.x, maze.root.y);
+    sprintf(fileContents, "{\n  \"status\": %d,\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n  \"size\": [%ld, %ld],\n  \"root\": [%ld, %ld],\n",
+        maze.status, maze.wallCount.horizontal, maze.wallCount.vertical, maze.size.x, maze.size.y, maze.root.x, maze.root.y);
 
     for (int arrayNumber = 0; arrayNumber < 2; arrayNumber++) {
         strcat(fileContents, arrayNumber == 0 ? "  \"horizontalMazeArr\": [" : "  \"verticalMazeArr\": [");

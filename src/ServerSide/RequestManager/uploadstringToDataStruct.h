@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "../DataTypes/requestDataTypes.h"
 
-void* transformRequest(char *uploadstring, bool type);
+GenerationData TransformGenerationRequest(char *uploadString);
+AlterationData TransformAlterationRequest(char *uploadString);
 
 #endif

@@ -16,7 +16,15 @@ typedef enum {
 typedef enum {
     AIR = 0,
     WALL = 1,
+    MARKED_AIR = 2,
+    MARKED_WALL = 3
 } Type;
+
+typedef enum {
+    PERFECT = 0,
+    MARKED = 1,
+    NOT_PERFECT = 2,
+} MazeStatus;
 
 typedef struct {
     int type;
@@ -37,17 +45,25 @@ typedef struct {
 } Point;
 
 typedef struct {
-    MazeSize size;
-    Wall *verticalWalls;
+    MazeStatus status;
     Wall *horizontalWalls;
+    Wall *verticalWalls;
+    MazeSize size;
     MazeWallCount wallCount;
     Point root;
 } Maze;
 
+typedef struct {
+    bool isHorizontal;
+    long index;
+} WallReference;
+
 //Pos to index
 int GetRightWallIndex(Point pos, MazeSize size);
 int GetLowerWallIndex(Point pos, MazeSize size);
-int *GetNeighbourWallIndices(MazeSize size, Point pos);
+int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]);
+Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]);
+Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]);
 
 //Index to pos
 Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize);

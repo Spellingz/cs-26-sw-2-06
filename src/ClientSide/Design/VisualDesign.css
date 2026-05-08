@@ -39,7 +39,7 @@ p2{
     display: flex;
     justify-content: left;
     align-items: left;
-    margin-top: 6%;
+    margin-top: 5%;
 }
 #CreateBoks{
     display: flex;
@@ -61,7 +61,7 @@ button:active {
 
 #output{
     justify-content: flex-end;
-    margin-top: -3%;
+    margin-top: -1%;
     margin-left: 70px;
 }
 #output #Boks {
@@ -75,6 +75,7 @@ button:active {
     box-sizing: border-box;
     margin: 3%;
     background-color: #d4e4f1;
+    overflow: auto;
 }
 #output #InfoBoks {
     justify-content: flex-end;
@@ -184,7 +185,7 @@ button:active {
 
 /*Boks for the generated maze to be printed into*/
 #generatedOutput {
-    position: fixed;
+    position: absolute;
     top: 120px;       
     right: 5%;
     left: auto;
@@ -203,6 +204,7 @@ button:active {
     overflow: auto;
 }
 #mazeCanvas {
+    position: absolute;
     z-index: 500;
     width: min(600px, calc(100vw - 40px));
     height: 600px;

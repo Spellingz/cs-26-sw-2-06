@@ -2,13 +2,10 @@
 // Created by sebas on 29-04-2026.
 //
 
-#include <sys/stat.h>
+#include "maze.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "maze.h"
-#include <io.h>
-#include <stdbool.h>
 
 int GetRightWallIndex(Point pos, MazeSize size) {
     //Returns the index in horizontalArr of the wall to the right of the point
@@ -138,7 +135,8 @@ void SaveMaze(Maze maze, int id) {
     char fileName[30];
     struct stat buffer;
     if (stat("ServerSide/Mazes", &buffer) != 0) {
-        mkdir("ServerSide/Mazes");
+        int check = mkdir("ServerSide/Mazes", 0777);
+        if (!check) ; else return;
     }
     sprintf(fileName, "ServerSide/Mazes/%d.json", id);
 

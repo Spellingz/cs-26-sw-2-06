@@ -6,11 +6,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
         src/ServerSide/httpRequestTest.c
+        src/ServerSide/RequestManager/uploadstringToDataStruct.c
         src/ServerSide/MazeAlteration/changeMaze.c
         src/ServerSide/MazeGeneration/generateMaze.c
         src/ServerSide/RequestManager/fileUnpacker.c
         src/ServerSide/RequestManager/requestManager.c
-        src/ServerSide/RequestManager/uploadstringToDataStruct.c
         src/ServerSide/Maze/maze.c
         src/ServerSide/Heatmap/heatmapGen.c
 )

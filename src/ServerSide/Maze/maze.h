@@ -2,9 +2,13 @@
 // Created by sebas on 29-04-2026.
 //
 
-#ifndef HTTP_TEST_MAZE_H
-#define HTTP_TEST_MAZE_H
+#ifndef MAZEH
+#define MAZEH
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdbool.h>
 
 typedef enum {
     UP = 0,

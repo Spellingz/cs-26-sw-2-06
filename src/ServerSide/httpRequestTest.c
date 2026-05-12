@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-#include "Heatmap/heatmapGen.h"
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -18,7 +17,7 @@
 #include "RequestManager/uploadstringToDataStruct.h"
 #include "MazeAlteration/changeMaze.h"
 #include "MazeGeneration/generateMaze.h"
-#include "Heatmap/heatmapGen.h"
+// #include "Heatmap/heatmapGen.h"
 
 enum verbosity {
     NONE,
@@ -457,7 +456,8 @@ static enum MHD_Result answer_to_connection (void *cls,
             if (VERBOSITY == ALL) printf("fileOpened\n");
 
             length = sizeOfFile(f);
-            page = malloc (length * sizeof(char));
+            printf("Length: %d", (int)length);
+            page = malloc ((length +1)* sizeof(char));
 
             if (!page) {
                 fclose(f);

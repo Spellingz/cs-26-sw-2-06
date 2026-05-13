@@ -147,17 +147,12 @@ function visualizeHeatmap(heatmapType) {
         {method: 'POST', 
         headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
         body: str
-        // body: 'type=0&id=12345678&door=0&x_size=3&y_size=3&branches=0.60&loops=0.0&straightness=0.54'
         })
     .then(result => result.json())
     .then(result => {
         heatmapArr = result;
         console.log("response: ", heatmapArr);
-        // saveVisualData();
     });
-    // const stored = JSON.parse(localStorage.getItem("heatmapVariables"));
-    // if (!stored) return
-    // console.log(stored);
     
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
@@ -165,34 +160,19 @@ function visualizeHeatmap(heatmapType) {
     
     const tileSize = Math.min(box.clientWidth / stored.width, box.clientHeight / stored.height);
     const lineWidth = tileSize * 0.5
-    canvas.width = box.clientWidth + lineWidth;
-    canvas.height = box.clientHeight + lineWidth;
-
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
-    ctx.strokeStyle = '#222';
-
-    ctx.beginPath();
-    ctx.moveTo(0 + lineWidth * 0.5,0);
-    ctx.lineWidth = lineWidth;
-    ctx.lineTo(0 + lineWidth * 0.5, tileSize * stored.height + lineWidth * 0.5);
-    ctx.lineTo(tileSize * stored.width + lineWidth * 0.5, tileSize * stored.height + lineWidth * 0.5);
-    ctx.lineTo(tileSize * stored.width + lineWidth * 0.5,0 + lineWidth * 0.5);
-    ctx.lineTo(0,0 + lineWidth * 0.5);
-    ctx.stroke();
-
+    const squareWidth = tileSize - lineWidth
 
 
     for (let i = 0; i < stored.length; i++){ // Vertical wall loop
         for (let j = 0; j < stored.height; j++) {
 
-            const xPos = (i % (stored.width-1)+1) * tileSize + lineWidth * 0.5;
-            const yPos = (Math.floor(i / (stored.width-1))) * tileSize;
+            const xPos = i * tileSize + lineWidth * 0.5;
+            const yPos = j * tileSize + tileSize * 0.5;
     
             ctx.beginPath();
             ctx.moveTo(xPos, yPos);
-            ctx.lineTo(xPos, yPos + tileSize + lineWidth);
-            ctx.strokeStyle = stored.heatmapArr[i,j] === 1 ? '#222222' : '#22222200';
+            ctx.lineTo(xPos + squareWidth, yPos);
+            ctx.strokeStyle = `rgba(255,155,0,${heatmapArr[i,j]})`
             ctx.lineWidth = lineWidth;
     
             console.log(xPos/tileSize, yPos/tileSize);

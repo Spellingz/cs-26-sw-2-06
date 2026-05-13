@@ -51,6 +51,7 @@ const fileTypeInfoStruct SUPPORTED_FILE_TYPES[SUPPORTED_FILE_TYPE_COUNT] = {
 #define PORT 8888
 #define MAX_ANSWER_SIZE 512
 
+int idCounter = 0;
 
 enum connectionType {
     POST,
@@ -69,6 +70,7 @@ typedef struct {
 
 typedef struct {
     char* contentType;
+    char* cookies;
     char* cacheControl;
 } headersStruct;
 
@@ -324,7 +326,7 @@ static enum MHD_Result respond_error(struct MHD_Connection *connection, int erro
 
 static enum MHD_Result respond(struct MHD_Connection *con,
                                char* buffer, size_t bufferLen,
-                               headersStruct headers,
+                               headersStruct headers, char* id,
                                enum MHD_ResponseMemoryMode memoryMode)
 {
     // INITIALIZE RESPONSE AND RESPONSE_RESULT VARS
@@ -342,6 +344,7 @@ static enum MHD_Result respond(struct MHD_Connection *con,
     // ADD HEADERS
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, headers.contentType);
     MHD_add_response_header(response, MHD_HTTP_HEADER_CACHE_CONTROL, headers.cacheControl);
+    MHD_add_response_header(response, "Set-Cookie", id);
 
 
     //SEND RESPONSE
@@ -420,6 +423,20 @@ static enum MHD_Result answer_to_connection (void *cls,
     // CONNECTIONTYPE GET
     //
     if (con_info->connectionType == GET) {
+
+        char* actualID = calloc(sizeof(char), 10);
+        const char *id = 
+            MHD_lookup_connection_value(
+                con,
+                MHD_COOKIE_KIND,
+                "id");
+        if (id == NULL)
+            sprintf(actualID, "id=%d;", ++idCounter);
+        else
+            sprintf(actualID, "id=%s;", id);
+        
+
+
         char* requestURL;
     
         // IF NO PAGE -> DEFAULT TO FRONTPAGE
@@ -489,7 +506,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             };
 
             // MAKE RESPONSE TO SEND TO CLIENT
-            return respond(con, page, strlen(page), headers, MHD_RESPMEM_MUST_FREE);
+            return respond(con, page, strlen(page), headers, actualID, MHD_RESPMEM_MUST_FREE);
         }
         else if (con_info->fileTypeInfo->type == JPG) {
             char *buffer = NULL;
@@ -520,7 +537,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             };
 
             // MAKE RESPONSE TO SEND TO CLIENT
-            return respond(con, buffer, length, headers, MHD_RESPMEM_MUST_FREE);
+            return respond(con, buffer, length, headers, actualID, MHD_RESPMEM_MUST_FREE);
         }
     }
 
@@ -567,7 +584,18 @@ static enum MHD_Result answer_to_connection (void *cls,
                 .cacheControl = "no-store"
             };
 
-            return respond(con, responseString, strlen(responseString), headers, MHD_RESPMEM_MUST_FREE);
+            char* actualID = calloc(sizeof(char), 10);
+            const char *id = 
+                MHD_lookup_connection_value(
+                    con,
+                    MHD_COOKIE_KIND,
+                    "id");
+            if (id == NULL)
+                sprintf(actualID, "id=%d;", ++idCounter);
+            else
+                sprintf(actualID, "id=%s;", id);
+
+            return respond(con, responseString, strlen(responseString), headers, actualID, MHD_RESPMEM_MUST_FREE);
         }
         // FALLBACK - IF ALL ELSE FAILS
         if(VERBOSITY >= WARNINGS) printf("conInfo has not allocated response string!\n");

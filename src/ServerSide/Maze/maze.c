@@ -135,7 +135,11 @@ void SaveMaze(Maze maze, int id) {
     char fileName[30];
     struct stat buffer;
     if (stat("ServerSide/Mazes", &buffer) != 0) {
+#ifndef _WIN32
         int check = mkdir("ServerSide/Mazes", 0777);
+#else
+        int check = mkdir("ServerSide/Mazes");
+#endif
         if (!check) ; else return;
     }
     sprintf(fileName, "ServerSide/Mazes/%d.json", id);

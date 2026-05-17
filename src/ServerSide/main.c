@@ -7,7 +7,6 @@
 #include "RequestManager/requestManager.h"
 #include "MazeAlteration/changeMaze.h"
 
-#pragma pack(1)
 
 bool _isActive = true;
 

@@ -22,31 +22,37 @@ function specialWallsHeatMap() {
 
 
 //Edit-mode boks
+
+let editModeActive = false;
+
 function editMode() {
-    let html = `
-        <div class="editModeBoks">
-            <div class="close">
-                <button onclick="closeEditMode()" style="background-color: #4a6275; border: 6px solid #303f4b; border-radius: 12px; height: 10%; width: 10%; font-weight: bold; align-items: center;" >x</button>
+    const changeColor = document.getElementById("EditMode");
+
+    if (!editModeActive) {
+        //turns on the button to green mode
+        editModeActive = true;
+        changeColor.style.backgroundColor = '#196b0e';
+        changeColor.style.borderColor = '#15490f';
+
+        let html = `
+            <div class="editModeBoks">
+                <div class="closeEditMode">
+                    <button onclick="closeEditMode()" style="background-color: #f0efeb; border: 6px solid #303f4b; border-radius: 12px; height: 10%; width: 30%; align-items: center; color: #4a6275; font-weight: bold;" >Continue</button>
+                </div>
             </div>
-            <div id="editButtons">
-                <button class="add" onclick="add()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb; margin-top: 10%;">ADD</button>
-                <button class="remove" onclick="remove()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb; margin-top: 5%;">REMOVE</button>
-            </div>
-        </div>
-    `;
-    const output = document.getElementById("modificationOutput");
-    output.innerHTML = '';
-    output.insertAdjacentHTML('beforeend', html);
+        `;
+        const output = document.getElementById("modificationOutput");
+        output.innerHTML = '';
+        output.insertAdjacentHTML('beforeend', html);
+    } else {
+        editModeActive = false;
+        changeColor.style.backgroundColor = '#d11010';
+        changeColor.style.borderColor = '#9f1010';
+        output.innerHTML = '';
+    };
 }
 function closeEditMode() {
     const output = document.getElementById("modificationOutput");
     output.innerHTML = '';
-}
-//function for the add and remove buttons, where the algoritm should make it possible to add or remove a wall
-function add(){
-
-}
-function remove(){
-
 }
 

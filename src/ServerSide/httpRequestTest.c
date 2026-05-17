@@ -212,6 +212,15 @@ static enum MHD_Result process_post (void *coninfo_cls,
 }
 
 
+void FreeAlterationExportData(AlterationExportData data) {
+    if (data.markedWalls) free(data.markedWalls);
+    if (data.solution) free(data.solution);
+}
+
+void FreeGenerationExportData(ExportData data) {
+    if (data.horizontalMazeArr) free(data.horizontalMazeArr);
+}
+
 char *GenerationExportDataToString(ExportData data)
 {
     size_t horizontalArrStringSize = data.horizontalMazeArraySize * strlen("[0, 0], ");
@@ -271,8 +280,6 @@ char* AlterationExportDataToString(AlterationExportData data) {
                 data.markedWalls[i].isHorizontal, data.markedWalls[i].index);
         strcat(responseString, _buffer);
     }
-    if (data.markedWallCount > 0)
-        free(data.markedWalls);
 
     strcat(responseString, "]\n  \"solution\": [");
     for (int i = 0; i < data.markedWallCount; i++) {
@@ -280,8 +287,6 @@ char* AlterationExportDataToString(AlterationExportData data) {
                 data.solution[i].isHorizontal, data.solution[i].index);
         strcat(responseString, _buffer);
     }
-    if (data.solutionCount > 0)
-        free(data.solution);
 
     strcat(responseString,  "]\n}");
     free(_buffer);
@@ -564,14 +569,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             {
                 GenerationData request = TransformGenerationRequest(con_info->jsonData);
                 ExportData responseData = GenerateMaze(request);
-                printf("Response string not made\n");
                 responseString = GenerationExportDataToString(responseData);
-                printf("Response string made\n");
+                FreeGenerationExportData(responseData);
             }
             else {                          // alterationData
                 AlterationData request = TransformAlterationRequest(con_info->jsonData);
                 AlterationExportData responseData = AlterMaze(request);
                 responseString = AlterationExportDataToString(responseData);
+                FreeAlterationExportData(responseData);
             }
 
             headersStruct headers = {

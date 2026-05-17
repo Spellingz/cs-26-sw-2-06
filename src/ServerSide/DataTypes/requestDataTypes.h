@@ -15,7 +15,7 @@ typedef struct {
     bool isHorizontal;
     long wallIndex;
     enum alterationType alterationType;
-}   AlterationData;
+} AlterationData;
 
 typedef struct {
     int id;
@@ -33,22 +33,24 @@ typedef struct {
 } QueueDataType;
 
 typedef struct {
-    int id;
-    int horizontalMazeArraySize, verticalMazeArraySize;
-    //simplified 2d array into 1d with arrsize lengths of rows, hence size of rows-1*columns-1
-    bool *horizontalMazeArr;  
-    bool *verticalMazeArr;
-} ExportData;
-
-typedef struct {
-    bool isHorizontal;
-    int index;
+    bool isWall;
+    bool isSolution;
 } ExportWall;
 
 typedef struct {
-    bool succeded;
-    int wallCount;
-    WallReference* walls;
+    int id;
+    int horizontalMazeArraySize, verticalMazeArraySize;
+    //simplified 2d array into 1d with arrsize lengths of rows, hence size of rows-1*columns-1
+    ExportWall *horizontalMazeArr;
+    ExportWall *verticalMazeArr;
+} ExportData;
+
+typedef struct {
+    bool succeeded;
+    size_t markedWallCount;
+    WallReference *markedWalls;
+    size_t solutionCount;
+    WallReference *solution;
 } AlterationExportData;
 
 #endif

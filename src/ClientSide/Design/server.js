@@ -101,7 +101,7 @@ function visualizeMaze() {
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos, yPos + tileSize + lineWidth);
-        ctx.strokeStyle = buttonArrHorizontal[i] === 1 ? '#222222' : '#22222200';
+        ctx.strokeStyle = buttonArrHorizontal[i][0] === 1 ? '#222222' : '#22222200';
         ctx.lineWidth = lineWidth;
 
         console.log(xPos/tileSize, yPos/tileSize);
@@ -121,7 +121,7 @@ function visualizeMaze() {
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos + tileSize + lineWidth, yPos);
-        ctx.strokeStyle = buttonArrVertical[i] === 1 ? '#222222' : '#22222200';
+        ctx.strokeStyle = buttonArrVertical[i][0] === 1 ? '#222222' : '#22222200';
         ctx.lineWidth = lineWidth;
 
         console.log(xPos/tileSize, yPos/tileSize);

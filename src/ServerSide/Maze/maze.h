@@ -30,9 +30,10 @@ typedef enum {
     NOT_PERFECT = 2,
 } MazeStatus;
 
-typedef struct {
-    int type;
-    int direction;
+typedef struct Wall {
+    char type;
+    char direction;
+    bool isSolution;
 } Wall;
 
 typedef struct {
@@ -54,7 +55,7 @@ typedef struct {
     Wall *verticalWalls;
     MazeSize size;
     MazeWallCount wallCount;
-    Point root;
+    Point openings[2];
 } Maze;
 
 typedef struct {
@@ -62,15 +63,37 @@ typedef struct {
     long index;
 } WallReference;
 
+#define INGOING_DIRECTIONS ((const Direction[]){LEFT, RIGHT, UP, DOWN})
+#define OUTGOING_DIRECTIONS ((const Direction[]){RIGHT, LEFT, DOWN, UP})
+
 //Pos to index
 int GetRightWallIndex(Point pos, MazeSize size);
 int GetLowerWallIndex(Point pos, MazeSize size);
+
+//Index to pos
+Point LeftUpperPoint(bool isHorizontal, int index, MazeSize mazeSize);
+Point RightLowerPoint(bool isHorizontal, int index, MazeSize mazeSize);
+Point PointPointedFrom(bool isHorizontal, int index, MazeSize mazeSize, Direction direction);
+Point PointPointedTo(bool isHorizontal, int index, MazeSize mazeSize, Direction direction);
+
+//Point
+bool AreEqual(Point point1, Point point2);
+
+//Neighbours
 int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]);
 Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]);
 Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]);
+Point *LoadNeighbourPoints(Point point, Point neighbourPoints[4]);
 
-//Index to pos
-Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize);
+//Root stuff
+int StepTowardsRoot(const Direction *neighbourDirections, Point *point);
+void MoveRootPerfect(Maze *maze, Point newRoot);
+void MoveRoot(Maze maze, Point newRoot);
+Point FindRoot(Maze maze, Point startPoint);
+int RootDistance(Maze maze, Point startPoint);
+
+//Other distance stuff
+int CommonAncestorDistance(Maze maze, Point pointA, Point pointB);
 
 //Save/load
 Maze* LoadMaze(int id);

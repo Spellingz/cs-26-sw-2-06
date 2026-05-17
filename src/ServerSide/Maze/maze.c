@@ -32,8 +32,6 @@ int GetLowerWallIndex(Point pos, MazeSize size) {
  * UP\n
  */
 int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]) {
-    //GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
-
     //Gets the indexes of the neighbouring walls in their respective arrays
     indices[0] = GetRightWallIndex((Point){pos.x, pos.y}, size);
     indices[1] = GetRightWallIndex((Point){pos.x-1, pos.y}, size);
@@ -43,9 +41,16 @@ int *LoadNeighbourWallIndices(MazeSize size, Point pos, int indices[4]) {
     return indices;
 }
 
+/**
+ * RIGHT\n
+ * LEFT\n
+ * DOWN\n
+ * UP\n
+ */
 Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]) {
     int neighbourIndices[4];
     LoadNeighbourWallIndices(maze.size, point, neighbourIndices);
+
     for (int i = 0; i < 4; i++) {
         Wall *wallArr = i < 2 ? maze.horizontalWalls : maze.verticalWalls;
         if (neighbourIndices[i] == -1)
@@ -56,6 +61,12 @@ Wall **LoadNeighbourWallPointers(Maze maze, Point point, Wall *neighbours[4]) {
     return neighbours;
 }
 
+/**
+ * RIGHT\n
+ * LEFT\n
+ * DOWN\n
+ * UP\n
+ */
 Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbourDirections[4]) {
     Wall *neighbours[4];
     LoadNeighbourWallPointers(maze, point, neighbours);
@@ -70,17 +81,177 @@ Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbo
 }
 
 /**
- * LEFT or UP
+ * RIGHT\n
+ * LEFT\n
+ * DOWN\n
+ * UP\n
  */
-Point IndexToPos(bool isHorizontal, int index, MazeSize mazeSize) {
-    if (isHorizontal)
-        //Returns the position of the point just left of the wall.
-            return (Point){index % (mazeSize.x-1), index / (mazeSize.x-1)};
-    else
-        //Returns the position of the point just above the wall.
-            return (Point){index / (mazeSize.y-1), index % (mazeSize.y-1)};
+Point *LoadNeighbourPoints(Point point, Point neighbourPoints[4]) {
+    neighbourPoints[0] = (Point) {point.x + 1, point.y};
+    neighbourPoints[1] = (Point) {point.x - 1, point.y};
+    neighbourPoints[2] = (Point) {point.x, point.y + 1};
+    neighbourPoints[3] = (Point) {point.x, point.y - 1};
+    return neighbourPoints;
 }
 
+Point LeftUpperPoint(bool isHorizontal, int index, MazeSize mazeSize) {
+    if (isHorizontal)
+        //Returns the position of the point just left of the wall.
+        return (Point){index % (mazeSize.x-1), index / (mazeSize.x-1)};
+    else
+        //Returns the position of the point just above the wall.
+        return (Point){index / (mazeSize.y-1), index % (mazeSize.y-1)};
+}
+
+Point RightLowerPoint(bool isHorizontal, int index, MazeSize mazeSize) {
+    Point point = LeftUpperPoint(isHorizontal, index, mazeSize);
+    if (isHorizontal)
+        //Returns the position of the point just right of the wall.
+        point.x++;
+    else
+        //Returns the position of the point just below the wall.
+        point.y++;
+    return point;
+}
+
+Point PointPointedFrom(bool isHorizontal, int index, MazeSize mazeSize, Direction direction) {
+    if (direction == LEFT || direction == UP)
+        return RightLowerPoint(isHorizontal, index, mazeSize);
+    else
+        return LeftUpperPoint(isHorizontal, index, mazeSize);
+}
+
+Point PointPointedTo(bool isHorizontal, int index, MazeSize mazeSize, Direction direction) {
+    if (direction == RIGHT || direction == DOWN)
+        return RightLowerPoint(isHorizontal, index, mazeSize);
+    else
+        return LeftUpperPoint(isHorizontal, index, mazeSize);
+}
+
+
+bool AreEqual(Point point1, Point point2) {
+    return point1.x == point2.x && point1.y == point2.y;
+}
+
+
+void MoveRootPerfect(Maze *maze, Point newRoot) {
+    Direction neighbourDirections[4];
+    Wall *neighbours[4];
+    LoadNeighbourPathDirections(*maze, newRoot, neighbourDirections);
+    LoadNeighbourWallPointers(*maze, newRoot, neighbours);
+
+    Point neighbour = newRoot;
+    int followedNeighbourIndex = StepTowardsRoot(neighbourDirections, &neighbour);
+    if (followedNeighbourIndex != -1) {
+        MoveRootPerfect(maze, neighbour);
+        neighbours[followedNeighbourIndex]->direction = !neighbours[followedNeighbourIndex]->direction;
+    }
+}
+
+Point FindRoot(const Maze maze, Point startPoint) {
+    Point currentPoint = startPoint;
+    int stepResult;
+    do {
+        Direction neighbourDirections[4];
+        LoadNeighbourPathDirections(maze, currentPoint, neighbourDirections);
+
+        stepResult = StepTowardsRoot(neighbourDirections, &currentPoint);
+    } while (stepResult != -1);
+    return currentPoint;
+}
+
+int RootDistance(const Maze maze, Point startPoint) {
+    Point currentPoint = startPoint;
+    int stepResult, count = 0;
+    do {
+        Direction neighbourDirections[4];
+        LoadNeighbourPathDirections(maze, currentPoint, neighbourDirections);
+
+        stepResult = StepTowardsRoot(neighbourDirections, &currentPoint);
+        if (stepResult != -1) count++;
+    } while (stepResult != -1);
+    return count;
+}
+
+//The distance A has to the closest common ancestor of A and B, assuming they have one.
+int CommonAncestorDistance(const Maze maze, Point pointA, Point pointB) {
+    int rootDistanceA = RootDistance(maze, pointA);
+    int rootDistanceB = RootDistance(maze, pointB);
+
+    int distanceMovedFromA = 0;
+
+    //Move along either path to the root until their distances are equal.
+    while (rootDistanceA > rootDistanceB) {
+        Direction neighbourDirections[4];
+        LoadNeighbourPathDirections(maze, pointA, neighbourDirections);
+        StepTowardsRoot(neighbourDirections, &pointA);
+        rootDistanceA--;
+        distanceMovedFromA++;
+    }
+
+    while (rootDistanceB > rootDistanceA) {
+        Direction neighbourDirections[4];
+        LoadNeighbourPathDirections(maze, pointB, neighbourDirections);
+        StepTowardsRoot(neighbourDirections, &pointB);
+        rootDistanceB--;
+    }
+
+    //Step towards the root on both paths at the same time.
+    //Since they are an equal distance from the root, they will eventually meet.
+    while (!AreEqual(pointA, pointB)) {
+        Direction neighbourDirectionsA[4];
+        Direction neighbourDirectionsB[4];
+        LoadNeighbourPathDirections(maze, pointA, neighbourDirectionsA);
+        LoadNeighbourPathDirections(maze, pointB, neighbourDirectionsB);
+
+        StepTowardsRoot(neighbourDirectionsA, &pointA);
+        StepTowardsRoot(neighbourDirectionsB, &pointB);
+
+        distanceMovedFromA++;
+    }
+    return distanceMovedFromA;
+}
+
+int MarkRootPath(Maze maze, Point startPoint) {
+    int markedCount = 0;
+    Direction neighbourDirections[4];
+    Wall *neighbours[4];
+    Point neighbourPoints[4];
+    LoadNeighbourPathDirections(maze, startPoint, neighbourDirections);
+    LoadNeighbourWallPointers(maze, startPoint, neighbours);
+    LoadNeighbourPoints(startPoint, neighbourPoints);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type == AIR) {
+            neighbours[i]->type = MARKED_AIR;
+            markedCount++;
+            markedCount += MarkRootPath(maze, neighbourPoints[i]);
+        }
+    }
+    return markedCount;
+}
+
+void FlipMarkedRootPath(Maze maze, Point startPoint) {
+    Direction neighbourDirections[4];
+    Wall *neighbours[4];
+    Point neighbourPoints[4];
+    LoadNeighbourPathDirections(maze, startPoint, neighbourDirections);
+    LoadNeighbourWallPointers(maze, startPoint, neighbours);
+    LoadNeighbourPoints(startPoint, neighbourPoints);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type == MARKED_AIR) {
+            neighbours[i]->type = AIR;
+            FlipMarkedRootPath(maze, neighbourPoints[i]);
+            neighbours[i]->direction = !neighbours[i]->direction;
+        }
+    }
+}
+
+void MoveRoot(Maze maze, Point newRoot) {
+    MarkRootPath(maze, newRoot);
+    FlipMarkedRootPath(maze, newRoot);
+}
 
 
 Maze* LoadMaze(int id) {
@@ -98,8 +269,8 @@ Maze* LoadMaze(int id) {
         return NULL;
     }
 
-    fscanf(f, "{ \"status\": %d, \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"size\": [%ld, %ld], \"root\": [%ld, %ld], ",
-        &maze->status, &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->size.x, &maze->size.y, &maze->root.x, &maze->root.y);
+    fscanf(f, "{ \"status\": %d, \"horizontalMazeArraySize\": %ld, \"verticalMazeArraySize\": %ld, \"size\": [%ld, %ld], ",
+        &maze->status, &maze->wallCount.horizontal, &maze->wallCount.vertical, &maze->size.x, &maze->size.y);
     Wall *memoryBlock = malloc(sizeof(Wall) * (maze->wallCount.horizontal + maze->wallCount.vertical));
     if (!memoryBlock) {
         free(maze);
@@ -112,21 +283,24 @@ Maze* LoadMaze(int id) {
 
 
     fscanf(f, " \"horizontalMazeArr\": [");
-    for (int i = 0; fscanf(f, "[%d, %d]",
-        (int*)&maze->horizontalWalls[i].type, (int*)&maze->horizontalWalls[i].direction) == 2; i++) {
-
+    //Cursed for loop. As long as scanf scans 3 numbers correctly, continue.
+    for (int i = 0; fscanf(f, "[%hhd, %hhd, %hhd]", &maze->horizontalWalls[i].type,
+        &maze->horizontalWalls[i].direction, &maze->horizontalWalls[i].isSolution) == 3; i++) {
         fscanf(f, ", ");
         }
     fscanf(f, "], ");
 
     fscanf(f, " \"verticalMazeArr\": [");
-    for (int i = 0; fscanf(f, "[%d, %d]",
-        (int*)&maze->verticalWalls[i].type, (int*)&maze->verticalWalls[i].direction) == 2; i++) {
+    for (int i = 0; fscanf(f, "[%hhd, %hhd, %hhd]", &maze->verticalWalls[i].type,
+        &maze->verticalWalls[i].direction, &maze->verticalWalls[i].isSolution) == 3; i++) {
 
         fscanf(f, ", ");
         }
-    fscanf(f, " ] }");
+    fscanf(f, "], ");
+    fscanf(f, " \"openings\": [[%ld, %ld], [%ld, %ld]]", &maze->openings[0].x, &maze->openings[0].y,
+                                                     &maze->openings[1].x, &maze->openings[1].y);
 
+    fscanf(f, " }");
     fclose(f);
     return maze;
 }
@@ -147,17 +321,18 @@ void SaveMaze(Maze maze, int id) {
     FILE* f = fopen(fileName, "w");
     if (!f) return;
 
-    char* fileContents = malloc(sizeof(char) * ((maze.wallCount.horizontal + maze.wallCount.vertical) * 8 + 200));
+    size_t maxMazeStringLen = strlen("[0, 0, 0], ") * (maze.wallCount.horizontal + maze.wallCount.vertical) + 200;
+    char* fileContents = malloc(sizeof(char) * maxMazeStringLen);
     if (!fileContents) return;
-    char* _buffer = malloc(sizeof(char) * ((maze.wallCount.horizontal + maze.wallCount.vertical) * 8 + 200));
+    char* _buffer = malloc(sizeof(char) * maxMazeStringLen);
     if (!_buffer) {
         free(fileContents);
         return;
     }
     fileContents[0] = _buffer[0] = '\n';
 
-    sprintf(fileContents, "{\n  \"status\": %d,\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n  \"size\": [%ld, %ld],\n  \"root\": [%ld, %ld],\n",
-        maze.status, maze.wallCount.horizontal, maze.wallCount.vertical, maze.size.x, maze.size.y, maze.root.x, maze.root.y);
+    sprintf(fileContents, "{\n  \"status\": %d,\n  \"horizontalMazeArraySize\": %ld,\n  \"verticalMazeArraySize\": %ld,\n  \"size\": [%ld, %ld],\n",
+        maze.status, maze.wallCount.horizontal, maze.wallCount.vertical, maze.size.x, maze.size.y);
 
     for (int arrayNumber = 0; arrayNumber < 2; arrayNumber++) {
         strcat(fileContents, arrayNumber == 0 ? "  \"horizontalMazeArr\": [" : "  \"verticalMazeArr\": [");
@@ -166,11 +341,15 @@ void SaveMaze(Maze maze, int id) {
         for (int i = 0; i < arraySize; i++) {
             Wall wall = arrayNumber == 0 ? maze.horizontalWalls[i] : maze.verticalWalls[i];
 
-            sprintf(_buffer, i != arraySize - 1 ? "[%d, %d], " : "[%d, %d]", wall.type, wall.direction);
+            sprintf(_buffer, i != arraySize - 1 ? "[%d, %d, %d], " : "[%d, %d, %d]", wall.type, wall.direction, wall.isSolution);
             strcat(fileContents, _buffer);
         }
-        strcat(fileContents, arrayNumber == 0 ? "], \n" : "]\n");
+        strcat(fileContents, "], \n");
     }
+    sprintf(_buffer, "  \"openings\": [[%ld, %ld], [%ld, %ld]]\n", maze.openings[0].x, maze.openings[0].y,
+                                                                   maze.openings[1].x, maze.openings[1].y);
+    strcat(fileContents, _buffer);
+
     strcat(fileContents, "}");
     fprintf(f, "%s", fileContents);
     fclose(f);
@@ -184,4 +363,24 @@ void FreeMaze(Maze *maze) {
         //if (maze->verticalWalls) free(maze->verticalWalls);
         free(maze);
     }
+}
+
+
+/**
+ *
+ * @param neighbourDirections The directions of the neighbour paths in order right, left, down, up. If the path is a wall, its direction should be -1
+ * @param point The current point. Will be changed to be one step closer to root.
+ * @return The index of the chosen path, corresponding to the input dirrections. -1 if point is the root.
+ */
+int StepTowardsRoot(const Direction *neighbourDirections, Point *point) {
+    Point neighbourPoints[4];
+    LoadNeighbourPoints(*point, neighbourPoints);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i]) {
+            *point = neighbourPoints[i];
+            return i;
+        }
+    }
+    return -1;
 }

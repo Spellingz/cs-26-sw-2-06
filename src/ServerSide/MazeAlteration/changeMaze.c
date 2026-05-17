@@ -17,6 +17,9 @@ void FlipSolutionToRoot(Maze maze, Point point);
 void SetSolutionToRoot(Maze maze, Point point);
 void UnsetSolutionToIntersectionOrOpening(Maze maze, Point point);
 int SolutionDistance(Maze maze, Point point);
+size_t SolutionCount(Maze maze);
+WallReference *FindSolution(Maze maze, size_t solutionCount);
+AlterationExportData AddSolutionToExportData(Maze maze, AlterationExportData data);
 
 void TraverseBranch(Maze maze, Point point,
                     void (*OnPathTraverse)   (Maze, WallReference, void*), void* onPathTraverseReturn,
@@ -28,8 +31,8 @@ void MarkWallInBranch(Maze maze, WallReference wallRef, void* markedWalls);
 void CountAntiRootInBranch(Maze maze, Point point, void* count);
 void RecordAntiRootInBranch(Maze maze, Point point, void* antiRoots);
 
-const AlterationExportData ALTERATION_EXPORT_FAILURE = {false, 0, NULL};
-const AlterationExportData ALTERATION_EXPORT_NO_MARKS = {true, 0, NULL};
+const AlterationExportData ALTERATION_EXPORT_FAILURE = {false, 0, NULL, 0, NULL};
+const AlterationExportData ALTERATION_EXPORT_NO_MARKS = {true, 0, NULL, -1, NULL};
 
 void PrintMaze(Maze maze) {
     int h = 0, v = 0;
@@ -161,10 +164,10 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
-    returnData.wallCount = length;
-    returnData.walls = loop;
-    returnData.succeded = true;
-    return returnData;
+    returnData.markedWallCount = length;
+    returnData.markedWalls = loop;
+    returnData.succeeded = true;
+    return AddSolutionToExportData(*maze, returnData);
 }
 
 AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
@@ -193,10 +196,10 @@ AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, i
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
-    returnData.wallCount = markedWallCount;
-    returnData.succeded = true;
-    returnData.walls = markedWalls;
-    return returnData;
+    returnData.markedWallCount = markedWallCount;
+    returnData.succeeded = true;
+    returnData.markedWalls = markedWalls;
+    return AddSolutionToExportData(*maze, returnData);
 }
 
 AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long index, int id) {
@@ -246,7 +249,7 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
-    return ALTERATION_EXPORT_NO_MARKS;
+    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
 }
 
 
@@ -365,7 +368,7 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
-    return ALTERATION_EXPORT_NO_MARKS;
+    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
 }
 
 //Used after unmarked wall has been removed in perfect maze
@@ -394,7 +397,7 @@ AlterationExportData AddMarkedWallPerfect(Maze *maze, bool isHorizontal, long in
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
-    return ALTERATION_EXPORT_NO_MARKS;
+    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
 }
 
 //Used after unmarked wall has been added in perfect maze
@@ -434,7 +437,7 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
     SaveMaze(*maze, id);
     FreeMaze(maze);
 
-    return ALTERATION_EXPORT_NO_MARKS;
+    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
 }
 
 
@@ -675,4 +678,41 @@ void TraverseBranch(Maze maze, Point point,
             OnNotPathTraverse(maze, (WallReference) {i < 2, neighbourIndices[i]}, onNotPathTraverseReturn);
         }
     }
+}
+
+size_t SolutionCount(Maze maze) {
+    size_t solutionCount = 0;
+    for (int i = 0; i < maze.wallCount.horizontal; i++) {
+        if (maze.horizontalWalls[i].isSolution) solutionCount++;
+    }
+    for (int i = 0; i < maze.wallCount.vertical; i++) {
+        if (maze.verticalWalls[i].isSolution) solutionCount++;
+    }
+    return solutionCount;
+}
+
+WallReference *FindSolution(Maze maze, size_t solutionCount) {
+    int pathsAdded = 0;
+
+    WallReference *solution = malloc(sizeof(WallReference) * solutionCount);
+    if (!solution) return NULL;
+
+    for (int i = 0; i < maze.wallCount.horizontal; i++) {
+        if (maze.horizontalWalls[i].isSolution) solution[pathsAdded++] = (WallReference) {true, i};
+    }
+    for (int i = 0; i < maze.wallCount.vertical; i++) {
+        if (maze.verticalWalls[i].isSolution) solution[pathsAdded++] = (WallReference) {false, i};
+    }
+
+    return solution;
+}
+
+AlterationExportData AddSolutionToExportData(Maze maze, AlterationExportData data) {
+    data.solutionCount = SolutionCount(maze);
+    data.solution = FindSolution(maze, data.solutionCount);
+    if (!data.solution) {
+        data.succeeded = false;
+        if (data.markedWalls) free(data.markedWalls);
+    }
+    return data;
 }

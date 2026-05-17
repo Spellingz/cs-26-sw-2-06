@@ -148,12 +148,12 @@ ArrIndexResult GetArrayIndex(GenerationMaze maze, GenerationWall *frontierWall) 
     }
 }
 
-bool *GenerationWallArrToBoolArr(const GenerationWall* arr, int size) {
-    bool *boolArr = malloc(sizeof(bool) * size);
-    if (!boolArr) return NULL;
+ExportWall *GenerationWallArrToExportWallArr(const GenerationWall* arr, int size) {
+    ExportWall *exportWallArr = malloc(sizeof(ExportWall) * size);
+    if (!exportWallArr) return NULL;
     for (int i = 0; i < size; i++)
-        boolArr[i] = arr[i].type;
-    return boolArr;
+        exportWallArr[i] = (ExportWall) {arr[i].type, arr[i].isSolution};
+    return exportWallArr;
 }
 
 Wall *GenerationWallArrToWallArr(const GenerationWall* generationWalls, Wall* walls, unsigned long size) {
@@ -419,10 +419,10 @@ ExportData GenerateMaze(GenerationData data) {
     if (properMaze.horizontalWalls) SaveMaze(properMaze, data.id);
     free(properMaze.horizontalWalls);
 
-    bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);
-    bool* verticalBoolArr = GenerationWallArrToBoolArr(maze->verticalWalls, maze->wallCount.vertical);
+    ExportWall* horizontalExportWalls = GenerationWallArrToExportWallArr(maze->horizontalWalls, maze->wallCount.horizontal);
+    ExportWall* verticalExportWalls = GenerationWallArrToExportWallArr(maze->verticalWalls, maze->wallCount.vertical);
 
-    ExportData exportMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalBoolArr, verticalBoolArr};
+    ExportData exportMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalExportWalls, verticalExportWalls};
 
     FreeMemory(maze, frontiers);
     return exportMaze;

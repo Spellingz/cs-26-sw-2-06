@@ -90,7 +90,7 @@ function visualizeMaze() {
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos, yPos+heightPerOffset);
-        ctx.strokeStyle = buttonArrHorizontal[i] == 1 ? '#222222' : '#DDDDDD';
+        ctx.strokeStyle = buttonArrHorizontal[i][0] === 1 ? '#222222' : '#DDDDDD';
         ctx.lineWidth = 4;
 
         console.log(xPos/widthPerOffset, yPos/heightPerOffset)
@@ -109,7 +109,7 @@ function visualizeMaze() {
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos + widthPerOffset, yPos);
-        ctx.strokeStyle = buttonArrVertical[i] == 1 ? '#222222' : '#DDDDDD';
+        ctx.strokeStyle = buttonArrVertical[i][0] === 1 ? '#222222' : '#DDDDDD';
         ctx.lineWidth = 4;
 
         console.log(xPos/widthPerOffset, yPos/heightPerOffset)

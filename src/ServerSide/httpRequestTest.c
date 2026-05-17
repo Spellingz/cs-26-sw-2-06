@@ -214,34 +214,35 @@ static enum MHD_Result process_post (void *coninfo_cls,
 
 char *GenerationExportDataToString(ExportData data)
 {
-    int horizontalArrStringSize = (data.horizontalMazeArraySize*3);
-    int verticalArrStringSize= (data.verticalMazeArraySize*3);
-
+    size_t horizontalArrStringSize = data.horizontalMazeArraySize * strlen("[0, 0], ");
+    size_t verticalArrStringSize = data.verticalMazeArraySize * strlen("[0, 0], ");
 
     char *responseString = malloc(sizeof(char)*(80 + 2 + horizontalArrStringSize + 2 + verticalArrStringSize + 3));
     responseString[0] = '\0';
+
     // LOOP FOR HORIZONTAL ARRAY
     char horizontalArrString[horizontalArrStringSize];
     horizontalArrString[0] = '\0';
-    for (int i = 0; i < data.horizontalMazeArraySize-1; i++)
-    {
-        char _addString[4] = "";
-        sprintf(_addString, "%d, ", (int)data.horizontalMazeArr[i]);
+    for (int i = 0; i < data.horizontalMazeArraySize-1; i++) {
+        char _addString[9] = "";
+        sprintf(_addString, "[%d, %d], ", data.horizontalMazeArr[i].isWall, data.horizontalMazeArr[i].isSolution);
         strcat(horizontalArrString, _addString);
-    }    
-    char _addString[2] = "";
-    sprintf(_addString, "%d", (int)data.horizontalMazeArr[data.horizontalMazeArraySize-1]);
+    }
+
+    char _addString[7] = "";
+    sprintf(_addString, "[%d, %d]", data.horizontalMazeArr[data.horizontalMazeArraySize-1].isWall, data.horizontalMazeArr[data.horizontalMazeArraySize-1].isSolution);
     strcat(horizontalArrString, _addString);
+
 
     char verticalArrString[verticalArrStringSize];
     verticalArrString[0] = '\0';
-    for (int i = 0; i < data.verticalMazeArraySize-1; i++)
-    {
-        char _addString[4] = "";
-        sprintf(_addString, "%d, ", (int)data.verticalMazeArr[i]);
+    for (int i = 0; i < data.verticalMazeArraySize-1; i++) {
+        char _addString[9] = "";
+        sprintf(_addString, "[%d, %d], ", data.verticalMazeArr[i].isWall, data.verticalMazeArr[i].isSolution);
         strcat(verticalArrString, _addString);
     }
-    sprintf(_addString, "%d", (int)data.verticalMazeArr[data.verticalMazeArraySize-1]);
+
+    sprintf(_addString, "[%d, %d]", data.verticalMazeArr[data.verticalMazeArraySize-1].isWall, data.verticalMazeArr[data.verticalMazeArraySize-1].isSolution);
     strcat(verticalArrString, _addString);
 
 
@@ -251,22 +252,37 @@ char *GenerationExportDataToString(ExportData data)
 }
 
 char* AlterationExportDataToString(AlterationExportData data) {
-    char* responseString = malloc(sizeof(char) * (data.wallCount * 8 + 200));
+    size_t markedWallsStringLen = data.markedWallCount * strlen("[0, 1000000000], ");
+    size_t solutionStringLen = data.solutionCount * strlen("[0, 1000000000], ");
+    size_t responseStringLen = markedWallsStringLen + solutionStringLen + 200;
+    char* responseString = malloc(sizeof(char) * responseStringLen);
     if (!responseString) return "";
-    char* _buffer = malloc(sizeof(char) * (data.wallCount * 8 + 200));
+    char* _buffer = malloc(sizeof(char) * responseStringLen);
     if (!_buffer) {
         free(responseString);
         return "";
     }
-    responseString[0] = _buffer[0] = '\n';
+    responseString[0] = _buffer[0] = '\0';
 
-    sprintf(responseString, "{\n  \"succeeded\": %d,\n  \"walls\": [", data.succeded);
+    sprintf(responseString, "{\n  \"succeeded\": %d,\n  \"walls\": [", data.succeeded);
 
-    for (int i = 0; i < data.wallCount; i++) {
-        sprintf(_buffer, i != data.wallCount - 1 ? "[%d, %ld], " : "[%d, %ld]",
-            data.walls[i].isHorizontal, data.walls[i].index);
+    for (int i = 0; i < data.markedWallCount; i++) {
+        sprintf(_buffer, i != data.markedWallCount - 1 ? "[%d, %ld], " : "[%d, %ld]",
+                data.markedWalls[i].isHorizontal, data.markedWalls[i].index);
         strcat(responseString, _buffer);
     }
+    if (data.markedWallCount > 0)
+        free(data.markedWalls);
+
+    strcat(responseString, "]\n  \"solution\": [");
+    for (int i = 0; i < data.markedWallCount; i++) {
+        sprintf(_buffer, i != data.solutionCount - 1 ? "[%d, %ld], " : "[%d, %ld]",
+                data.solution[i].isHorizontal, data.solution[i].index);
+        strcat(responseString, _buffer);
+    }
+    if (data.solutionCount > 0)
+        free(data.solution);
+
     strcat(responseString,  "]\n}");
     free(_buffer);
     return responseString;
@@ -548,7 +564,9 @@ static enum MHD_Result answer_to_connection (void *cls,
             {
                 GenerationData request = TransformGenerationRequest(con_info->jsonData);
                 ExportData responseData = GenerateMaze(request);
+                printf("Response string not made\n");
                 responseString = GenerationExportDataToString(responseData);
+                printf("Response string made\n");
             }
             else {                          // alterationData
                 AlterationData request = TransformAlterationRequest(con_info->jsonData);

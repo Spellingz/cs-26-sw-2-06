@@ -438,9 +438,10 @@ void AddLoops(GenerationMaze maze, double loopInput) {
     int loopAmountBig = 0;
     int loopAmountGiant = 0;
 
-    int smallMaxSize = 20; // definitions for each
-    int midMaxSize = 60;
-    int bigMaxSize = 150;
+    int smallMinSize = 6; // definitions for each
+    int midMinSize = 20;
+    int bigMinSize = 60;
+    int giantMinSize = 150;
 
     for (int i = 0; i < maze.wallCount.horizontal; i++) {
         maze.horizontalWalls[i].isLoop = false;
@@ -545,7 +546,7 @@ void AddLoops(GenerationMaze maze, double loopInput) {
         free(ancestorsA);
         free(ancestorsB);
 
-        if (loopSize <= smallMaxSize && loopAmountSmall < maxSmallLoops)
+        if (loopSize >= smallMinSize && loopSize < midMinSize && loopAmountSmall < maxSmallLoops)
         { // if our count is within small, then the wall is changed to air
                                                 // and we can move on, if not since there is too many small loops
             chosenWall->type = AIR;             // we just skip and try another one. Now that I am reading this
@@ -559,7 +560,7 @@ void AddLoops(GenerationMaze maze, double loopInput) {
                                                 // from parent back to root to make loops. Damn you Alex. Give me my
                                                 // weekend back.
         }
-        else if (loopSize > smallMaxSize && loopSize <= midMaxSize && loopAmountMid < maxMidLoops)
+        else if (loopSize >= midMinSize && loopSize < bigMinSize && loopAmountMid < maxMidLoops)
         { // same here with mid sized
             chosenWall->type = AIR;
             chosenWall->isLoop = true;
@@ -567,14 +568,14 @@ void AddLoops(GenerationMaze maze, double loopInput) {
                 chosenWall->isSolution = true;
             loopAmountMid++;
         }
-        else if (loopSize > midMaxSize && loopSize <= bigMaxSize && loopAmountBig < maxBigLoops) {
+        else if (loopSize >= bigMinSize && loopSize < giantMinSize && loopAmountBig < maxBigLoops) {
             chosenWall->type = AIR;
             chosenWall->isLoop = true;
             if (solutionInLoop)
                 chosenWall->isSolution = true;
             loopAmountBig++;
         }
-        else if (loopSize > bigMaxSize && loopAmountGiant < maxGiantLoops) {
+        else if (loopSize >= giantMinSize && loopAmountGiant < maxGiantLoops) {
             chosenWall->type = AIR;
             chosenWall->isLoop = true;
             if (solutionInLoop)

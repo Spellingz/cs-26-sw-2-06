@@ -29,7 +29,6 @@ typedef struct {
     MazeWallCount wallCount;
     GenerationWall *horizontalWalls;
     GenerationWall *verticalWalls;
-    Point root;
     Point openings[2];
 } GenerationMaze;
 
@@ -362,8 +361,7 @@ ExportData GenerateMaze(GenerationData data) {
     }
 
     Point startPoint = (Point) {rand() % size.x, rand() % size.y};
-    maze->root = startPoint;
-    AddNeighboursToFrontier(frontiers, &frontierSize, *maze, maze->root);
+    AddNeighboursToFrontier(frontiers, &frontierSize, *maze, startPoint);
     while (frontierSize > 0) {
         GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
         //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
@@ -512,48 +510,15 @@ void AddLoops(GenerationMaze maze, double loopInput) {
 
         int loopSize = rootDistanceA + rootDistanceB - 2 * sharedPathLength + 1;
 
-        bool solutionInLoop = false;
-        bool loopInLoop = false;
-        for (int i = 0; i < rootDistanceA - sharedPathLength; i++) {
-            if (ancestorsA[i]->isSolution)
-                solutionInLoop = true;
-            if (ancestorsA[i]->isLoop)
-                loopInLoop = true;
-        }
-        for (int i = 0; i < rootDistanceB - sharedPathLength; i++) {
-            if (ancestorsB[i]->isSolution)
-                solutionInLoop = true;
-            if (ancestorsB[i]->isLoop)
-                loopInLoop = true;
-        }
-
-
-        if (loopInLoop) {
-            free(ancestorsA);
-            free(ancestorsB);
-            continue;
-        }
-
-        for (int i = 0; i < rootDistanceA - sharedPathLength; i++) {
-            if (solutionInLoop) ancestorsA[i]->isSolution = true;
-            ancestorsA[i]->isLoop = true;
-        }
-        for (int i = 0; i < rootDistanceB - sharedPathLength; i++) {
-            if (solutionInLoop) ancestorsB[i]->isSolution = true;
-            ancestorsB[i]->isLoop = true;
-        }
-
-        free(ancestorsA);
-        free(ancestorsB);
-
+        bool loopSizeApproved = false;
         if (loopSize >= smallMinSize && loopSize < midMinSize && loopAmountSmall < maxSmallLoops)
         { // if our count is within small, then the wall is changed to air
-                                                // and we can move on, if not since there is too many small loops
-            chosenWall->type = AIR;             // we just skip and try another one. Now that I am reading this
-            chosenWall->isLoop = true;          // myself, I realize that this whole thing of forcing there to be a
-            if (solutionInLoop)                 // a set number of small, mid, big and giant loops which is what caused
-                chosenWall->isSolution = true;  // this cursed function to be so long is pretty pointless since even
-            loopAmountSmall++;                  // if we just took random walls, it would spawn different sized loops
+            loopAmountSmall++;                  // and we can move on, if not since there is too many small loops
+            loopSizeApproved = true;            // we just skip and try another one. Now that I am reading this
+                                                // myself, I realize that this whole thing of forcing there to be a
+                                                // a set number of small, mid, big and giant loops which is what caused
+                                                // this cursed function to be so long is pretty pointless since even
+                                                // if we just took random walls, it would spawn different sized loops
                                                 // anyway. So why the fuck did I make it like this. But I already spent
                                                 // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
                                                 // something about root and parents when making the loops, like going
@@ -562,25 +527,57 @@ void AddLoops(GenerationMaze maze, double loopInput) {
         }
         else if (loopSize >= midMinSize && loopSize < bigMinSize && loopAmountMid < maxMidLoops)
         { // same here with mid sized
-            chosenWall->type = AIR;
-            chosenWall->isLoop = true;
-            if (solutionInLoop)
-                chosenWall->isSolution = true;
             loopAmountMid++;
+            loopSizeApproved = true;
         }
         else if (loopSize >= bigMinSize && loopSize < giantMinSize && loopAmountBig < maxBigLoops) {
-            chosenWall->type = AIR;
-            chosenWall->isLoop = true;
-            if (solutionInLoop)
-                chosenWall->isSolution = true;
             loopAmountBig++;
+            loopSizeApproved = true;
         }
         else if (loopSize >= giantMinSize && loopAmountGiant < maxGiantLoops) {
+            loopAmountGiant++;
+            loopSizeApproved = true;
+        }
+
+        if (loopSizeApproved) {
+            bool solutionInLoop = false;
+            bool loopInLoop = false;
+            for (int i = 0; i < rootDistanceA - sharedPathLength; i++) {
+                if (ancestorsA[i]->isSolution)
+                    solutionInLoop = true;
+                if (ancestorsA[i]->isLoop)
+                    loopInLoop = true;
+            }
+            for (int i = 0; i < rootDistanceB - sharedPathLength; i++) {
+                if (ancestorsB[i]->isSolution)
+                    solutionInLoop = true;
+                if (ancestorsB[i]->isLoop)
+                    loopInLoop = true;
+            }
+
+
+            if (loopInLoop) {
+                free(ancestorsA);
+                free(ancestorsB);
+                continue;
+            }
+
+            for (int i = 0; i < rootDistanceA - sharedPathLength; i++) {
+                if (solutionInLoop) ancestorsA[i]->isSolution = true;
+                ancestorsA[i]->isLoop = true;
+            }
+            for (int i = 0; i < rootDistanceB - sharedPathLength; i++) {
+                if (solutionInLoop) ancestorsB[i]->isSolution = true;
+                ancestorsB[i]->isLoop = true;
+            }
+
+            free(ancestorsA);
+            free(ancestorsB);
+
             chosenWall->type = AIR;
             chosenWall->isLoop = true;
             if (solutionInLoop)
                 chosenWall->isSolution = true;
-            loopAmountGiant++;
         }
     }
 }

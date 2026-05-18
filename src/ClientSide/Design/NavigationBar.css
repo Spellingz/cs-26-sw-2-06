@@ -45,9 +45,7 @@ nav {
     height: 70px;
     width: 100%;
 }
-body{
-    height: 100vh;
-}
+
 .nav-links{
     display: flex;
     align-items: center;

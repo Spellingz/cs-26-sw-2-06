@@ -41,6 +41,15 @@ p2{
     align-items: left;
     margin-top: 5%;
 }
+#factorBoxAndButtonWrapper{
+    display: flex;
+    justify-content: left;
+    align-items: left;
+    margin-top: 5%;
+    margin-left: 4%;
+    width: min(1400px, 95%);
+}
+
 #CreateBoks{
     display: flex;
     justify-content: right;
@@ -63,26 +72,26 @@ button:active {
     justify-content: flex-end;
     margin-top: -1%;
     margin-left: 70px;
+    width: 45%;
 }
 #output #Boks {
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    width: 700px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     border: 2px solid #8896a2;
-    padding: 50px;
+    padding: 5%;
     box-sizing: border-box;
-    margin: 3%;
     background-color: #d4e4f1;
     overflow: auto;
 }
 #output #InfoBoks {
     justify-content: flex-end;
-    width: 250px;
-    height: 300px;
+    width: 300px;
+    height: 100%;
     border: 4px solid #8896a2;
-    padding: 5px;
+    padding: 15px;
     box-sizing: border-box;
     margin: 0 0 0 auto;
     background-color: #d4e4f1;
@@ -197,9 +206,7 @@ button:active {
     width: min(600px, calc(100vw - 40px));
     height: 600px;
     background-color: transparent;
-    border: 4px solid #a1aeb8;
-    border-radius: 12px;
-    padding: 50px;
+    padding: 0px;
     box-sizing: border-box;
     overflow: auto;
 }

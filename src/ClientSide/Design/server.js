@@ -73,10 +73,13 @@ function visualizeMaze() {
     let buttonArrVertical = stored.verticalWalls;
     let buttonArrHorizontal = stored.horizontalWalls;
 
-    const tileSize = Math.min(box.clientWidth / stored.width, box.clientHeight / stored.height);
-    const lineWidth = tileSize * 0.5
-    canvas.width = box.clientWidth + lineWidth;
-    canvas.height = box.clientHeight + lineWidth;
+    const lineScale = 0.4;
+    const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+    const solutionLineWidth = (tileSize - lineWidth) * 0.4;
+
+    canvas.width = box.clientWidth;
+    canvas.height = box.clientHeight;
 
 
     ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
@@ -101,32 +104,44 @@ function visualizeMaze() {
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos, yPos + tileSize + lineWidth);
-        ctx.strokeStyle = buttonArrHorizontal[i] === 1 ? '#222222' : '#22222200';
+        ctx.strokeStyle = buttonArrHorizontal[i][0] === 1 ? '#222222' : '#22222200';
         ctx.lineWidth = lineWidth;
 
-        console.log(xPos/tileSize, yPos/tileSize);
-        
         ctx.stroke();
+
+        if(buttonArrHorizontal[i][1] === 1) {
+            ctx.beginPath();
+            ctx.moveTo(xPos - tileSize * 0.5 - solutionLineWidth * 0.5, yPos + tileSize * 0.5 + lineWidth * 0.5);
+            ctx.lineTo(xPos + tileSize * 0.5 + solutionLineWidth * 0.5, yPos + tileSize * 0.5 + lineWidth * 0.5);
+            ctx.strokeStyle = '#61B4E8';
+            ctx.lineWidth = solutionLineWidth;
+
+            ctx.stroke();
+        }
     }
-    console.log("");
-    console.log("");
 
     for (let i = 0; i < stored.verticalWalls.length; i++){ // Horizontal wall loop
 
         const xPos = (Math.floor(i / (stored.height-1))) * tileSize;
         const yPos = (i % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
 
-        console.log(xPos, yPos);
-
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(xPos + tileSize + lineWidth, yPos);
-        ctx.strokeStyle = buttonArrVertical[i] === 1 ? '#222222' : '#22222200';
+        ctx.strokeStyle = buttonArrVertical[i][0] === 1 ? '#222222' : '#22222200';
         ctx.lineWidth = lineWidth;
 
-        console.log(xPos/tileSize, yPos/tileSize);
-        
         ctx.stroke();
+
+        if(buttonArrVertical[i][1] === 1) {
+            ctx.beginPath();
+            ctx.moveTo(xPos + tileSize * 0.5 + lineWidth * 0.5, yPos - tileSize * 0.5 - solutionLineWidth * 0.5);
+            ctx.lineTo(xPos + tileSize * 0.5 + lineWidth * 0.5, yPos + tileSize * 0.5 + solutionLineWidth * 0.5);
+            ctx.strokeStyle = '#61B4E8';
+            ctx.lineWidth = solutionLineWidth;
+
+            ctx.stroke();
+        }
     }
     ctx.beginPath();
     ctx.moveTo(50,10);

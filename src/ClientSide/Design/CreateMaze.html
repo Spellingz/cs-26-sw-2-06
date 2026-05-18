@@ -21,24 +21,20 @@
 
     <h1 id="Header" style="text-shadow: 2px 2px #8896a2;">Create Maze</h1>
 
-    <div id="wrapperFactors">
-        <div class="Factors">
-            <button id="Door" onclick="DoorParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DOORS</button>
-            <br><br>
-            <button id="Size" onclick="SizeParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">SIZE</button>
-            <br><br>
-            <button id="Branches" onclick="BranchesParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">BRANCHES</button>
-            <br><br>
-            <button id="Loops" onclick="LoopsParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">LOOPS</button>
-            <br><br>
-            <button id="Straightness" onclick="StraightnessParameter()" style="background-color: #d4e4f1; margin-left: 20px; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">STRAIGHTNESS</button>
-            <br><br><br><br>
-            <button class="CreateMazeButton"
-            style="background-color: #4a6275; border-color: #303f4b; margin-left: 20px; height: 50px; width: 500px; border-radius: 12px; font-size: 25px; color:#f0efeb;"
-            onclick="sendmazeinfo()">
-                Create Maze
-            </button>
-        </div>
+    <div id="factorBoxAndButtonWrapper">
+            <div class="Factors" style="width: 500px; margin-left: 20px">
+                <button id="Door" onclick="DoorParameter()" style="background-color: #d4e4f1; margin-bottom: 1%; height: 50px; width: 100%; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DOORS</button>
+                <button id="Size" onclick="SizeParameter()" style="background-color: #d4e4f1; margin-bottom: 1%; height: 50px; width: 100%; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">SIZE</button>
+                <button id="Branches" onclick="BranchesParameter()" style="background-color: #d4e4f1; margin-bottom: 1%; height: 50px; width: 100%; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">BRANCHES</button>
+                <button id="Loops" onclick="LoopsParameter()" style="background-color: #d4e4f1; margin-bottom: 1%; height: 50px; width: 100%; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">LOOPS</button>
+                <button id="Straightness" onclick="StraightnessParameter()" style="background-color: #d4e4f1; margin-bottom: 2%; height: 50px; width: 100%; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">STRAIGHTNESS</button>
+                <button class="CreateMazeButton"
+                        style="background-color: #4a6275; border-color: #303f4b; height: 50px; width: 100%; border-radius: 12px; font-size: 25px; color:#f0efeb;"
+                        onclick="sendmazeinfo()">
+                    Create Maze
+                </button>
+            </div>
+
         <div id= "output"></div>
     </div>
 

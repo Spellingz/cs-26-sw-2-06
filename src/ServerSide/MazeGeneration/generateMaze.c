@@ -11,6 +11,7 @@
 typedef struct {
     char type;
     char direction;
+    bool isSolution;
     union {
         bool isLoop;
         char closedSides;
@@ -28,14 +29,14 @@ typedef struct {
     MazeWallCount wallCount;
     GenerationWall *horizontalWalls;
     GenerationWall *verticalWalls;
-    Point root;
+    Point openings[2];
 } GenerationMaze;
 
 
-void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput);
+void AddLoops(GenerationMaze maze, double loopInput);
+void MarkSolution(GenerationMaze maze, Point start, Point goal);
 
-
-void PrintMaze(GenerationMaze maze) {
+void PrintGenerationMaze(GenerationMaze maze) {
     int h = 0, v = 0;
     printf("+");
     for (int i = 0; i < maze.size.x * 2 - 1; i++) printf("-");
@@ -45,7 +46,7 @@ void PrintMaze(GenerationMaze maze) {
             printf("|");
             for(int j = 0; j < maze.size.x - 1; j++, h++) {
                 GenerationWall wall = maze.horizontalWalls[h];
-                printf(" %c", wall.type ? wall.closedSides == 1 ? 'I' : '|' : wall.direction ? '>' : '<');
+                printf(" %c", wall.type ? '|' : wall.isSolution ? wall.direction ? '}' : '{': wall.direction ? '>' : '<');
             }
             printf(" |");
         }
@@ -53,7 +54,7 @@ void PrintMaze(GenerationMaze maze) {
             printf("+");
             for(int j = 0; j < maze.size.x; j++, v++) {
                 GenerationWall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v/maze.size.x];
-                printf("%c+", wall.type ? wall.closedSides == 1 ? '~' : '-' : wall.direction ? 'v' : '^');
+                printf("%c+", wall.type ? '-' : wall.isSolution ? wall.direction ? 'Y' : 'A': wall.direction ? 'v' : '^');
             }
         }
         printf("\n");
@@ -73,13 +74,19 @@ GenerationMaze *FillWalls(MazeSize size) {
     //Amount of horizontal walls are (width-1) times height. Opposite for vertical
     MazeWallCount wallCount = {(size.x - 1) * size.y, (size.y - 1) * size.x};
     GenerationMaze *maze = malloc(sizeof(GenerationMaze));
-    if (!maze) return FreeMemory(maze, NULL), NULL;
+    if (!maze) {
+        FreeMemory(maze, NULL);
+        return NULL;
+    }
     //Allocating a memory block that can hold both arrays. This increases cache friendliness
     GenerationWall *block = malloc(sizeof(GenerationWall) * wallCount.horizontal + sizeof(GenerationWall) * wallCount.vertical);
-    if (!block) return FreeMemory(maze, NULL), NULL;
+    if (!block) {
+        FreeMemory(maze, NULL);
+        return NULL;
+    }
     maze->size = size;
     maze->wallCount = wallCount;
-    maze->horizontalWalls = block; //First array begins at the start of the block
+    maze->horizontalWalls = block + 0; //First array begins at the start of the block
     maze->verticalWalls = block + maze->wallCount.horizontal; //Second array begins right after the first one
 
     for (int i = 0; i < maze->wallCount.horizontal; i++) {
@@ -91,16 +98,15 @@ GenerationMaze *FillWalls(MazeSize size) {
     return maze;
 }
 
-GenerationWall **GetNeighbourWalls(GenerationMaze maze, MazeSize size, Point pos) {
+GenerationWall **LoadNeighbourWalls(GenerationMaze maze, Point pos, GenerationWall *neighbourWalls[]) {
     int indices[4];
-    LoadNeighbourWallIndices(size, pos, indices);
+    LoadNeighbourWallIndices(maze.size, pos, indices);
 
-    GenerationWall **neighbourWalls = malloc(sizeof(GenerationWall*)*4);
     //Uses the indexes to get pointers to the neighbouring walls
     for (int i = 0; i < 4; i++) {
         if (indices[i] == -1)
             neighbourWalls[i] = NULL;
-        else if (i<2)
+        else if (i < 2)
             neighbourWalls[i] = &maze.horizontalWalls[indices[i]];
         else
             neighbourWalls[i] = &maze.verticalWalls[indices[i]];
@@ -108,76 +114,71 @@ GenerationWall **GetNeighbourWalls(GenerationMaze maze, MazeSize size, Point pos
     return neighbourWalls;
 }
 
-void AddNeighboursToFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze, MazeSize size, Point pos) {
+void AddNeighboursToFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze, Point pos) {
     //Adds the up to four neighbour walls of a point to the frontier array if they have not been added already
-    GenerationWall **neighbourWalls = GetNeighbourWalls(maze, size, pos);
+    GenerationWall *neighbourWalls[4];
+    LoadNeighbourWalls(maze, pos, neighbourWalls);
     for (int i = 0; i < 4; i++) {
         //Skips the wall if it does not exist, or if it has at least one side in the maze.
         //Also increases the closed sides of the wall by one, since "pos" point is now becoming closed.
         if (neighbourWalls[i] == NULL || neighbourWalls[i]->closedSides++ > 0) continue;
 
         //The order of neighbourWalls is right, left, bottom, top. Every other wall is a positive direction.
-        neighbourWalls[i]->direction = (i+1)%2;
+        neighbourWalls[i]->direction = (i + 1) % 2;
         frontier[(*frontierSize)++] = neighbourWalls[i];
     }
-    free(neighbourWalls);
 }
 
-typedef struct {
-    bool isHorizontal;
-    int index;
-} ArrIndexResult;
-
-ArrIndexResult GetArrayIndex(GenerationMaze maze, GenerationWall *frontierWall) {
+WallReference GetArrayIndex(GenerationMaze maze, GenerationWall *frontierWall) {
     //Returns the index of the wall in its respective array, and whether it is in the horizontal array or not
 
     //If the pointer is between the first and last pointer in the vertical array
     if (frontierWall >= maze.verticalWalls && frontierWall < maze.verticalWalls + maze.wallCount.vertical)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (ArrIndexResult){false, (int)(frontierWall - maze.verticalWalls)};
+        return (WallReference) {false, (long)(frontierWall - maze.verticalWalls)};
 
     //If the pointer is between the first and last pointer in the horizontal array
     else if (frontierWall >= maze.horizontalWalls && frontierWall < maze.horizontalWalls + maze.wallCount.horizontal)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (ArrIndexResult){true, (int)(frontierWall - maze.horizontalWalls)};
+        return (WallReference) {true, (long)(frontierWall - maze.horizontalWalls)};
     else {
-        printf("No Index Found!");
-        return (ArrIndexResult){false, -1}; //FallBack
+        printf("No Index Found!\n");
+        return (WallReference) {false, -1}; //FallBack
     }
 }
 
-bool *GenerationWallArrToBoolArr(const GenerationWall* arr, int size) {
-    bool *boolArr = malloc(sizeof(bool) * size);
-    if (!boolArr) return NULL;
+ExportWall *GenerationWallArrToExportWallArr(const GenerationWall* arr, int size) {
+    ExportWall *exportWallArr = malloc(sizeof(ExportWall) * size);
+    if (!exportWallArr) return NULL;
     for (int i = 0; i < size; i++)
-        boolArr[i] = arr[i].type;
-    return boolArr;
+        exportWallArr[i] = (ExportWall) {arr[i].type, arr[i].isSolution};
+    return exportWallArr;
 }
 
-Wall *GenerationWallArrToWallArr(const GenerationWall* arr, unsigned long size) {
-    Wall *wallArr = malloc(sizeof(Wall) * size);
-    if (!wallArr) return NULL;
+Wall *GenerationWallArrToWallArr(const GenerationWall* generationWalls, Wall* walls, unsigned long size) {
     for (int i = 0; i < size; i++)
-        wallArr[i] = (Wall) {arr[i].type, arr[i].direction};
-    return wallArr;
+        walls[i] = (Wall) {generationWalls[i].type, generationWalls[i].direction, generationWalls[i].isSolution};
+    return walls;
 }
 
-Maze *GenerationMazeToMaze(GenerationMaze generationMaze, bool isPerfect) {
-    Maze* maze = malloc(sizeof(Maze));
-    if (!maze) return NULL;
-    *maze = (Maze) {
+Maze GenerationMazeToMaze(GenerationMaze genMaze, bool isPerfect) {
+    Wall* wallBlock = malloc(sizeof(Wall) * (genMaze.wallCount.horizontal + genMaze.wallCount.vertical));
+    GenerationWallArrToWallArr(genMaze.horizontalWalls, &wallBlock[0], genMaze.wallCount.horizontal);
+    GenerationWallArrToWallArr(genMaze.verticalWalls, &wallBlock[genMaze.wallCount.horizontal], genMaze.wallCount.vertical);
+
+    Maze maze = (Maze) {
         isPerfect ? PERFECT : NOT_PERFECT,
-        GenerationWallArrToWallArr(generationMaze.horizontalWalls, generationMaze.wallCount.horizontal),
-        GenerationWallArrToWallArr(generationMaze.verticalWalls,   generationMaze.wallCount.vertical),
-        generationMaze.size,
-        generationMaze.wallCount,
-        generationMaze.root
+        wallBlock + 0,
+        wallBlock + genMaze.wallCount.horizontal,
+        genMaze.size,
+        genMaze.wallCount,
+        {genMaze.openings[0], genMaze.openings[1]}
     };
     return maze;
 }
 
 
-float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMaze maze, MazeSize size,
+float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMaze maze,
                        float straightnessPriority, float branchPriority) {
     float *frontierWeights = malloc(sizeof(float) * frontierSize);
     //We create an array with weights for each frontier, its just as big as the frontier array and each matches
@@ -188,160 +189,134 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
 
     int max_len = 0;
 
-    for (int y = 0; y < size.y; y++) {
+    for (int y = 0; y < maze.size.y; y++) {
         //calculating max_len, problem with this is that it checks the WALLS, not the cells, so three cells open are seperated by 2 walls. We fix this later by just adding 1
-        int max_len_count = 0;
+        int corridorLength = 0;
 
-        for (int x = 0; x < size.x; x++) {
+        for (int x = 0; x < maze.size.x; x++) {
             Point position = {x, y};
-            int index = GetRightWallIndex(position, size);
+            int index = GetRightWallIndex(position, maze.size);
 
             if (index != -1 && maze.horizontalWalls[index].type == AIR) {
                 //After getting all neighbors we are checking if if the right side, cuz we are moving right, is open
-                max_len_count++; //if yes, max_len_count is increased
+                corridorLength++; //if yes, corridorLength is increased
             }
-            else {
-                if (max_len_count > max_len) {
-                    //if not, max len if it is smaller than the max_len_count gets max_len_count's value, and max_len_count is reset
-                    max_len = max_len_count;
-                }
-                max_len_count = 0;
+            else if (corridorLength > max_len) {
+                max_len = corridorLength;
             }
         }
     }
 
-    for (int x = 0; x < size.x; x++) {
+    for (int x = 0; x < maze.size.x; x++) {
         //same as before but now we are checking vertically instead
-        int max_len_count = 0;
+        int corridorLength = 0;
 
-        for (int y = 0; y < size.y; y++) {
+        for (int y = 0; y < maze.size.y; y++) {
             Point position = {x, y};
-            int index = GetLowerWallIndex(position, size);
+            int index = GetLowerWallIndex(position, maze.size);
 
             if (index != -1 && maze.verticalWalls[index].type == AIR) {
-                max_len_count++;
-            } else {
-                if (max_len_count > max_len) {
-                    max_len = max_len_count;
-                }
-                max_len_count = 0;
+                corridorLength++;
+            }
+            else if (corridorLength > max_len) {
+                max_len = corridorLength;
             }
         }
     }
+    max_len++;
 
 
-    for (int i = 0; i < frontierSize; i++)
-    {
-        //getting branch potential
-        ArrIndexResult arr = GetArrayIndex(maze, frontier[i]);
-        //we use the get ArrindexResult to get the index of our frontier
+    for (int i = 0; i < frontierSize; i++) {
+        //we use the get GetArrayIndex to get the index of our frontier
+        WallReference wallRef = GetArrayIndex(maze, frontier[i]);
 
-        Point position = IndexToPos(arr.isHorizontal, arr.index, size);
-        //Then we get our position by using the indexToPos function
+        //Then we get our position by using the PointPointedFrom function
+        Point position = PointPointedFrom(wallRef.isHorizontal, wallRef.index, maze.size, frontier[i]->direction);
 
-        GenerationWall **neighbors = GetNeighbourWalls(maze, size, position);
+        GenerationWall *neighbors[4];
+        LoadNeighbourWalls(maze, position, neighbors);
 
-        if (arr.isHorizontal && frontier[i]->direction == LEFT)
-        //now the indexToPos automatically shifts us to the left side, however, if our direction is left, we need to be on the right side
-        {
-            position.x++; //So we shift to the right cell
-        }
-        if (!arr.isHorizontal && frontier[i]->direction == UP) //same idea here, just vertically
-        {
-            position.y++;
-        }
-
+        //Calculating branching potential
         int openNeighbours = 0;
-        for (int j = 0; j < 4; j++) //We are counting all 4 neighbor walls to check how many are open and closed
-        {
+        for (int j = 0; j < 4; j++) { //We are counting all 4 neighbor walls to check how many are open and closed
             if (neighbors[j] != NULL && neighbors[j]->type == AIR) {
                 openNeighbours++;
             }
         }
 
         if (openNeighbours <= 1) //if its 1 or under its a dead end
-        {
             branchPotential = 0;
-        } else {
+        else
             branchPotential = 1;
-        }
-        free(neighbors);
 
 
         //Calculate straightness potential
-        int straightnesscount = 0;
-        arr = GetArrayIndex(maze, frontier[i]);
-        bool keepGoing = true;
+        int corridorLength = 0;
+        bool hitWall = false;
 
-        int index = arr.index;
-        while (keepGoing) {
-            if (arr.isHorizontal && frontier[i]->direction == LEFT)
+        int index = wallRef.index;
+        while (!hitWall) {
+            if (wallRef.isHorizontal && frontier[i]->direction == LEFT) {
             // four copies of the same function, I know its inefficient but dont touch.
-            {
-                if ((index + 1) / (size.x-1) == index / (size.x-1) && maze.horizontalWalls[++index].type == AIR)
-                //we are checking if the next step is open, if yes, we keep going and counting
-                {
-                    straightnesscount++;
-                } else {
-                    keepGoing = false; //once we hit a wall we stop
+                if ((index + 1) / (maze.size.x-1) == index / (maze.size.x-1) && maze.horizontalWalls[++index].type == AIR) {
+                    //we are checking if the next step is open, if yes, we keep going and counting
+                    corridorLength++;
+                }
+                else {
+                    hitWall = true; //once we hit a wall we stop
                 }
             }
 
-            else if (arr.isHorizontal && frontier[i]->direction == RIGHT) {
-                if ((index - 1) / (size.x-1) == index / (size.x-1) && maze.horizontalWalls[--index].type == AIR) {
-                    straightnesscount++;
-                } else {
-                    keepGoing = false;
+            else if (wallRef.isHorizontal && frontier[i]->direction == RIGHT) {
+                if ((index - 1) / (maze.size.x-1) == index / (maze.size.x-1) && maze.horizontalWalls[--index].type == AIR) {
+                    corridorLength++;
+                }
+                else {
+                    hitWall = true;
                 }
             }
 
-            else if (!arr.isHorizontal && frontier[i]->direction == UP) {
-                if ((index + 1) / (size.y-1) == index / (size.y-1) && maze.verticalWalls[++index].type == AIR) {
-                    straightnesscount++;
-                } else {
-                    keepGoing = false;
+            else if (!wallRef.isHorizontal && frontier[i]->direction == UP) {
+                if ((index + 1) / (maze.size.y-1) == index / (maze.size.y-1) && maze.verticalWalls[++index].type == AIR) {
+                    corridorLength++;
+                }
+                else {
+                    hitWall = true;
                 }
             }
 
-            else if (!arr.isHorizontal && frontier[i]->direction == DOWN) {
-                if ((index - 1) / (size.y-1) == index / (size.y-1) && maze.verticalWalls[--index].type == AIR) {
-                    straightnesscount++;
-                } else {
-                    keepGoing = false;
+            else if (!wallRef.isHorizontal && frontier[i]->direction == DOWN) {
+                if ((index - 1) / (maze.size.y-1) == index / (maze.size.y-1) && maze.verticalWalls[--index].type == AIR) {
+                    corridorLength++;
+                }
+                else {
+                    hitWall = true;
                 }
             }
         }
-        straightnesscount += 1;
         // same issue with max_len, we are counting the walls, not the cells, so we have to +1
-        if (max_len == 0) {
-            straightnessPotential = 0;
-        } else {
-            int true_max = max_len + 1;
-            straightnessPotential = (float)straightnesscount / (float)true_max;
-        }
+        corridorLength++;
 
-        // our weight function = e^((straight_priority - 0.5) * (straight_potential - 0.5)) * e^((branch_priority - 0.5) * (branch_potential - 0.5))
-        frontierWeights[i] = exp((4 * straightnessPriority - 2) * (4 * straightnessPotential - 2)) * exp(
-                                (4 * branchPriority - 2) * (4 * branchPotential - 2));
+        straightnessPotential = (float) corridorLength / (float) max_len;
+
+        // our weight function = priority * potential + (priority - 1) * (potential - 1)
+        frontierWeights[i] = (straightnessPriority * straightnessPotential + (straightnessPriority - 1) * (straightnessPotential - 1)) *
+                             (branchPriority       * branchPotential +       (branchPriority - 1) *       (branchPotential - 1));
     }
 
     return frontierWeights;
 }
 
-GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze, MazeSize size,
+GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze,
                                   float straightnessPriority, float branchPriority) {
-    float *weights = FrontierWeights(frontier, *frontierSize, maze, size, straightnessPriority, branchPriority);
+    float *weights = FrontierWeights(frontier, *frontierSize, maze, straightnessPriority, branchPriority);
 
     float total = 0.0f;
 
-    //printf("Changed weights.\n");
     for (int i = 0; i < *frontierSize; i++) {
         //now pay attention, we are adding each weight to the total
         total += weights[i];
         weights[i] = total;
-        //printf("%f\n",weights[i]);
-
-        //while that is happening each temp[] is getting a value that is higher and higher, increased each time by the next weight value
     }
 
 
@@ -373,7 +348,6 @@ GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, 
 
 ExportData GenerateMaze(GenerationData data) {
     MazeSize size = {data.x_size, data.y_size};
-    // MazeSize size = {24,26};
     GenerationMaze *maze = FillWalls(size);
     if (!maze) return (ExportData){-1}; //crash
 
@@ -381,406 +355,229 @@ ExportData GenerateMaze(GenerationData data) {
     GenerationWall** frontiers = malloc(
         sizeof(GenerationWall*) * maze->wallCount.horizontal +
         sizeof(GenerationWall*) * maze->wallCount.vertical);
-    if (!frontiers)  return FreeMemory(maze, frontiers), (ExportData){-1}; //crash
+    if (!frontiers) {
+        FreeMemory(maze, frontiers);
+        return (ExportData){-1}; //crash
+    }
 
-    maze->root = (Point) {rand() % size.x, rand() % size.y};
-    AddNeighboursToFrontier(frontiers, &frontierSize, *maze, size, maze->root);
+    Point startPoint = (Point) {rand() % size.x, rand() % size.y};
+    AddNeighboursToFrontier(frontiers, &frontierSize, *maze, startPoint);
     while (frontierSize > 0) {
-        GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, size, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
+        GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
         //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
         if (rndFrontier->closedSides >= 2) continue;
 
         //Gets the index of the wall in its corresponding array
-        ArrIndexResult arrIndex = GetArrayIndex(*maze, rndFrontier);
-        if (arrIndex.index == -1) return FreeMemory(maze, frontiers), (ExportData){-1}; //crash
+        WallReference wallRef = GetArrayIndex(*maze, rndFrontier);
+        if (wallRef.index == -1) {
+            FreeMemory(maze, frontiers);
+            return (ExportData){-1}; //crash
+        }
 
         //Uses the index to get the position just above/to the left of the wall.
-        Point frontierPos = IndexToPos(arrIndex.isHorizontal, arrIndex.index, size);
-        //If the wall has a positive direction, shift the point 1 down/to the right
-        if (arrIndex.isHorizontal && rndFrontier->direction == RIGHT) frontierPos.x++;
-        if (!arrIndex.isHorizontal && rndFrontier->direction == DOWN) frontierPos.y++;
-        AddNeighboursToFrontier(frontiers, &frontierSize, *maze, size, frontierPos);
+        Point frontierPos = PointPointedTo(wallRef.isHorizontal, wallRef.index, size, rndFrontier->direction);
+
+        AddNeighboursToFrontier(frontiers, &frontierSize, *maze, frontierPos);
 
         rndFrontier->type = AIR;
     }
 
-    AddLoops(maze,size,data.loops);
+    maze->openings[0] = (Point) {0, 0};
+    maze->openings[1] = (Point) {maze->size.x - 1, maze->size.y - 1};
+
+    MarkSolution(*maze, maze->openings[0], maze->openings[1]);
+    AddLoops(*maze, data.loops);
 
 
-    Maze *properMaze = GenerationMazeToMaze(*maze, data.loops == 0);
-    if (properMaze && properMaze->horizontalWalls) SaveMaze(*properMaze, data.id);
-    FreeMaze(properMaze);
+    Maze properMaze = GenerationMazeToMaze(*maze, data.loops == 0);
+    if (properMaze.horizontalWalls) SaveMaze(properMaze, data.id);
+    free(properMaze.horizontalWalls);
 
-    bool* horizontalBoolArr = GenerationWallArrToBoolArr(maze->horizontalWalls, maze->wallCount.horizontal);
-    bool* verticalBoolArr = GenerationWallArrToBoolArr(maze->verticalWalls, maze->wallCount.vertical);
+    ExportWall* horizontalExportWalls = GenerationWallArrToExportWallArr(maze->horizontalWalls, maze->wallCount.horizontal);
+    ExportWall* verticalExportWalls = GenerationWallArrToExportWallArr(maze->verticalWalls, maze->wallCount.vertical);
 
-    ExportData exportMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalBoolArr, verticalBoolArr};
+    ExportData exportMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalExportWalls, verticalExportWalls};
 
     FreeMemory(maze, frontiers);
     return exportMaze;
 }
 
-void AddLoops(GenerationMaze *maze, MazeSize size, double loopInput)
-{                                    // Should be optimized, takes like a billion years to generate a 200x200 maze
-    int cellCount = size.x * size.y; // or we should limit maze size to 100x100
-    int count = 0;
-    int maxLoops = cellCount / 10;
-    int loopAmount = (int)(maxLoops * loopInput); // how many loops we max can have
-    int outerAttempts = 0;
-    int maxOuterAttempts = loopAmount * 50;
-    int loopAmountSmall = (int)loopAmount * 0.6; // total amount of "small loops allowed"
-    int loopAmountMid = (int)loopAmount * 0.25;  // same etc
-    int loopAmountBig = (int)loopAmount * 0.10;
-    int loopAmountGiant = loopAmount - loopAmountSmall - loopAmountMid - loopAmountBig;
-    int loopAmountSmalltemp = 0;
-    int loopAmountMidtemp = 0;
-    int loopAmountBigtemp = 0;
-    int loopAmountGianttemp = 0;
+void FlipSolutionMarkingToRoot(GenerationMaze maze, Point point) {
+    int chosenIndex;
+    do {
+        GenerationWall *neighbours[4];
+        LoadNeighbourWalls(maze, point, neighbours);
+        Direction neighbourDirections[4] = {
+            neighbours[0] && neighbours[0]->type != WALL ? neighbours[0]->direction : -1,
+            neighbours[1] && neighbours[1]->type != WALL ? neighbours[1]->direction : -1,
+            neighbours[2] && neighbours[2]->type != WALL ? neighbours[2]->direction : -1,
+            neighbours[3] && neighbours[3]->type != WALL ? neighbours[3]->direction : -1,
+        };
+        chosenIndex = StepTowardsRoot(neighbourDirections, &point);
+        if (chosenIndex != -1) {
+            neighbours[chosenIndex]->isSolution = !neighbours[chosenIndex]->isSolution;
+        }
+    } while (chosenIndex != -1);
+}
 
-    bool switcheroo = true; // to switch between vertical and horizontal
+void MarkSolution(GenerationMaze maze, Point start, Point goal) {
+    FlipSolutionMarkingToRoot(maze, start);
+    FlipSolutionMarkingToRoot(maze, goal);
+}
 
-    int smallMin = 6; // definitions for each
-    int smallMax = 20;
+void AddLoops(GenerationMaze maze, double loopInput) {
+    int maxloopAttempts = (int)((maze.wallCount.horizontal + maze.wallCount.vertical) * loopInput);
+    int maxSmallLoops = (int)(maxloopAttempts * 0.6); // total amount of "small loops" allowed
+    int maxMidLoops = (int)(maxloopAttempts * 0.25);
+    int maxBigLoops = (int)(maxloopAttempts * 0.10);
+    int maxGiantLoops = maxloopAttempts - maxSmallLoops - maxMidLoops - maxBigLoops;
+    int loopAmountSmall = 0;
+    int loopAmountMid = 0;
+    int loopAmountBig = 0;
+    int loopAmountGiant = 0;
 
-    int midMin = smallMax + 1;
-    int midMax = 60;
+    int smallMinSize = 6; // definitions for each
+    int midMinSize = 20;
+    int bigMinSize = 60;
+    int giantMinSize = 150;
 
-    int bigMin = midMax + 1;
-    int bigMax = 150;
-
-    int giantMin = bigMax + 1;
-    int giantMax = bigMax + 1 + cellCount / 4;
-
-    for (int i=0; i<maze->wallCount.horizontal; i++){
-        maze->horizontalWalls[i].isLoop = false;
+    for (int i = 0; i < maze.wallCount.horizontal; i++) {
+        maze.horizontalWalls[i].isLoop = false;
     }
 
-    for (int i=0; i<maze->wallCount.vertical; i++){
-        maze->verticalWalls[i].isLoop = false;
+    for (int i = 0; i < maze.wallCount.vertical; i++) {
+        maze.verticalWalls[i].isLoop = false;
     }
 
-    while (count < loopAmount && outerAttempts < maxOuterAttempts)
-    { // we are choosing which kind of loop(size) we want
-        outerAttempts++;
-        int roll = rand() % 100 + 1;
-        int currentLoopSize = 0;
-
-        if (roll <= 60)
-        {
-            currentLoopSize = 1;
+    for (int loopAttempts = 0; loopAttempts < maxloopAttempts; loopAttempts++) {
+        GenerationWall *chosenWall;
+        int isHorizontal;
+        size_t wallIndex = rand() % (maze.wallCount.horizontal + maze.wallCount.vertical); // we create a random number that is at most as big as there are walls
+        //Exploiting the fact that horizontalWalls and verticalWalls are one contiguous block in memory, and treating them as one large array
+        if (maze.horizontalWalls[wallIndex].type == WALL) {
+            chosenWall = &maze.horizontalWalls[wallIndex]; // if the wall is NOT a loop already, and if its a wall, we remove it
+            isHorizontal = wallIndex < maze.wallCount.horizontal;
+            if (!isHorizontal) wallIndex -= maze.wallCount.horizontal;
         }
-        else if (roll <= 85)
-        {
-            currentLoopSize = 2;
-        }
-        else if (roll <= 95)
-        {
-            currentLoopSize = 3;
-        }
-        else if (roll <= 100)
-        {
-            currentLoopSize = 4;
-        }
-        else if (currentLoopSize == 0)
-        {
+        else {
             continue;
         }
 
-        int wallArraySize;
-        GenerationWall *wallArray;
+        Point pointA = LeftUpperPoint(isHorizontal, wallIndex, maze.size); // we get the two cells next two our wall
+        Point pointB = RightLowerPoint(isHorizontal, wallIndex, maze.size);
 
-        if (switcheroo)
-        {
+        GenerationWall **ancestorsA = malloc(maze.size.x * maze.size.y * sizeof(Point)); // array to hold paths from start to root
+        int rootDistanceA = 0;
 
-            wallArraySize = maze->wallCount.horizontal;
-            wallArray = maze->horizontalWalls;
-        }
-        else
-        {
-            wallArraySize = maze->wallCount.vertical;
-            wallArray = maze->verticalWalls;
-        }
-
-        // we start horizontally
-        // horizontal ie side to side
-        int attempts = 0;
-        int maxAttempts = wallArraySize * 50; // to ensure it stops at some point incase something breaks (its my code so its gonna break eventually)
-        // picking 50 times the amount, incase it chooses the same wall multiple times
-        bool tempbreak = true;
-        int randomNumber = -1;
-        GenerationWall *chosenWall = NULL;
-
-        while (tempbreak)
-        {
-            randomNumber = rand() % wallArraySize; // we create a random number that is at most as big as there are horizontal walls
-            if (wallArray[randomNumber].isLoop == false && wallArray[randomNumber].type == WALL)
-            {
-                chosenWall = &wallArray[randomNumber]; // if the horizontal wall is NOT a loop already, and if its a wall, we remove it
-                tempbreak = false;                     // and we stop
+        int followedIndex;
+        do {
+            GenerationWall *neighbours[4];
+            LoadNeighbourWalls(maze, pointA, neighbours);
+            Direction neighbourDirections[4];
+            for (int i = 0; i < 4; i++) {
+                neighbourDirections[i] = neighbours[i] && neighbours[i]->type == AIR ? neighbours[i]->direction : -1;
             }
-            attempts++;
-            if (attempts >= maxAttempts)
-            { // if we keep trying but its always AIR or already a loop, we give up
-                break;
+
+            followedIndex = StepTowardsRoot(neighbourDirections, &pointA);
+            if (followedIndex != -1) {
+                ancestorsA[rootDistanceA++] = neighbours[followedIndex];
             }
-        }
+        } while (followedIndex != -1);
 
-        if (chosenWall == NULL)
-        { // if we dont get a valid wall, we move on and just go to vertical
-            switcheroo = !switcheroo;
-            continue;
-        }
 
-        ArrIndexResult arr = GetArrayIndex(*maze, chosenWall); // we get our wall info like isHorizontal and index
+        GenerationWall **ancestorsB = malloc(maze.size.x * maze.size.y * sizeof(Point)); // array to hold cells from start to root
+        int rootDistanceB = 0;
 
-        Point position = IndexToPos(arr.isHorizontal, arr.index, size); // we get the two cells next two our wall
+        do {
+            GenerationWall *neighbours[4];
+            LoadNeighbourWalls(maze, pointB, neighbours);
+            Direction neighbourDirections[4];
+            for (int i = 0; i < 4; i++) {
+                neighbourDirections[i] = neighbours[i] && neighbours[i]->type == AIR ? neighbours[i]->direction : -1;
+            }
 
-        Point position2 = position; // second cell
+            followedIndex = StepTowardsRoot(neighbourDirections, &pointB);
+            if (followedIndex != -1) {
+                ancestorsB[rootDistanceB++] = neighbours[followedIndex];
+            }
+        } while (followedIndex != -1);
 
-        if (switcheroo)
-        {
-            position2.x++;
-        }
-        else
-        {
-            position2.y++;
+        int sharedPathLength = 0;
+        while (sharedPathLength <= rootDistanceA && sharedPathLength <= rootDistanceB &&
+               ancestorsA[rootDistanceA - sharedPathLength - 1] == ancestorsB[rootDistanceB - sharedPathLength - 1]) {
+            sharedPathLength++;
         }
 
-        int trueCount = -1; // to count how long till shared ancestor
+        int loopSize = rootDistanceA + rootDistanceB - 2 * sharedPathLength + 1;
 
-        bool foundFirst = false; // NOW WE MOVE
-        int oneCount = 0;
-        Point *initialArr = malloc(cellCount * sizeof(Point)); // array to hold cells from start to root
-        int initialCount = 0;
-
-        while (!foundFirst)
-        {
-            bool moved = false;
-
-            GenerationWall **oneNeighbors = GetNeighbourWalls(*maze, size, position); // we get our neighbors of the FIRST cell ie the left one
-
-            if (position.x == maze->root.x && position.y == maze->root.y)
-            { // if our current cell is the root, we add it to our array and break loop
-                if (initialCount < cellCount)
-                {
-                    initialArr[initialCount++] = position;
-                }
-                free(oneNeighbors);
-                foundFirst = true;
-                break;
-            }
-
-            oneNeighbors[0]; // right wall of position
-            oneNeighbors[1]; // left wall of position
-            oneNeighbors[2]; // down wall of position
-            oneNeighbors[3]; // up wall of position
-
-            if (oneNeighbors[0] != NULL && oneNeighbors[0]->type == AIR && oneNeighbors[0]->direction == LEFT &&
-                oneNeighbors[0]->isLoop == false)
-            {
-                // parent is to the RIGHT
-                initialArr[initialCount] = position;
-                initialCount++;
-                position.x++;
-                oneCount++;
-                moved = true;
-            }
-            else if (oneNeighbors[1] != NULL && oneNeighbors[1]->type == AIR && oneNeighbors[1]->direction == RIGHT && oneNeighbors[1]->isLoop == false)
-            {
-                // parent is to the LEFT
-                initialArr[initialCount] = position;
-                initialCount++;
-                position.x--;
-                oneCount++;
-                moved = true;
-            }
-            else if (oneNeighbors[2] != NULL && oneNeighbors[2]->type == AIR && oneNeighbors[2]->direction == UP && oneNeighbors[2]->isLoop == false)
-            {
-                // parent is to the DOWN
-                initialArr[initialCount] = position;
-                initialCount++;
-                position.y++;
-                oneCount++;
-                moved = true;
-            }
-            else if (oneNeighbors[3] != NULL && oneNeighbors[3]->type == AIR && oneNeighbors[3]->direction == DOWN && oneNeighbors[3]->isLoop == false)
-            {
-                // parent is to the UP
-                initialArr[initialCount] = position;
-                initialCount++;
-                position.y--;
-                oneCount++;
-                moved = true;
-            }
-
-            free(oneNeighbors);
-
-            if (!moved)
-            { // if we didnt move, stop cuz something is wrong
-                break;
-            }
+        bool loopSizeApproved = false;
+        if (loopSize >= smallMinSize && loopSize < midMinSize && loopAmountSmall < maxSmallLoops)
+        { // if our count is within small, then the wall is changed to air
+            loopAmountSmall++;                  // and we can move on, if not since there is too many small loops
+            loopSizeApproved = true;            // we just skip and try another one. Now that I am reading this
+                                                // myself, I realize that this whole thing of forcing there to be a
+                                                // a set number of small, mid, big and giant loops which is what caused
+                                                // this cursed function to be so long is pretty pointless since even
+                                                // if we just took random walls, it would spawn different sized loops
+                                                // anyway. So why the fuck did I make it like this. But I already spent
+                                                // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
+                                                // something about root and parents when making the loops, like going
+                                                // from parent back to root to make loops. Damn you Alex. Give me my
+                                                // weekend back.
+        }
+        else if (loopSize >= midMinSize && loopSize < bigMinSize && loopAmountMid < maxMidLoops)
+        { // same here with mid sized
+            loopAmountMid++;
+            loopSizeApproved = true;
+        }
+        else if (loopSize >= bigMinSize && loopSize < giantMinSize && loopAmountBig < maxBigLoops) {
+            loopAmountBig++;
+            loopSizeApproved = true;
+        }
+        else if (loopSize >= giantMinSize && loopAmountGiant < maxGiantLoops) {
+            loopAmountGiant++;
+            loopSizeApproved = true;
         }
 
-        bool foundSecond = false;
-        int twoCount = 0;
-        Point *secondaryArr = malloc(cellCount * sizeof(Point));
-        int secondaryCount = 0;
-
-        while (!foundSecond)
-        { // now we repeat the exact same process but with the right cell
-            bool moved = false;
-            GenerationWall **twoNeighbors = GetNeighbourWalls(*maze, size, position2);
-
-            if (position2.x == maze->root.x && position2.y == maze->root.y)
-            {
-                if (secondaryCount < cellCount)
-                {
-                    secondaryArr[secondaryCount++] = position2;
-                }
-                free(twoNeighbors);
-                foundSecond = true;
-                break;
+        if (loopSizeApproved) {
+            bool solutionInLoop = false;
+            bool loopInLoop = false;
+            for (int i = 0; i < rootDistanceA - sharedPathLength; i++) {
+                if (ancestorsA[i]->isSolution)
+                    solutionInLoop = true;
+                if (ancestorsA[i]->isLoop)
+                    loopInLoop = true;
+            }
+            for (int i = 0; i < rootDistanceB - sharedPathLength; i++) {
+                if (ancestorsB[i]->isSolution)
+                    solutionInLoop = true;
+                if (ancestorsB[i]->isLoop)
+                    loopInLoop = true;
             }
 
-            if (twoNeighbors[0] != NULL && twoNeighbors[0]->type == AIR && twoNeighbors[0]->direction == LEFT &&
-                twoNeighbors[0]->isLoop == false)
-            {
-                // parent is to the RIGHT
-                secondaryArr[secondaryCount] = position2;
-                secondaryCount++;
-                position2.x++;
-                twoCount++;
-                moved = true;
-            }
-            else if (twoNeighbors[1] != NULL && twoNeighbors[1]->type == AIR && twoNeighbors[1]->direction == RIGHT && twoNeighbors[1]->isLoop == false)
-            {
-                // parent is to the LEFT
-                secondaryArr[secondaryCount] = position2;
-                secondaryCount++;
-                position2.x--;
-                twoCount++;
-                moved = true;
-            }
-            else if (twoNeighbors[2] != NULL && twoNeighbors[2]->type == AIR && twoNeighbors[2]->direction == UP && twoNeighbors[2]->isLoop == false)
-            {
-                // parent is to the DOWN
-                secondaryArr[secondaryCount] = position2;
-                secondaryCount++;
-                position2.y++;
-                twoCount++;
-                moved = true;
-            }
-            else if (twoNeighbors[3] != NULL && twoNeighbors[3]->type == AIR && twoNeighbors[3]->direction == DOWN && twoNeighbors[3]->isLoop == false)
-            {
-                // parent is to the UP
-                secondaryArr[secondaryCount] = position2;
-                secondaryCount++;
-                position2.y--;
-                twoCount++;
-                moved = true;
+
+            if (loopInLoop) {
+                free(ancestorsA);
+                free(ancestorsB);
+                continue;
             }
 
-            free(twoNeighbors);
-
-            if (!moved)
-            {
-                break;
+            for (int i = 0; i < rootDistanceA - sharedPathLength; i++) {
+                if (solutionInLoop) ancestorsA[i]->isSolution = true;
+                ancestorsA[i]->isLoop = true;
             }
+            for (int i = 0; i < rootDistanceB - sharedPathLength; i++) {
+                if (solutionInLoop) ancestorsB[i]->isSolution = true;
+                ancestorsB[i]->isLoop = true;
+            }
+
+            free(ancestorsA);
+            free(ancestorsB);
+
+            chosenWall->type = AIR;
+            chosenWall->isLoop = true;
+            if (solutionInLoop)
+                chosenWall->isSolution = true;
         }
-
-        int i = 1;
-        while (i <= initialCount && i <= secondaryCount &&
-               initialArr[initialCount - i].x == secondaryArr[secondaryCount - i].x &&
-               initialArr[initialCount - i].y == secondaryArr[secondaryCount - i].y)
-        {
-            i++;
-        }
-        trueCount = initialCount - (i - 1) + secondaryCount - (i - 1) + 1;
-
-        if (foundFirst && foundSecond)
-        { // these two are seperated for literally no reason other than because I can
-            if (currentLoopSize == 1)
-            { // now we check what loopsize we are on again, in this case small
-                if (trueCount >= smallMin && trueCount <= smallMax)
-                { // if our count is within small, then the wall is changed to air
-                    if (loopAmountSmalltemp < loopAmountSmall)
-                    {                              // and we can move on, if not since there is too many small loops
-                        chosenWall->type = AIR;    // we just skip and try another one. Now that I am reading this
-                        chosenWall->isLoop = true; // myself, I realize that this whole thing of forcing there to be a
-                        loopAmountSmalltemp++;     // a set number of small, mid, big and giant loops which is what caused
-                        count++;                   // this cursed function to be so long is pretty pointless since even
-                        switcheroo = !switcheroo;  // if we just took random walls, it would spawn different sized loops
-                                                   // anyway. So why the fuck did I make it like this. But I already spent
-                                                   // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
-                        free(initialArr);          // something about root and parents when making the loops, like going
-                        free(secondaryArr);        // from parent back to root to make loops. Damn you Alex. Give me my
-                                                   // weekend back.
-                        continue;
-                    };
-                }
-            }
-            else if (currentLoopSize == 2)
-            { // same here with mid sized
-                if (trueCount >= midMin && trueCount <= midMax)
-                {
-                    if (loopAmountMidtemp < loopAmountMid)
-                    {
-                        chosenWall->type = AIR;
-                        chosenWall->isLoop = true;
-                        loopAmountMidtemp++;
-                        switcheroo = !switcheroo;
-                        count++;
-
-                        free(initialArr);
-                        free(secondaryArr);
-
-                        continue;
-                    };
-                }
-            }
-            else if (currentLoopSize == 3)
-            {
-                if (trueCount >= bigMin && trueCount <= bigMax)
-                {
-                    if (loopAmountBigtemp < loopAmountBig)
-                    {
-                        chosenWall->type = AIR;
-                        chosenWall->isLoop = true;
-                        loopAmountBigtemp++;
-                        switcheroo = !switcheroo;
-                        count++;
-
-                        free(initialArr);
-                        free(secondaryArr);
-
-                        continue;
-                    };
-                }
-            }
-            else if (currentLoopSize == 4)
-            {
-                if (trueCount >= giantMin && trueCount <= giantMax)
-                {
-                    if (loopAmountGianttemp < loopAmountGiant)
-                    {
-                        chosenWall->type = AIR;
-                        chosenWall->isLoop = true;
-                        loopAmountGianttemp++;
-                        switcheroo = !switcheroo;
-                        count++;
-
-                        free(initialArr);
-                        free(secondaryArr);
-
-                        continue;
-                    };
-                }
-            }
-        }
-
-        free(initialArr);
-        free(secondaryArr);
-
-        switcheroo = !switcheroo; // after all of that, we set switcheroo to false so it moved on to vertical on the next iteration, to ensure an even balance of both vertical and horizontal
     }
 }

@@ -98,8 +98,9 @@ void checkHeat(int id) {
 	}
 	// printf("Memory allocated for 2D Array");
 
-	int startPosX = maze->root.x,
-		startPosY = maze->root.y,
+	Point root = FindRoot(*maze, maze->openings[0]);
+	int startPosX = root.x,
+		startPosY = root.y,
 		stepCount = 0;
 
 	// printf("\nRunning mazeStepper recursive function: ");

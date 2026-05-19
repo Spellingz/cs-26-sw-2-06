@@ -481,7 +481,6 @@ void AddLoops(GenerationMaze maze, double loopInput) {
 
             if (maze.horizontalWalls[wallIndex].type == WALL) {
                 chosenWall = &maze.horizontalWalls[wallIndex];
-                // if the wall is NOT a loop already, and if its a wall, we remove it
             } else {
                 continue;
             }

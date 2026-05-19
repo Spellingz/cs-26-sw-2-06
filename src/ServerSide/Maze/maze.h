@@ -86,7 +86,7 @@ Direction *LoadNeighbourPathDirections(Maze maze, Point point, Direction neighbo
 Point *LoadNeighbourPoints(Point point, Point neighbourPoints[4]);
 
 //Root stuff
-int StepTowardsRoot(const Direction *neighbourDirections, Point *point);
+int StepTowardsRoot(const Direction neighbourDirections[4], Point *point);
 void MoveRootPerfect(Maze *maze, Point newRoot);
 void MoveRoot(Maze maze, Point newRoot);
 Point FindRoot(Maze maze, Point startPoint);

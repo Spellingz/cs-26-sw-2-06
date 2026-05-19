@@ -494,7 +494,6 @@ static enum MHD_Result answer_to_connection (void *cls,
             if (VERBOSITY == ALL) printf("fileOpened\n");
 
             length = sizeOfFile(f);
-            printf("Length: %d", (int)length);
             page = malloc ((length +1)* sizeof(char));
 
             if (!page) {

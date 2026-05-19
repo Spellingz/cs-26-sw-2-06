@@ -372,7 +372,7 @@ void FreeMaze(Maze *maze) {
  * @param point The current point. Will be changed to be one step closer to root.
  * @return The index of the chosen path, corresponding to the input dirrections. -1 if point is the root.
  */
-int StepTowardsRoot(const Direction *neighbourDirections, Point *point) {
+int StepTowardsRoot(const Direction neighbourDirections[4], Point *point) {
     Point neighbourPoints[4];
     LoadNeighbourPoints(*point, neighbourPoints);
 

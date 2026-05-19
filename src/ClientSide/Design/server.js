@@ -270,9 +270,12 @@ function checkCookie(cookieName, hasValue = 0) {
 
 //=======Eksport Output===================================================================================
 function exsport() {
-    //make a code that eksport the code to a .file 
+    //declaring the storage for maze variables and saves them in variable
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"));
+    if (!stored) return
+    console.log(stored);
 
-    //trying with hardcode, so that it is ready for when we have the correct names 
+    
     const JSONToFile = (obj, filename) => {
         const blob = new Blob([JSON.stringify(obj, null, 2)], {
         type: 'text/plain',

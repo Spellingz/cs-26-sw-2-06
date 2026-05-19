@@ -470,7 +470,7 @@ if (isHorizontal){
 
 
 } else {
-        wallIndex = rand() % (maze.wallCount.vertical)
+        wallIndex = rand() % (maze.wallCount.vertical);
 
                  if (maze.verticalWalls[wallIndex].type == WALL) {   
             chosenWall = &maze.verticalWalls[wallIndex]; 

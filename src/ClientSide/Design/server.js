@@ -21,9 +21,11 @@ function sendmazeinfo(){
     let verticalWallRects = [];
     let horizontalWallRects = [];
 
+    let id = checkCookie("id", 1);
+    console.log(id);
     let mazeVariables = {
         "type":             0,
-        "id":               12345678,
+        "id":               id,
         "door":             door,
         "x_size":           width,
         "y_size":           height,
@@ -199,6 +201,62 @@ function visualizeHeatmap(heatmapType) {
     console.log("");
     console.log("");
 
+}
+
+/*
+Function to add a cookie to document.cookie.
+Input: cookie name, (optional) value of cookie, and (optional) days until cookie should expire.
+Defaults to 400 days if no expiry is defined. Expiry of 0 deletes cookie when browser is closed
+*/
+function setCookie(cookieName, cookieValue, expireIn = 400) {
+    let expiryDate = "";
+    if (expireIn != 0) {
+        const date = new Date();
+        date.setTime(d.getTime() + (expireIn*1000*60*60*24)) // converts expireIn value from days to milliseconds and adds it to current time
+        expiryDate = "expires=" + d.toUTCString(); // converts expiry date into UTC format
+    }
+    document.cookie = cookieName + "=" + (cookieValue || "") + expiryDate + ";path=/"
+}
+
+/*
+Function to delete specific cookie from document.cookie.
+Input: cookie name.
+Calls the setCookie function with expiry date in the past, causing cookie to be deleted.
+*/
+function deleteCookie(cookieName) {
+    setCookie(cookieName, "", -1);
+}
+
+/*
+Function to read specific cookie data.
+Input: cookie name.
+Returns the value of the given cookie if it exists.
+*/
+function getCookie(cookieName) {
+    let cookieValue = "";
+    cookieValue = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith(cookieName+"="))
+        ?.split("=")[1];
+    if (cookieValue != "") {
+        return cookieValue;
+    }
+    return null;
+}
+
+/*
+Function to check if a specific cookie exists.
+Input: cookie name, (optional) if it should check if the cookie has a value.
+Returns whether the cookie exists and if specified to check if it has a value, returns the value instead.
+*/
+function checkCookie(cookieName, hasValue = 0) {
+    if (document.cookie.split(";").some((item) => item.trim().startsWith(cookieName + "="))) {
+        if (hasValue) {
+            return getCookie(cookieName);
+        }
+        return 1;
+    }
+    return 0;
 }
 
 //=======Eksport Output===================================================================================

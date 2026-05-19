@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "Heatmap/heatmapGen.h"
+
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -65,7 +67,8 @@ typedef struct {
     const fileTypeInfoStruct *fileTypeInfo;
     char *jsonData;
     struct MHD_PostProcessor *postProcessor;
-    bool requestType;
+    char requestType;
+    int id;
 } connection_info_struct;
 
 typedef struct {
@@ -197,12 +200,16 @@ static enum MHD_Result process_post (void *coninfo_cls,
         return MHD_YES;
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
-    if ((dataSize > 0) && (dataSize <= 20))
+    if ((dataSize > 0) && (dataSize <= 100))
     {
         if (0 == strcmp(key, "type"))
         {
-            con_info->requestType = data[0]-48;
+            sscanf(data, "%hhd", &con_info->requestType);
             return MHD_YES;
+        }
+        if (0 == strcmp(key, "id"))
+        {
+            sscanf(data, "%d", &con_info->id);
         }
         // char _addString[strlen(key) + 10 + dataSize];
         // sprintf(_addString, "\"%s\": %s, ", key, data);
@@ -587,18 +594,24 @@ static enum MHD_Result answer_to_connection (void *cls,
             // Process data
             // void* request = transformRequest(con_info->jsonData, con_info->requestType);
             char* responseString;
-            if (con_info->requestType == 0)     // generationData
+            if (con_info->requestType == 0)         // generationData
             {
                 GenerationData request = TransformGenerationRequest(con_info->jsonData);
                 ExportData responseData = GenerateMaze(request);
                 responseString = GenerationExportDataToString(responseData);
                 FreeGenerationExportData(responseData);
             }
-            else {                          // alterationData
+            else if (con_info->requestType == 1) {  // alterationData
                 AlterationData request = TransformAlterationRequest(con_info->jsonData);
                 AlterationExportData responseData = AlterMaze(request);
                 responseString = AlterationExportDataToString(responseData);
                 FreeAlterationExportData(responseData);
+            }
+            else if (con_info->requestType == 2) {
+                responseString = checkHeat(con_info->id);
+            }
+            else {
+                return respond_error(con, MHD_HTTP_BAD_REQUEST);
             }
 
             headersStruct headers = {

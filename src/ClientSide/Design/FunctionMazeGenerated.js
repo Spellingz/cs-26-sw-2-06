@@ -1,22 +1,27 @@
 
 function trapsHeatMap() {
     //fetch heat map from code (algoritm)
+    visualizeHeatmap();
 }
 
 function enemiesHeatMap() {
     //fetch heat map from code (algoritm)
+    trapsHeatMap()
 }
 
 function itemsHeatMap() {
     //fetch heat map from code (algoritm)
+    trapsHeatMap()
 }
 
 function doorsHeatMap() {
     //fetch heat map from code (algoritm)
+    trapsHeatMap()
 }
 
 function specialWallsHeatMap() {
     //fetch heat map from code (algoritm)
+    trapsHeatMap()
 }
 
 

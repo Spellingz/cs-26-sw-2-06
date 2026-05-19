@@ -449,19 +449,36 @@ void AddLoops(GenerationMaze maze, double loopInput) {
         maze.verticalWalls[i].isLoop = false;
     }
 
+    bool isHorizontal = true;
+
     for (int loopAttempts = 0; loopAttempts < maxloopAttempts; loopAttempts++) {
         GenerationWall *chosenWall;
-        int isHorizontal;
-        size_t wallIndex = rand() % (maze.wallCount.horizontal + maze.wallCount.vertical); // we create a random number that is at most as big as there are walls
-        //Exploiting the fact that horizontalWalls and verticalWalls are one contiguous block in memory, and treating them as one large array
-        if (maze.horizontalWalls[wallIndex].type == WALL) {
+
+
+        size_t wallIndex;
+        
+isHorizontal = !isHorizontal;
+if (isHorizontal){
+      wallIndex = rand() % (maze.wallCount.horizontal);
+
+        if (maze.horizontalWalls[wallIndex].type == WALL) {   
             chosenWall = &maze.horizontalWalls[wallIndex]; // if the wall is NOT a loop already, and if its a wall, we remove it
-            isHorizontal = wallIndex < maze.wallCount.horizontal;
-            if (!isHorizontal) wallIndex -= maze.wallCount.horizontal;
         }
         else {
             continue;
         }
+
+
+} else {
+        wallIndex = rand() % (maze.wallCount.vertical)
+
+                 if (maze.verticalWalls[wallIndex].type == WALL) {   
+            chosenWall = &maze.verticalWalls[wallIndex]; 
+        }
+        else {
+            continue;
+        }
+}
 
         Point pointA = LeftUpperPoint(isHorizontal, wallIndex, maze.size); // we get the two cells next two our wall
         Point pointB = RightLowerPoint(isHorizontal, wallIndex, maze.size);
@@ -475,17 +492,23 @@ void AddLoops(GenerationMaze maze, double loopInput) {
             LoadNeighbourWalls(maze, pointA, neighbours);
             Direction neighbourDirections[4];
             for (int i = 0; i < 4; i++) {
-                neighbourDirections[i] = neighbours[i] && neighbours[i]->type == AIR ? neighbours[i]->direction : -1;
+if (neighbours[i] != NULL && neighbours[i]->type == AIR) {
+    neighbourDirections[i] = neighbours[i]->direction;     //so if it has a direction and is AIR, then we save it to directions
+}
+else {
+    neighbourDirections[i] = -1;  //else we throw it away
+}
             }
 
-            followedIndex = StepTowardsRoot(neighbourDirections, &pointA);
-            if (followedIndex != -1) {
-                ancestorsA[rootDistanceA++] = neighbours[followedIndex];
+            followedIndex = StepTowardsRoot(neighbourDirections, &pointA);        //we get the correct direction and follow it
+            if (followedIndex != -1) {               //if we moved we store the wall we moved through in ancestors, and go again
+ancestorsA[rootDistanceA] = neighbours[followedIndex];
+rootDistanceA++;
             }
-        } while (followedIndex != -1);
+        } while (followedIndex != -1);    //if we didnt find a legit direction to go, we stop
 
 
-        GenerationWall **ancestorsB = malloc(maze.size.x * maze.size.y * sizeof(Point)); // array to hold cells from start to root
+        GenerationWall **ancestorsB = malloc(maze.size.x * maze.size.y * sizeof(Point)); // same but for the other point
         int rootDistanceB = 0;
 
         do {
@@ -501,6 +524,10 @@ void AddLoops(GenerationMaze maze, double loopInput) {
                 ancestorsB[rootDistanceB++] = neighbours[followedIndex];
             }
         } while (followedIndex != -1);
+
+
+
+
 
         int sharedPathLength = 0;
         while (sharedPathLength <= rootDistanceA && sharedPathLength <= rootDistanceB &&

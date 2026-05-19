@@ -48,6 +48,7 @@ function sendmazeinfo(){
         maze.horizontalWalls = result.horiArr;
         maze.verticalWalls = result.vertArr;
         console.log("response: ", maze.id, maze.horizontalWalls, maze.verticalWalls);
+        checkCorrectSize(result.horiArr, result.vertArr);
         saveVisualData();
     });
 }
@@ -200,6 +201,15 @@ function visualizeHeatmap(heatmapType) {
     console.log("");
 
 }
+
+function checkCorrectSize(horiArr, vertArr){
+    if (horiArr.length !== sessionStorage.getItem('inputSizeHeight') * (sessionStorage.getItem('inputSizeWidth') - 1)){
+        window.alert(`Horrizontal length is not correct`);
+    } else if (vertArr.length !== sessionStorage.getItem('inputSizeWidth') * (sessionStorage.getItem('inputSizeHeight') - 1)) {
+        window.alert(`Vertical length is not correct`);
+    }
+}
+
 
 //=======Eksport Output===================================================================================
 function exsport() {

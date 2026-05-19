@@ -24,6 +24,7 @@
 
     <div id="wrapperFactors">
         <div class="Factors" style="margin-left: 5%;">
+            <h3 id="heatMapHeader" style="margin-top: -5%; text-align: left; color: #000047;">HEAT MAPS:</h3>
             <button id="Traps" onclick="trapsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">TRAPS</button>
             <br><br>
             <button id="Enemies" onclick="enemiesHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ENEMIES</button>
@@ -39,11 +40,10 @@
 
     <div id="modifi">
         <div id="ModificationButtons" style="margin-left: 5%;">
-            <button id="EditMode" onclick="editMode()" style="background-color: #d11010; border-color: #9f1010; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb; cursor: pointer;">EDIT MODE</button>
-            <button id="Eksport" onclick="exsport()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb;">GET CODE</button>
-            <button class="CreateMazeButton" style="background-color: #4a6275; border-color: #303f4b; height: 50px; width: 250px%; border-radius: 12px; font-size: 25px; color:#f0efeb;" onclick="sendmazeinfo()">
-                Create Maze
-            </button>
+            <h3 id="ModificationHeader" style="text-align: left; color: #000047;">ACTIONS:</h3>
+            <button class="CreateMazeButton" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; height: 50px; width: 166px; border-radius: 12px; color:#f0efeb;" onclick="sendmazeinfo()">CREATE NEW</button>
+            <button id="Eksport" onclick="exsport()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 166px; height: 50px; border-radius: 12px; color: #f0efeb;">GET CODE</button>
+            <button id="EditMode" onclick="editMode()" style="background-color: #d11010; border-color: #9f1010; font-size: 20px; width: 166px; height: 50px; border-radius: 12px; color: #f0efeb; cursor: pointer;">EDIT MODE</button>
         </div>
         <div id= "modificationOutput"></div>
     </div>

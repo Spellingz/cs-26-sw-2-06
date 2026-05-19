@@ -214,7 +214,7 @@ function StraightnessParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the straightness to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the straightness to be. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>

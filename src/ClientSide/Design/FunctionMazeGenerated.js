@@ -36,6 +36,7 @@ function editMode() {
 
         let html = `
             <div class="editModeBoks">
+            <p id="paragraph" style="margin-right: 20px; color:#f0efeb;">You have now entered edit mode. You are here able to adjust the maze by clicking on a wall to remove or click on a black spot to add. <br> When finished click on 'edit mode' button to exit.</p>
                 <div class="closeEditMode">
                     <button onclick="closeEditMode()" style="background-color: #f0efeb; border: 6px solid #303f4b; border-radius: 12px; height: 10%; width: 30%; align-items: center; color: #4a6275; font-weight: bold;" >Continue</button>
                 </div>

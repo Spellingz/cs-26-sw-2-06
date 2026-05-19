@@ -1,5 +1,5 @@
 /*Modification for EditMode content*/
-#modifi{
+#actionssection{
     margin-top: 1.5%;
 }
 #modificationOutput {
@@ -19,16 +19,25 @@
     color: #f0efeb;
     top: 30%;
     left: 50%;
+
+    #paragraph{
+        font-weight: lighter;
+        text-align: center;
+        line-height: 1.8;
+    }
     
     .closeEditMode {
         z-index: 600;
         display: flex;
         justify-content: flex-end;
         align-items: flex-end;
-        margin-top: 50%;
+        margin-top: 15%;
         margin-right: 5%;
         overflow: auto;
     }
+}
+#mazeOut{
+    margin-top: 1.5%;
 }
 /*
 .editModeBoks::before {

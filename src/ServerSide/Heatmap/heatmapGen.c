@@ -39,28 +39,53 @@ void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze) {
 		return;
 	}
 	//sleep(1);
+	int neighborWallIndex;
+	LoadNeighbourWallPointers(*maze, (Point){currentPosX, currentPosY}, wallIndices);
+
+	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY-1}, maze->size);
+	if (maze->verticalWalls[neighborWallIndex].isSolution) {
+		stepCount = 0;
+	}
+
+	neighborWallIndex = GetLowerWallIndex((Point){currentPosX-1, currentPosY}, maze->size);
+	if (maze->horizontalWalls[neighborWallIndex].isSolution) {
+		stepCount = 0;
+	}
+
+	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY}, maze->size);
+	if (maze->verticalWalls[neighborWallIndex].isSolution) {
+		stepCount = 0;
+	}
+
+	if (maze->horizontalWalls[neighborWallIndex].isSolution) {
+		stepCount = 0;
+	}
+
+
 	posSteps[currentPosX][currentPosY] = stepCount;
 	// printf("\nSetting position x = %d,y = %d to %d",currentPosX,currentPosY,stepCount);
 	// printf("\nSteps of current position is now %d", posSteps[currentPosX][currentPosY]);
-	int neighborWallIndex;
-	LoadNeighbourWallPointers(*maze, (Point){currentPosX, currentPosY}, wallIndices);
+
+
 
 	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY-1}, maze->size);
 	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper up");
 		mazeStepper(currentPosX, currentPosY-1, stepCount+1, maze);
 	}
+
 	neighborWallIndex = GetRightWallIndex((Point){currentPosX-1, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper left");
 		mazeStepper(currentPosX-1, currentPosY, stepCount+1, maze);
 	}
+
 	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper down");
 		mazeStepper(currentPosX, currentPosY+1, stepCount+1, maze);
 	}
-	neighborWallIndex = GetRightWallIndex((Point){currentPosX, currentPosY}, maze->size);
+
 	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper right");
 		mazeStepper(currentPosX+1, currentPosY, stepCount+1, maze);

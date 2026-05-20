@@ -32,7 +32,7 @@ når et felt rammes, tjekker om det er nået før
 		hvis ja stop med at gå
 */
 
-void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze) {
+void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze, int resetType) {
 	// printf("\nmazeStepper placed");
 	// printf("\ncurrent steps taken: %d", stepCount);
 	// printf("\nsteps recorded on current spot: %d", posSteps[currentPosY][currentPosX]);
@@ -43,31 +43,38 @@ void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze) {
 	//sleep(1);
 	int neighborWallIndex;
 	LoadNeighbourWallPointers(*maze, (Point){currentPosX, currentPosY}, wallIndices);
+	// printf("Running Reset Type %d", resetType);
+	if (resetType == 0) {
+		neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY-1}, maze->size);
+		if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].isSolution) {
+			// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
+			stepCount = 0;
+		}
 
-	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY-1}, maze->size);
-	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].isSolution) {
-		// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
-		stepCount = 0;
+		neighborWallIndex = GetRightWallIndex((Point){currentPosX-1, currentPosY}, maze->size);
+		if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].isSolution) {
+			// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
+			stepCount = 0;
+		}
+
+		neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY}, maze->size);
+		if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].isSolution) {
+			// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
+			stepCount = 0;
+		}
+
+		neighborWallIndex = GetRightWallIndex((Point){currentPosX, currentPosY}, maze->size);
+		if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].isSolution) {
+			// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
+			stepCount = 0;
+		}
+	} else if (resetType == 1) {
+		printf("\nChecking if spot is start or end of maze at position %d, %d: ", currentPosX, currentPosY);
+		if ((currentPosX+1 == maze->size.x && currentPosY+1 == maze->size.y) || (currentPosX == 0 && currentPosY == 0)) {
+			printf("position is start or end, reset count.");
+			stepCount = 0;
+		}
 	}
-
-	neighborWallIndex = GetRightWallIndex((Point){currentPosX-1, currentPosY}, maze->size);
-	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].isSolution) {
-		// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
-		stepCount = 0;
-	}
-
-	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY}, maze->size);
-	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].isSolution) {
-		// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
-		stepCount = 0;
-	}
-
-	neighborWallIndex = GetRightWallIndex((Point){currentPosX, currentPosY}, maze->size);
-	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].isSolution) {
-		// printf("\nPosition x: %d, y: %d is part of the main path", currentPosX, currentPosY);
-		stepCount = 0;
-	}
-
 
 	posSteps[currentPosY][currentPosX] = stepCount;
 	// printf("\nSetting position x = %d,y = %d to %d",currentPosX,currentPosY,stepCount);
@@ -78,29 +85,29 @@ void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze) {
 	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY-1}, maze->size);
 	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper up");
-		mazeStepper(currentPosX, currentPosY-1, stepCount+1, maze);
+		mazeStepper(currentPosX, currentPosY-1, stepCount+1, maze, resetType);
 	}
 
 	neighborWallIndex = GetRightWallIndex((Point){currentPosX-1, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper left");
-		mazeStepper(currentPosX-1, currentPosY, stepCount+1, maze);
+		mazeStepper(currentPosX-1, currentPosY, stepCount+1, maze, resetType);
 	}
 
 	neighborWallIndex = GetLowerWallIndex((Point){currentPosX, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->verticalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper down");
-		mazeStepper(currentPosX, currentPosY+1, stepCount+1, maze);
+		mazeStepper(currentPosX, currentPosY+1, stepCount+1, maze, resetType);
 	}
 
 	neighborWallIndex = GetRightWallIndex((Point){currentPosX, currentPosY}, maze->size);
 	if (neighborWallIndex != -1 && maze->horizontalWalls[neighborWallIndex].type == AIR) {
 		// printf("\nsending mazeStepper right");
-		mazeStepper(currentPosX+1, currentPosY, stepCount+1, maze);
+		mazeStepper(currentPosX+1, currentPosY, stepCount+1, maze, resetType);
 	}
 }
 
-char* checkHeat(int id) {
+char* checkHeat(int id, int resetType) {
 	double timer = clock();
 
 	// printf("\nCreating heatmap variables, and allocating memory for 2D array: ");
@@ -144,7 +151,7 @@ char* checkHeat(int id) {
 		stepCount = 0;
 
 	// printf("\nRunning mazeStepper recursive function: ");
-	mazeStepper(startPosX, startPosY, stepCount, maze);
+	mazeStepper(startPosX, startPosY, stepCount, maze, resetType);
 	// printf("\nmazeStepper finished successfully");
 
 	farthestSpot = 0;

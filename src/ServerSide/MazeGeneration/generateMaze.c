@@ -8,7 +8,7 @@
 #include "generateMaze.h"
 
 
-typedef struct {
+typedef struct GenerationWall {
     char type;
     char direction;
     bool isSolution;
@@ -16,12 +16,16 @@ typedef struct {
         bool isLoop;
         char closedSides;
     };
+    char branchPotential;
+    short corridorLength;
 } GenerationWall;
 
 const GenerationWall DEFAULT_WALL = {
     .type = WALL,
     .direction = 0,
     .closedSides = 0,
+    .branchPotential = 0,
+    .corridorLength = 0
 };
 
 typedef struct {
@@ -98,7 +102,7 @@ GenerationMaze *FillWalls(MazeSize size) {
     return maze;
 }
 
-GenerationWall **LoadNeighbourWalls(GenerationMaze maze, Point pos, GenerationWall *neighbourWalls[]) {
+GenerationWall **LoadNeighbourWalls(GenerationMaze maze, Point pos, GenerationWall *neighbourWalls[4]) {
     int indices[4];
     LoadNeighbourWallIndices(maze.size, pos, indices);
 
@@ -307,6 +311,31 @@ float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMa
     return frontierWeights;
 }
 
+
+void SetCorridorLength(bool isHorizontal, int index, Direction direction, GenerationMaze maze) {
+    //Line as in collumn or row.
+    int lineLength = isHorizontal ? maze.size.x : maze.size.y;
+    int lineNumber = index / (lineLength - 1);
+    GenerationWall* line = isHorizontal ? maze.horizontalWalls : maze.verticalWalls;
+    //Should we move forwards or backwards?
+    int stepOffset = direction == 1 ? 1 : -1;
+
+    short corridorLength = 1;
+    int otherEndIndex = index;
+    do {
+        otherEndIndex += stepOffset;
+        corridorLength++;
+        if (otherEndIndex / lineLength != lineNumber) {
+            //If we are on a different line number, we moved out of bounds.
+            line[index].corridorLength = corridorLength;
+            return;
+        }
+    } while (line[otherEndIndex].type == AIR);
+    //We reached a wall, and set its corridorLength to the new value
+    line[index].corridorLength = corridorLength;
+    line[otherEndIndex].corridorLength = corridorLength;
+}
+
 GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze,
                                   float straightnessPriority, float branchPriority) {
     float *weights = FrontierWeights(frontier, *frontierSize, maze, straightnessPriority, branchPriority);
@@ -362,6 +391,8 @@ ExportData GenerateMaze(GenerationData data) {
 
     Point startPoint = (Point) {rand() % size.x, rand() % size.y};
     AddNeighboursToFrontier(frontiers, &frontierSize, *maze, startPoint);
+
+    bool hasRemovedOneWall = false;
     while (frontierSize > 0) {
         GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
         //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
@@ -374,7 +405,17 @@ ExportData GenerateMaze(GenerationData data) {
             return (ExportData){-1}; //crash
         }
 
-        //Uses the index to get the position just above/to the left of the wall.
+        if (hasRemovedOneWall) {
+            Point fromPoint = PointPointedFrom(wallRef.isHorizontal, wallRef.index, size, rndFrontier->direction);
+            GenerationWall* neighbours[4];
+            LoadNeighbourWalls(*maze, fromPoint, neighbours);
+            for (int i = 0; i < 4; i++) {
+                neighbours[i]->branchPotential = 1;
+            }
+        }
+        hasRemovedOneWall = true;
+
+
         Point frontierPos = PointPointedTo(wallRef.isHorizontal, wallRef.index, size, rndFrontier->direction);
 
         AddNeighboursToFrontier(frontiers, &frontierSize, *maze, frontierPos);

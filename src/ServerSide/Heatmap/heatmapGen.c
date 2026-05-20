@@ -69,9 +69,9 @@ void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze, in
 			stepCount = 0;
 		}
 	} else if (resetType == 1) {
-		printf("\nChecking if spot is start or end of maze at position %d, %d: ", currentPosX, currentPosY);
+		//printf("\nChecking if spot is start or end of maze at position %d, %d: ", currentPosX, currentPosY);
 		if ((currentPosX+1 == maze->size.x && currentPosY+1 == maze->size.y) || (currentPosX == 0 && currentPosY == 0)) {
-			printf("position is start or end, reset count.");
+			//printf("position is start or end, reset count.");
 			stepCount = 0;
 		}
 	}

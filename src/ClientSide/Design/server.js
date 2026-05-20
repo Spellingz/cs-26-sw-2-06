@@ -206,7 +206,7 @@ function drawHeatmap(heatmapArr) {
         for (let x = 0; x < mazeVariables.width; x++) {
             //console.log(x,y);
             const xPos = (x * tileSize + lineWidth * 0.5);
-            const yPos = (y * tileSize + tileSize * 0.5);
+            const yPos = (y * tileSize + lineWidth * 0.5 +tileSize * 0.5);
 
             ctx.beginPath();
             ctx.moveTo(xPos, yPos);

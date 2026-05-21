@@ -223,7 +223,7 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
         int path2Length = RootDistance(*maze, point2);
 
         //If point 2 is an ancestor of point 1, the wall must point from point 2. Otherwise it would create a cycle.
-        if (IsAncestorOf(*maze, point1, point2))
+        if (path1Length > path2Length)
             wall->direction = 0; //Left/up to point 1
         else
             wall->direction = 1; //Right/down to point 2

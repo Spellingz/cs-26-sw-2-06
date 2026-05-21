@@ -15,7 +15,6 @@ void UnmarkMazeWalls(Maze maze);
 int SolutionNeighbourCount(Maze maze, Point point);
 void FlipSolutionToRoot(Maze maze, Point point);
 void SetSolutionToRoot(Maze maze, Point point);
-void UnsetSolutionToIntersectionOrOpening(Maze maze, Point point);
 int SolutionDistance(Maze maze, Point point);
 size_t SolutionCount(Maze maze);
 WallReference *FindSolution(Maze maze, size_t solutionCount);
@@ -93,6 +92,7 @@ AlterationExportData AlterMaze(AlterationData data) {
             if (maze->status == NOT_PERFECT ||
                 maze->status == MARKED && wall->type == WALL ||
                 maze->status == MARKED && wall->type == AIR) {
+                printf("Denied\n");
                 return ALTERATION_EXPORT_FAILURE;
             }
 
@@ -222,14 +222,11 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
         int path1Length = RootDistance(*maze, point1);
         int path2Length = RootDistance(*maze, point2);
 
-        //The point that is the furthest from the root, is also the furthest from the common ancestor (CA).
-        //It therefore has a distance of more than zero, since both points cannot have 0 distance to the CA.
-        //If the wall points away from the point whose distance to CA is maybe 0, we ensure that \n
-        //the "anti-root" of the loop (the point that wall points to) is not the same as CA.
-        if (path1Length > path2Length)
-            wall->direction = 0; //UP/LEFT
+        //If point 2 is an ancestor of point 1, the wall must point from point 2. Otherwise it would create a cycle.
+        if (IsAncestorOf(*maze, point1, point2))
+            wall->direction = 0; //Left/up to point 1
         else
-            wall->direction = 1; //DOWN/RIGHT
+            wall->direction = 1; //Right/down to point 2
 
         int point1CADistance = CommonAncestorDistance(*maze, point1, point2);
         int point2CADistance = path2Length - (path1Length - point1CADistance);
@@ -355,8 +352,9 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
             //a soluton intersection.
             MoveRoot(*maze, maze->openings[0]);
             wall->isSolution = false;
-            UnsetSolutionToIntersectionOrOpening(*maze, rootA);
-            UnsetSolutionToIntersectionOrOpening(*maze, rootB);
+            FlipSolutionToRoot(*maze, rootA);
+            FlipSolutionToRoot(*maze, rootB);
+            FlipSolutionToRoot(*maze, antiRoot);
         }
     }
     else {
@@ -467,22 +465,43 @@ int SolutionDistance(const Maze maze, Point point) {
     return distance;
 }
 
-void FlipSolutionToRoot(Maze maze, Point point) {
-    int traversedPathIndex;
+void SetPathToRoot(Maze maze, Point point, Type type) {
+    Wall *neighbours[4];
+    Direction neighbourDirections[4];
+    Point neighbourPoints[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
+    LoadNeighbourPathDirections(maze, point, neighbourDirections);
+    LoadNeighbourPoints(point, neighbourPoints);
 
-    do {
-        Wall *neighbours[4];
-        Direction neighbourDirections[4];
-        LoadNeighbourWallPointers(maze, point, neighbours);
-        LoadNeighbourPathDirections(maze, point, neighbourDirections);
-
-        traversedPathIndex = StepTowardsRoot(neighbourDirections, &point);
-
-        if (traversedPathIndex != -1) {
-            neighbours[traversedPathIndex]->isSolution = !neighbours[traversedPathIndex]->isSolution;
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type != type) {
+            neighbours[i]->type = type;
+            SetPathToRoot(maze, neighbourPoints[i], type);
         }
-    } while (traversedPathIndex != -1);
+    }
 }
+
+void FlipMarkedSolutionToRoot(Maze maze, Point point) {
+    Wall *neighbours[4];
+    Direction neighbourDirections[4];
+    Point neighbourPoints[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
+    LoadNeighbourPathDirections(maze, point, neighbourDirections);
+    LoadNeighbourPoints(point, neighbourPoints);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type == MARKED_AIR) {
+            neighbours[i]->type = AIR;
+            neighbours[i]->isSolution = !neighbours[i]->isSolution;
+            FlipMarkedSolutionToRoot(maze, neighbourPoints[i]);
+        }
+    }
+}
+
+void FlipSolutionToRoot(Maze maze, Point point) {
+    SetPathToRoot(maze, point, MARKED_AIR);
+}
+
 
 
 void SetSolutionToRoot(Maze maze, Point point) {
@@ -500,23 +519,6 @@ void SetSolutionToRoot(Maze maze, Point point) {
             neighbours[traversedPathIndex]->isSolution = true;
         }
     } while (traversedPathIndex != -1);
-}
-
-// Assumes the root is in either opening, and that point is in a "solution dead end"
-void UnsetSolutionToIntersectionOrOpening(Maze maze, Point point) {
-    while (SolutionNeighbourCount(maze, point) <= 1 &&
-           !AreEqual(point, maze.openings[0]) && !AreEqual(point, maze.openings[1])) {
-        Wall *neighbours[4];
-        Direction neighbourDirections[4];
-        LoadNeighbourWallPointers(maze, point, neighbours);
-        LoadNeighbourPathDirections(maze, point, neighbourDirections);
-
-        int traversedPathIndex = StepTowardsRoot(neighbourDirections, &point);
-
-        if (traversedPathIndex != -1) {
-            neighbours[traversedPathIndex]->isSolution = false;
-        }
-    }
 }
 
 void UnmarkMazeWalls(Maze maze) {

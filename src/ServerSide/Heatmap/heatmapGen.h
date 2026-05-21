@@ -26,7 +26,7 @@ typedef struct {
 
 int generateHeatmap();
 
-char* checkHeat(int id, int resetType);
+char* checkHeat(int id, int resetType, bool proxType);
 
 char* exportHeatmap();
 

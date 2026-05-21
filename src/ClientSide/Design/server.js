@@ -151,13 +151,14 @@ function visualizeMaze() {
     drawMaze(canvas, box, ctx);
 }
 
-function visualizeHeatmap(resetType) {
+function visualizeHeatmap(resetType, proxType) {
     let heatmapArr;
     let id = checkCookie("id", 1);
     let heatmapVariables = {
         "type":             2,
         "id":               id,
         "resetType":        resetType,
+        "proxType":         proxType,
     };
     let str = new URLSearchParams(Object.entries(heatmapVariables)).toString();
 

@@ -70,6 +70,7 @@ typedef struct {
     char requestType;
     int id;
     int resetType;
+    bool proxType;
 } connection_info_struct;
 
 typedef struct {
@@ -194,6 +195,7 @@ static enum MHD_Result process_post (void *coninfo_cls,
         "alterationType",
         "perfectMaze",
         "resetType",
+        "proxType",
         NULL
     };
 
@@ -218,6 +220,12 @@ static enum MHD_Result process_post (void *coninfo_cls,
             sscanf(data, "%d", &con_info->resetType);
             printf("Printing data: %s", data);
             printf("\nPrinting reset type: %d", con_info->resetType);
+        }
+        if (0 == strcmp(key, "proxType"))
+        {
+            int temp;
+            sscanf(data, "%d", &temp);
+            con_info->proxType = temp;
         }
         // char _addString[strlen(key) + 10 + dataSize];
         // sprintf(_addString, "\"%s\": %s, ", key, data);
@@ -617,7 +625,7 @@ static enum MHD_Result answer_to_connection (void *cls,
             }
             else if (con_info->requestType == 2) {
                 printf("Sending heatmap request with reset type %d", con_info->resetType);
-                responseString = checkHeat(con_info->id, con_info->resetType);
+                responseString = checkHeat(con_info->id, con_info->resetType, con_info->proxType);
             }
             else {
                 return respond_error(con, MHD_HTTP_BAD_REQUEST);

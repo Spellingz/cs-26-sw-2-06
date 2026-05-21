@@ -107,7 +107,7 @@ void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze, in
 	}
 }
 
-char* checkHeat(int id, int resetType) {
+char* checkHeat(int id, int resetType, bool proxType) {
 	double timer = clock();
 
 	// printf("\nCreating heatmap variables, and allocating memory for 2D array: ");
@@ -169,7 +169,11 @@ char* checkHeat(int id, int resetType) {
 			if (posSteps[i][j] < 0) {
 				// printf("unaltered distance found at x = %d, y = %d, distance is %d", i, j, posSteps[i][j]);
 			} else {
-				posSteps[i][j] = ceil(((double)posSteps[i][j]/(double)farthestSpot)*255);
+				if (proxType == 0) {
+					posSteps[i][j] = ceil(((double)posSteps[i][j]/(double)farthestSpot)*255);
+				} else if (proxType > 0) {
+					posSteps[i][j] = ceil(255-(255*((double)posSteps[i][j]/(double)farthestSpot)));
+				}
 			}
 		}
 	}

@@ -63,6 +63,88 @@ function saveVisualData() {
 }
 
 
+function mouseClickEvent(event) {
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"));
+    if (!stored) return
+    console.log(stored);
+
+    const box = document.getElementById("generatedBoks");
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    console.log("click at:", event.offsetX, event.offsetY)
+
+    const vertLength = maze.verticalWalls.length
+    const horiLength = maze.horizontalWalls.length
+
+    const lineScale = 0.4
+    const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+
+    const xPos = (event.offsetX / tileSize) 
+    const yPos = (event.offsetY / tileSize) 
+
+
+    const xLineIndex = Math.floor(xPos)-1
+    const isHorizontal = (xPos - (xLineIndex +1)) < lineScale 
+
+    const yLineIndex = Math.floor(yPos)-1
+    const isVertical= (yPos - (yLineIndex +1)) < lineScale 
+
+    console.log("is?", isHorizontal, isVertical)
+    console.log("calculated index from click:", xPos, yPos)
+    console.log("rounded index from click:", xLineIndex, yLineIndex)
+
+    if ((isVertical && isHorizontal) || (!isVertical && !isHorizontal))
+        return;
+    if ((isHorizontal && (xLineIndex < 0 || xLineIndex > stored.width ))  
+        || (isVertical && (yLineIndex < 0 || yLineIndex > stored.height )))
+        return;
+
+    let convertedIndex;
+    if (isHorizontal){
+        convertedIndex = (yLineIndex+1)*(stored.width-1) + xLineIndex;
+    }
+    if (isVertical){
+        convertedIndex = (xLineIndex+1)*(stored.height-1) + yLineIndex;
+    }
+
+    console.log("converted:", convertedIndex)
+    console.log("")
+
+    let id = checkCookie("id", 1);
+
+    let alterationVariables = {
+        "type":             1,
+        "id":               id,
+        "isHorizontal":     Number(isHorizontal),
+        "wallIndex":        convertedIndex,
+        "alterationType":   0,
+        "perfectMaze":      0,
+    };
+    let str = new URLSearchParams(Object.entries(alterationVariables)).toString();
+
+
+    console.log("body input string: '" + str + "'");
+
+    fetch ('http://localhost:8888', 
+        {method: 'POST', 
+        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
+        body: str
+        })
+    .then(result => result.json())
+    .then(result => {
+        console.log("response: ", result);
+    });
+
+    ctx.beginPath();
+    ctx.moveTo(event.offsetX, event.offsetY-2);
+    ctx.lineTo(event.offsetX, event.offsetY+2);
+    ctx.strokeStyle = '#0000ff';
+    ctx.lineWidth = 15;
+    ctx.stroke();
+}
+
+
 function visualizeMaze() {
     const stored = JSON.parse(localStorage.getItem("mazeVariables"));
     if (!stored) return

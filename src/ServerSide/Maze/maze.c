@@ -256,7 +256,7 @@ void MoveRoot(Maze maze, Point newRoot) {
 
 Maze* LoadMaze(int id) {
     char fileName[30];
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
+    sprintf(fileName, "../Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "r");
     if (!f) {
@@ -313,10 +313,17 @@ void SaveMaze(Maze maze, int id) {
         int check = mkdir("ServerSide/Mazes", 0777);
 #else
         int check = mkdir("ServerSide/Mazes");
+        char buf[1024];
+
+        if (getcwd(buf, sizeof(buf)) != NULL) {
+            printf("\n\nCurrent working directory: %s\n\n", buf);
+        } else {
+            printf("no working directory");
+        }
 #endif
         if (!check) ; else return;
     }
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
+    sprintf(fileName, "../Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "w");
     if (!f) return;

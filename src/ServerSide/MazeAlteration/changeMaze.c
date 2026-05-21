@@ -64,10 +64,14 @@ void PrintMaze(Maze maze) {
 
 
 AlterationExportData AlterMaze(AlterationData data) {
+    printf("\naltering maze:\n");
     Maze* maze = LoadMaze(data.id);
     if (!maze) {
+        printf("no maze file found\n");
         return ALTERATION_EXPORT_FAILURE;
     }
+    PrintMaze(*maze);
+    printf("Alteration type: %d\n", data.alterationType);
 
     switch (data.alterationType) {
         case toggleWall:

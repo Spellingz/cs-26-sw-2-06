@@ -119,7 +119,7 @@ function mouseClickEvent(event) {
         "isHorizontal":     Number(isHorizontal),
         "wallIndex":        convertedIndex,
         "alterationType":   0,
-        "perfectMaze":      1,
+        "perfectMaze":      0,
     };
     let str = new URLSearchParams(Object.entries(alterationVariables)).toString();
 

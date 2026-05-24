@@ -12,7 +12,7 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
 AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index, int id);
 
 bool HasUnmarkedSolutionInRootPath(Maze maze, Point point);
-bool FindAndMarkSolution(Maze maze, Point point, int waysToReachSolution);
+bool MarkSolution(Maze maze, Point point, int waysToReachSolution);
 void UnmarkMazeWalls(Maze maze);
 int SolutionNeighbourCount(Maze maze, Point point);
 int MarkedNeighbourPathCount(Maze maze, Point point);
@@ -372,7 +372,7 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
                 for (int x = 0; x < maze->size.x; x++) {
                     Point currentPoint = (Point){x, y};
                     if (SolutionNeighbourCount(*maze, currentPoint) > 0) {
-                        FindAndMarkSolution(*maze, currentPoint, 0);
+                        MarkSolution(*maze, currentPoint, 0);
                     }
                 }
             }
@@ -485,7 +485,7 @@ bool HasUnmarkedSolutionInRootPath(Maze maze, Point point) {
     return false;
 }
 
-bool FindAndMarkSolution(Maze maze, Point point, int waysToReachSolution) {
+bool MarkSolution(Maze maze, Point point, int waysToReachSolution) {
     if (SolutionNeighbourCount(maze, point) > 0) {
         //if we are on a solution path right now, we know that we definitely can reach the solution in one more way than
         //first assumed.
@@ -506,7 +506,7 @@ bool FindAndMarkSolution(Maze maze, Point point, int waysToReachSolution) {
         if (neighbourWalls[i] && neighbourWalls[i]->type == MARKED_AIR) {
             //We check and therefore unmark this path
             neighbourWalls[i]->type = AIR;
-            if (FindAndMarkSolution(maze, neighbourPoints[i], 1) == true) {
+            if (MarkSolution(maze, neighbourPoints[i], 1) == true) {
                 //The neighbour could reach the solution in another way than the one we came through.
                 waysToReachSolution++;
                 neighbourWalls[i]->isSolution = true;

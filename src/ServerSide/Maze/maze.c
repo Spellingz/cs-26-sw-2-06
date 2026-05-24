@@ -274,11 +274,11 @@ void MoveRoot(Maze maze, Point newRoot) {
 
 Maze* LoadMaze(int id) {
     char fileName[30];
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
+    sprintf(fileName, "../src/ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "r");
     if (!f) {
-        printf("\nno file found");
+        printf("no file found\n");
         return NULL;
     }
     Maze *maze = malloc(sizeof(Maze));
@@ -324,9 +324,9 @@ Maze* LoadMaze(int id) {
 }
 
 void SaveMaze(Maze maze, int id) {
-    char fileName[30];
+    char fileName[50];
     struct stat buffer;
-    if (stat("ServerSide/Mazes", &buffer) != 0) {
+    if (stat("../src/ServerSide/Mazes", &buffer) != 0) {
 #ifndef _WIN32
         int check = mkdir("ServerSide/Mazes", 0777);
 #else
@@ -341,8 +341,7 @@ void SaveMaze(Maze maze, int id) {
 #endif
         if (!check) ; else return;
     }
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
-
+    sprintf(fileName, "../src/ServerSide/Mazes/%d.json", id);
     FILE* f = fopen(fileName, "w");
     if (!f) return;
 

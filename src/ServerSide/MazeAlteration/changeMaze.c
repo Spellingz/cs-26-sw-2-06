@@ -93,6 +93,7 @@ AlterationExportData AlterMaze(AlterationData data) {
             if (maze->status == NOT_PERFECT ||
                 maze->status == MARKED && wall->type == WALL ||
                 maze->status == MARKED && wall->type == AIR) {
+                printf("Denied\n");
                 return ALTERATION_EXPORT_FAILURE;
             }
 
@@ -568,21 +569,41 @@ int SolutionDistance(const Maze maze, Point point) {
     return distance;
 }
 
-void FlipSolutionToRoot(Maze maze, Point point) {
-    int traversedPathIndex;
+void SetPathToRoot(Maze maze, Point point, Type type) {
+    Wall *neighbours[4];
+    Direction neighbourDirections[4];
+    Point neighbourPoints[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
+    LoadNeighbourPathDirections(maze, point, neighbourDirections);
+    LoadNeighbourPoints(point, neighbourPoints);
 
-    do {
-        Wall *neighbours[4];
-        Direction neighbourDirections[4];
-        LoadNeighbourWallPointers(maze, point, neighbours);
-        LoadNeighbourPathDirections(maze, point, neighbourDirections);
-
-        traversedPathIndex = StepTowardsRoot(neighbourDirections, &point);
-
-        if (traversedPathIndex != -1) {
-            neighbours[traversedPathIndex]->isSolution = !neighbours[traversedPathIndex]->isSolution;
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type != type) {
+            neighbours[i]->type = type;
+            SetPathToRoot(maze, neighbourPoints[i], type);
         }
-    } while (traversedPathIndex != -1);
+    }
+}
+
+void FlipMarkedSolutionToRoot(Maze maze, Point point) {
+    Wall *neighbours[4];
+    Direction neighbourDirections[4];
+    Point neighbourPoints[4];
+    LoadNeighbourWallPointers(maze, point, neighbours);
+    LoadNeighbourPathDirections(maze, point, neighbourDirections);
+    LoadNeighbourPoints(point, neighbourPoints);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type == MARKED_AIR) {
+            neighbours[i]->type = AIR;
+            neighbours[i]->isSolution = !neighbours[i]->isSolution;
+            FlipMarkedSolutionToRoot(maze, neighbourPoints[i]);
+        }
+    }
+}
+
+void FlipSolutionToRoot(Maze maze, Point point) {
+    SetPathToRoot(maze, point, MARKED_AIR);
 }
 
 

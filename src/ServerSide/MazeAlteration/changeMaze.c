@@ -120,8 +120,6 @@ AlterationExportData AlterMaze(AlterationData data) {
 
 
 AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
-    AlterationExportData returnData;
-
     Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
     Point newRoot = PointPointedTo(isHorizontal, index, maze->size, wall->direction);
 
@@ -166,17 +164,17 @@ AlterationExportData RemoveWallPerfect(Maze *maze, bool isHorizontal, long index
     maze->status = MARKED;
     
     SaveMaze(*maze, id);
+    AlterationExportData data;
+    data.markedWallCount = length;
+    data.markedWalls = loop;
+    data.succeeded = true;
+    data = AddSolutionToExportData(*maze, data);
     FreeMaze(maze);
 
-    returnData.markedWallCount = length;
-    returnData.markedWalls = loop;
-    returnData.succeeded = true;
-    return AddSolutionToExportData(*maze, returnData);
+    return data;
 }
 
 AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, int id) {
-    AlterationExportData returnData;
-
     Wall* wall = isHorizontal ? &maze->horizontalWalls[index] : &maze->verticalWalls[index];
     Point newRoot = PointPointedTo(isHorizontal, index, maze->size, wall->direction);
     MoveRootPerfect(maze, newRoot);
@@ -198,12 +196,14 @@ AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, i
     maze->status = MARKED;
     
     SaveMaze(*maze, id);
+    AlterationExportData data;
+    data.markedWallCount = markedWallCount;
+    data.succeeded = true;
+    data.markedWalls = markedWalls;
+    data = AddSolutionToExportData(*maze, data);
     FreeMaze(maze);
 
-    returnData.markedWallCount = markedWallCount;
-    returnData.succeeded = true;
-    returnData.markedWalls = markedWalls;
-    return AddSolutionToExportData(*maze, returnData);
+    return data;
 }
 
 AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long index, int id) {
@@ -253,9 +253,10 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
     wall->type = AIR;
 
     SaveMaze(*maze, id);
+    AlterationExportData data = AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
     FreeMaze(maze);
 
-    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
+    return data;
 }
 
 
@@ -389,9 +390,10 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
     }
 
     SaveMaze(*maze, id);
+    AlterationExportData data = AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
     FreeMaze(maze);
 
-    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
+    return data;
 }
 
 //Used after unmarked wall has been removed in perfect maze
@@ -418,9 +420,10 @@ AlterationExportData AddMarkedWallPerfect(Maze *maze, bool isHorizontal, long in
     maze->status = PERFECT;
 
     SaveMaze(*maze, id);
+    AlterationExportData data = AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
     FreeMaze(maze);
 
-    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
+    return data;
 }
 
 //Used after unmarked wall has been added in perfect maze
@@ -458,9 +461,10 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
     maze->status = PERFECT;
 
     SaveMaze(*maze, id);
+    AlterationExportData data = AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
     FreeMaze(maze);
 
-    return AddSolutionToExportData(*maze, ALTERATION_EXPORT_NO_MARKS);
+    return data;
 }
 
 bool HasUnmarkedSolutionInRootPath(Maze maze, Point point) {
@@ -482,14 +486,12 @@ bool HasUnmarkedSolutionInRootPath(Maze maze, Point point) {
 }
 
 bool FindAndMarkSolution(Maze maze, Point point, int waysToReachSolution) {
-    printf("Trying (%ld, %ld) with %d ways to reach the solution\n", point.x, point.y, waysToReachSolution);
     if (SolutionNeighbourCount(maze, point) > 0) {
         //if we are on a solution path right now, we know that we definitely can reach the solution in one more way than
         //first assumed.
         waysToReachSolution++;
         if (waysToReachSolution >= 2) {
             //We can reach the solution in multiple ways. We must be in a loop that connects to the solution.
-            printf("Returning true\n");
             return true;
         }
     }

@@ -358,8 +358,8 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
         if (wall->isSolution) {
             wall->isSolution = false;
 
-            //If the removed path was part of the soluton we first mark one solution path (the root path between the openings)
-            //and then remove the solution status for everything between rootA/rootB and the marked path
+            //If the removed path was part of the soluton we first mark one solution path (we call it the golden path)
+            //and then remove the solution status for, as well as marking everything between rootA/rootB and the golden path
             MoveRoot(*maze, maze->openings[0]);
             SetRootPathMarking(*maze, maze->openings[1], MARKED_AIR);
             UnsetSolutionAndMarkUntilMarkedPath(*maze, LeftUpperPoint(isHorizontal, index, maze->size));
@@ -367,7 +367,6 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
             SetRootPathMarking(*maze, maze->openings[1], AIR);
 
 
-            //Now all solution paths that were between the two points and the golden path are set to be not solution and marked.
             //Then we find points that are on the solution path and try to follow and fix marked paths from there.
             for (int y = 0; y < maze->size.y; y++) {
                 for (int x = 0; x < maze->size.x; x++) {

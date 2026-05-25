@@ -133,7 +133,19 @@ function mouseClickEvent(event) {
         })
     .then(result => result.json())
     .then(result => {
-        console.log("response: ", result);
+        // result.walls.forEach(wall => {
+        //     let isHorizontal = wall[0];
+        // });
+
+        if (alterationVariables.isHorizontal)
+            stored.horizontalWalls[convertedIndex] = !stored.horizontalWalls[convertedIndex];
+        else
+            stored.verticalWalls[convertedIndex] = !stored.verticalWalls[convertedIndex];
+        localStorage.setItem("mazeVariables", JSON.stringify(stored));
+
+        visualizeMaze();
+
+        visualizeChange(alterationVariables.isHorizontal, convertedIndex, result);
     });
 
     ctx.beginPath();
@@ -142,6 +154,83 @@ function mouseClickEvent(event) {
     ctx.strokeStyle = '#0000ff';
     ctx.lineWidth = 15;
     ctx.stroke();
+}
+
+// walls[index] = [Wall? isSolution?]
+
+function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"))
+    if (!stored) return
+
+
+    if (wallIsHorizontal)
+        stored.horizontalWalls[wallConvertedIndex] = !stored.horizontalWalls[wallConvertedIndex]
+    else
+        stored.verticalWalls[wallConvertedIndex] = !stored.verticalWalls[wallConvertedIndex]
+
+
+    if (!result.walls.length) // Maze successfully altered completely
+    {
+        console.log("Finished Change - no marks")
+        // reset solution path in stored
+        stored.verticalWalls.forEach(wall => wall[1] = 0)
+        stored.horizontalWalls.forEach(wall => wall[1] = 0)
+        // put in new solution path from result
+        result.solution.forEach(wallRef => {
+            let isHorizontal = Boolean(wallRef[0]);
+            let index = wallRef[1];
+            if (isHorizontal)
+                stored.horizontalWalls[index][1] = 1;
+            else
+                stored.verticalWalls[index][1] = 1;
+        })
+        localStorage.setItem("mazeVaraibles", JSON.stringify(stored))
+        visualizeMaze();
+        return;
+    }
+
+    
+    // 'Mark' changes needed to be made
+
+    
+    const box = document.getElementById("generatedBoks");
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    
+
+    const lineScale = 0.4;
+    const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+    const solutionLineWidth = (tileSize - lineWidth) * 0.4;
+
+    result.walls.forEach(wall => {
+        //isHorizontal?
+        let xPos, yPos;
+        if (wall[0])
+        {
+            xPos = (wall[1] % (stored.width-1)+1) * tileSize + lineWidth*0.5;
+            yPos = Math.floor(wall[1] / (stored.width-1)) * tileSize;
+
+        } else {
+            xPos = (Math.floor(wall[1] / (stored.height-1))) * tileSize;
+            yPos = (wall[1] % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(xPos, yPos);
+        ctx.lineTo(
+            wall[0] ? 
+                xPos : (xPos + tileSize + lineWidth), 
+            wall[0] ? 
+            (yPos + tileSize + lineWidth) : yPos
+        );
+        ctx.strokeStyle = '#22aa22';
+        ctx.lineWidth = lineWidth;
+        
+        ctx.stroke()
+
+    })
+
 }
 
 

@@ -50,6 +50,7 @@ function sendmazeinfo(){
         maze.horizontalWalls = result.horiArr;
         maze.verticalWalls = result.vertArr;
         console.log("response: ", maze.id, maze.horizontalWalls, maze.verticalWalls);
+        checkCorrectSize(result.horiArr, result.vertArr);
         saveVisualData();
     });
 }
@@ -66,8 +67,201 @@ function drawMaze(canvas, box, ctx) {
     if (!mazeVariables) return
     console.log(mazeVariables);
 
-    let buttonArrVertical = mazeVariables.verticalWalls;
-    let buttonArrHorizontal = mazeVariables.horizontalWalls;
+function mouseClickEvent(event) {
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"));
+    if (!stored) return
+    console.log(stored);
+
+    const box = document.getElementById("generatedBoks");
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    console.log("click at:", event.offsetX, event.offsetY)
+
+    const vertLength = maze.verticalWalls.length
+    const horiLength = maze.horizontalWalls.length
+
+    const lineScale = 0.4
+    const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+
+    const xPos = (event.offsetX / tileSize) 
+    const yPos = (event.offsetY / tileSize) 
+
+
+    const xLineIndex = Math.floor(xPos)-1
+    const isHorizontal = (xPos - (xLineIndex +1)) < lineScale 
+
+    const yLineIndex = Math.floor(yPos)-1
+    const isVertical= (yPos - (yLineIndex +1)) < lineScale 
+
+    console.log("is?", isHorizontal, isVertical)
+    console.log("calculated index from click:", xPos, yPos)
+    console.log("rounded index from click:", xLineIndex, yLineIndex)
+
+    if ((isVertical && isHorizontal) || (!isVertical && !isHorizontal))
+        return;
+    if ((isHorizontal && (xLineIndex < 0 || xLineIndex > stored.width ))  
+        || (isVertical && (yLineIndex < 0 || yLineIndex > stored.height )))
+        return;
+
+    let convertedIndex;
+    if (isHorizontal){
+        convertedIndex = (yLineIndex+1)*(stored.width-1) + xLineIndex;
+    }
+    if (isVertical){
+        convertedIndex = (xLineIndex+1)*(stored.height-1) + yLineIndex;
+    }
+
+    console.log("converted:", convertedIndex)
+    console.log("")
+
+    let id = checkCookie("id", 1);
+
+    let alterationVariables = {
+        "type":             1,
+        "id":               id,
+        "isHorizontal":     Number(isHorizontal),
+        "wallIndex":        convertedIndex,
+        "alterationType":   0,
+        "perfectMaze":      1,
+    };
+    let str = new URLSearchParams(Object.entries(alterationVariables)).toString();
+
+
+    console.log("body input string: '" + str + "'");
+
+    fetch ('http://localhost:8888', 
+        {method: 'POST', 
+        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
+        body: str
+        })
+    .then(result => result.json())
+    .then(result => {
+        // result.walls.forEach(wall => {
+        //     let isHorizontal = wall[0];
+        // });
+
+        if (alterationVariables.isHorizontal)
+            stored.horizontalWalls[convertedIndex][0] = Number(!stored.horizontalWalls[convertedIndex][0]);
+        else
+            stored.verticalWalls[convertedIndex][0] = Number(!stored.verticalWalls[convertedIndex][0]);
+        localStorage.setItem("mazeVariables", JSON.stringify(stored));
+
+        visualizeMaze();
+
+        visualizeChange(alterationVariables.isHorizontal, convertedIndex, result);
+    });
+
+    ctx.beginPath();
+    ctx.moveTo(event.offsetX, event.offsetY-2);
+    ctx.lineTo(event.offsetX, event.offsetY+2);
+    ctx.strokeStyle = '#0000ff';
+    ctx.lineWidth = 15;
+    ctx.stroke();
+}
+
+// walls[index] = [Wall? isSolution?]
+
+function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"))
+    if (!stored) return
+
+
+    // if (1)
+    // {
+    //     console.log(wallConvertedIndex)
+    //     console.log(stored.horizontalWalls)
+    //     stored.horizontalWalls[wallConvertedIndex] = !stored.horizontalWalls[wallConvertedIndex]
+    //     console.log(stored.horizontalWalls)
+    // }
+    // else
+    // {
+    //     let x = stored.verticalWalls[wallConvertedIndex];
+    //     console.log(x)
+    //     x = !x
+    //     console.log(x)
+    //     // stored.verticalWalls[wallConvertedIndex][0] = !stored.verticalWalls[wallConvertedIndex][0]
+
+    // }
+
+
+    if (!result.walls.length) // Maze successfully altered completely
+    {
+        console.log("Finished Change - no marks")
+        // reset solution path in stored
+        stored.verticalWalls.forEach(wall => wall[1] = 0)
+        stored.horizontalWalls.forEach(wall => wall[1] = 0)
+        // put in new solution path from result
+        result.solution.forEach(wallRef => {
+            let isHorizontal = Boolean(wallRef[0]);
+            let index = wallRef[1];
+            if (isHorizontal)
+                stored.horizontalWalls[index][1] = 1;
+            else
+                stored.verticalWalls[index][1] = 1;
+        })
+        localStorage.setItem("mazeVariables", JSON.stringify(stored))
+        visualizeMaze();
+        return;
+    }
+
+    
+    // 'Mark' changes needed to be made
+
+    
+    const box = document.getElementById("generatedBoks");
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    
+
+    const lineScale = 0.4;
+    const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+    const solutionLineWidth = (tileSize - lineWidth) * 0.4;
+
+    result.walls.forEach(wall => {
+        //isHorizontal?
+        let xPos, yPos;
+        if (wall[0])
+        {
+            xPos = (wall[1] % (stored.width-1)+1) * tileSize + lineWidth*0.5;
+            yPos = Math.floor(wall[1] / (stored.width-1)) * tileSize;
+
+        } else {
+            xPos = (Math.floor(wall[1] / (stored.height-1))) * tileSize;
+            yPos = (wall[1] % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(xPos, yPos);
+        ctx.lineTo(
+            wall[0] ? 
+                xPos : (xPos + tileSize + lineWidth), 
+            wall[0] ? 
+            (yPos + tileSize + lineWidth) : yPos
+        );
+        ctx.strokeStyle = '#22aa22';
+        ctx.lineWidth = lineWidth;
+        
+        ctx.stroke()
+
+    })
+
+}
+
+
+function visualizeMaze() {
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"));
+    if (!stored) return
+    console.log(stored);
+    
+    const box = document.getElementById("generatedBoks");
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    
+
+    let buttonArrVertical = stored.verticalWalls;
+    let buttonArrHorizontal = stored.horizontalWalls;
 
     const lineScale = 0.4;
     const tileSize = Math.min(box.clientWidth / (Number(mazeVariables.width) + lineScale), box.clientHeight / (Number(mazeVariables.height) + lineScale));
@@ -235,6 +429,14 @@ function getAlpha(int)
     return (int/255)+0.2;
 }
 
+function checkCorrectSize(horiArr, vertArr){
+    if (horiArr.length !== sessionStorage.getItem('inputSizeHeight') * (sessionStorage.getItem('inputSizeWidth') - 1)){
+        window.alert(`Horrizontal length is not correct`);
+    } else if (vertArr.length !== sessionStorage.getItem('inputSizeWidth') * (sessionStorage.getItem('inputSizeHeight') - 1)) {
+        window.alert(`Vertical length is not correct`);
+    }
+}
+
 /*
 Function to add a cookie to document.cookie.
 Input: cookie name, (optional) value of cookie, and (optional) days until cookie should expire.
@@ -293,9 +495,12 @@ function checkCookie(cookieName, hasValue = 0) {
 
 //=======Eksport Output===================================================================================
 function exsport() {
-    //make a code that eksport the code to a .file 
+    //declaring the storage for maze variables and saves them in variable
+    const stored = JSON.parse(localStorage.getItem("mazeVariables"));
+    if (!stored) return
+    console.log(stored);
 
-    //trying with hardcode, so that it is ready for when we have the correct names 
+    
     const JSONToFile = (obj, filename) => {
         const blob = new Blob([JSON.stringify(obj, null, 2)], {
         type: 'text/plain',

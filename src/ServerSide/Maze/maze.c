@@ -273,7 +273,7 @@ void MoveRoot(Maze maze, Point newRoot) {
 
 
 Maze* LoadMaze(int id) {
-    char fileName[30];
+    char fileName[50];
     sprintf(fileName, "../src/ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "r");

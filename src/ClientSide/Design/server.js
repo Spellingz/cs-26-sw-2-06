@@ -363,6 +363,55 @@ function visualizeHeatmap(resetType, proxType) {
         });
 }
 
+function drawHeatmap(heatmapArr) {
+    let mazeVariables = JSON.parse(localStorage.getItem("mazeVariables"));
+    const box = document.getElementById("generatedBoks");
+    const canvas = document.getElementById("mazeCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let buttonArrVertical = mazeVariables.verticalWalls;
+    let buttonArrHorizontal = mazeVariables.horizontalWalls;
+
+
+    const lineScale = 0.4;
+    const tileSize = Math.min(box.clientWidth / (Number(mazeVariables.width) + lineScale), box.clientHeight / (Number(mazeVariables.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+    const solutionLineWidth = (tileSize - lineWidth) * 0.4;
+
+    //const solutionLineWidth = (tileSize - lineWidth) * 0.4;
+
+    const squareWidth = tileSize - lineWidth;
+
+    //ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
+
+
+    for (let y = 0; y < mazeVariables.height; y++) { // Vertical wall loop
+        for (let x = 0; x < mazeVariables.width; x++) {
+            //console.log(x,y);
+            const xPos = (x * tileSize + lineWidth * 0.5);
+            const yPos = (y * tileSize + lineWidth * 0.5 +tileSize * 0.5);
+
+            ctx.beginPath();
+            ctx.moveTo(xPos, yPos);
+            ctx.lineTo(xPos + tileSize, yPos);
+            // console.log(heatmapArr[y][x]);
+            ctx.strokeStyle = `rgba(155,0,255,${getAlpha(heatmapArr[y][x])})`
+            //ctx.strokeStyle = `rgba(255,${(heatmapArr[y][x])},255,1)`
+            ctx.lineWidth = tileSize;
+
+            //console.log(xPos/tileSize, yPos/tileSize);
+
+            ctx.stroke();
+
+        }
+    }
+    console.log("");
+    console.log("");
+
+    drawMaze(canvas, box, ctx);
+}
+
 function checkCorrectSize(horiArr, vertArr){
     if (horiArr.length !== sessionStorage.getItem('inputSizeHeight') * (sessionStorage.getItem('inputSizeWidth') - 1)){
         window.alert(`Horrizontal length is not correct`);

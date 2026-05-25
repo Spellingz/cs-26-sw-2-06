@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "Heatmap/heatmapGen.h"
+
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -65,7 +67,10 @@ typedef struct {
     const fileTypeInfoStruct *fileTypeInfo;
     char *jsonData;
     struct MHD_PostProcessor *postProcessor;
-    bool requestType;
+    char requestType;
+    int id;
+    int resetType;
+    bool proxType;
 } connection_info_struct;
 
 typedef struct {
@@ -189,6 +194,8 @@ static enum MHD_Result process_post (void *coninfo_cls,
         "wallIndex",
         "alterationType",
         "perfectMaze",
+        "resetType",
+        "proxType",
         NULL
     };
 
@@ -197,12 +204,28 @@ static enum MHD_Result process_post (void *coninfo_cls,
         return MHD_YES;
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
-    if ((dataSize > 0) && (dataSize <= 20))
+    if ((dataSize > 0) && (dataSize <= 100))
     {
         if (0 == strcmp(key, "type"))
         {
-            con_info->requestType = data[0]-48;
+            sscanf(data, "%hhd", &con_info->requestType);
             return MHD_YES;
+        }
+        if (0 == strcmp(key, "id"))
+        {
+            sscanf(data, "%d", &con_info->id);
+        }
+        if (0 == strcmp(key, "resetType"))
+        {
+            sscanf(data, "%d", &con_info->resetType);
+            printf("Printing data: %s", data);
+            printf("\nPrinting reset type: %d", con_info->resetType);
+        }
+        if (0 == strcmp(key, "proxType"))
+        {
+            int temp;
+            sscanf(data, "%d", &temp);
+            con_info->proxType = temp;
         }
         // char _addString[strlen(key) + 10 + dataSize];
         // sprintf(_addString, "\"%s\": %s, ", key, data);
@@ -288,8 +311,8 @@ char* AlterationExportDataToString(AlterationExportData data) {
         strcat(responseString, _buffer);
     }
 
-    strcat(responseString, "],\n  \"solution\": [");
-    for (int i = 0; i < data.solutionCount; i++) {
+    strcat(responseString, "]\n  \"solution\": [");
+    for (int i = 0; i < data.markedWallCount; i++) {
         sprintf(_buffer, i != data.solutionCount - 1 ? "[%d, %ld], " : "[%d, %ld]",
                 data.solution[i].isHorizontal, data.solution[i].index);
         strcat(responseString, _buffer);
@@ -305,7 +328,7 @@ char* AlterationExportDataToString(AlterationExportData data) {
 // COMPLETED REQUEST - CLEANUP ///
 //////////////////////////////////
 
-void request_completed (void *cls, struct MHD_Connection *connection, 
+void request_completed (void *cls, struct MHD_Connection *connection,
                         void **req_cls, enum MHD_RequestTerminationCode toe)
 {
     connection_info_struct *con_info = *req_cls;
@@ -402,7 +425,7 @@ static enum MHD_Result answer_to_connection (void *cls,
     // IF FIRST CONNECTION ITERATION
     if (con_info == NULL) {
         con_info = malloc(sizeof(connection_info_struct));
-        *req_cls = (void*) con_info; //SET CONNECTION_INFO SO IT CAN BE ITERATED OVER 
+        *req_cls = (void*) con_info; //SET CONNECTION_INFO SO IT CAN BE ITERATED OVER
 
         if (con_info == NULL) { // IF CON_INFO FAILED TO INITIATE
             if(VERBOSITY >= WARNINGS) printf("Didn't malloc con_info\n");
@@ -446,7 +469,7 @@ static enum MHD_Result answer_to_connection (void *cls,
     if (con_info->connectionType == GET) {
 
         char* actualID = calloc(sizeof(char), 10);
-        const char *id = 
+        const char *id =
             MHD_lookup_connection_value(
                 con,
                 MHD_COOKIE_KIND,
@@ -455,11 +478,11 @@ static enum MHD_Result answer_to_connection (void *cls,
             sprintf(actualID, "id=%d;", ++idCounter);
         else
             sprintf(actualID, "id=%s;", id);
-        
+
 
 
         char* requestURL;
-    
+
         // IF NO PAGE -> DEFAULT TO FRONTPAGE
         if (strcmp(url, "/") == 0) {
             requestURL = "/Frontpage.html";
@@ -470,14 +493,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             if (VERBOSITY >= WARNINGS) printf("Unsupported file format for %s\n", url);
             return respond_error(con, MHD_HTTP_NOT_FOUND);
         }
-        else 
+        else
             requestURL = (char*) url;
-    
+
         // LOOK FOR PAGE WITH SAID NAME
         char fileName[100];
         sprintf(fileName, "../src/ClientSide/Design%s", requestURL); // STARTS FROM '${PROJECT_DIR}/build'
         if(VERBOSITY == ALL) printf("fileName: %s\n", fileName);
-    
+
         // COPY PAGE FROM SERVER, TO SEND TO CLIENT
         if (con_info->fileTypeInfo->type == HTML ||
             con_info->fileTypeInfo->type == JS ||
@@ -587,18 +610,25 @@ static enum MHD_Result answer_to_connection (void *cls,
             // Process data
             // void* request = transformRequest(con_info->jsonData, con_info->requestType);
             char* responseString;
-            if (con_info->requestType == 0)     // generationData
+            if (con_info->requestType == 0)         // generationData
             {
                 GenerationData request = TransformGenerationRequest(con_info->jsonData);
                 ExportData responseData = GenerateMaze(request);
                 responseString = GenerationExportDataToString(responseData);
                 FreeGenerationExportData(responseData);
             }
-            else {                          // alterationData
+            else if (con_info->requestType == 1) {  // alterationData
                 AlterationData request = TransformAlterationRequest(con_info->jsonData);
                 AlterationExportData responseData = AlterMaze(request);
                 responseString = AlterationExportDataToString(responseData);
                 FreeAlterationExportData(responseData);
+            }
+            else if (con_info->requestType == 2) {
+                printf("Sending heatmap request with reset type %d", con_info->resetType);
+                responseString = checkHeat(con_info->id, con_info->resetType, con_info->proxType);
+            }
+            else {
+                return respond_error(con, MHD_HTTP_BAD_REQUEST);
             }
 
             headersStruct headers = {

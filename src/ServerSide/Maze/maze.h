@@ -104,4 +104,6 @@ Maze* LoadMaze(int id);
 void SaveMaze(Maze maze, int id);
 void FreeMaze(Maze *maze);
 
+void PrintMaze(Maze maze);
+
 #endif //HTTP_TEST_MAZE_H

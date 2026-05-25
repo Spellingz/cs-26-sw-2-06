@@ -389,6 +389,34 @@ void FreeMaze(Maze *maze) {
     }
 }
 
+void PrintMaze(Maze maze) {
+    int h = 0, v = 0;
+    printf("+");
+    for (int i = 0; i < maze.size.x * 2 - 1; i++) printf("-");
+    printf("+\n");
+    for (int i = 0; i < maze.size.y * 2 - 1; i++) {
+        if (i % 2 == 0) {
+            printf("|");
+            for(int j = 0; j < maze.size.x - 1; j++, h++) {
+                Wall wall = maze.horizontalWalls[h];
+                printf(" %c", wall.type == WALL || wall.type == MARKED_WALL ? wall.isSolution ? 'I' :  '|' : !wall.isSolution ? wall.direction ? '>' : '<' : wall.direction ? '}' : '{');
+            }
+            printf(" |");
+        }
+        else {
+            printf("+");
+            for(int j = 0; j < maze.size.x; j++, v++) {
+                Wall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v/maze.size.x];
+                printf(" %c", wall.type == WALL || wall.type == MARKED_WALL ? wall.isSolution ? '~' :  '-' : !wall.isSolution ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
+                // printf("%c+", wall.type == WALL ? '-' : wall.type == MARKED_WALL ? '~' : wall.type == AIR ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
+            }
+        }
+        printf("\n");
+    }
+    printf("+");
+    for (int i = 0; i < maze.size.x * 2 - 1; i++) printf("-");
+    printf("+\n\n");
+}
 
 /**
  *

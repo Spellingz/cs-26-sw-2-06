@@ -17,9 +17,6 @@ set(SOURCES
 
 add_executable(HTTP_test ${SOURCES})
 
-set_target_properties(HTTP_test PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-)
 
 target_link_libraries(HTTP_test PRIVATE microhttpd)
 IF (WIN32)

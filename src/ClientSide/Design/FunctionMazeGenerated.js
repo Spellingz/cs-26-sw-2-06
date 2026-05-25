@@ -23,7 +23,7 @@ function specialWallsHeatMap() {
 
 //Edit-mode boks
 
-var editModeActive = false;
+let editModeActive = false;
 
 function editMode() {
     const changeColor = document.getElementById("EditMode");
@@ -56,3 +56,4 @@ function closeEditMode() {
     const output = document.getElementById("modificationOutput");
     output.innerHTML = '';
 }
+

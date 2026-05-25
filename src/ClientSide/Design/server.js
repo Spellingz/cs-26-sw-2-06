@@ -412,6 +412,12 @@ function drawHeatmap(heatmapArr) {
     drawMaze(canvas, box, ctx);
 }
 
+function getAlpha(int)
+{
+    if (int === 0) return 0;
+    return (int/255)+0.2;
+}
+
 function drawMaze(canvas, box, ctx) {
     const mazeVariables = JSON.parse(localStorage.getItem("mazeVariables"));
     if (!mazeVariables) return

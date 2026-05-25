@@ -61,164 +61,129 @@ function saveVisualData() {
     window.location.replace("MazeGenerated.html");
 }
 
-function drawMaze(canvas, box, ctx) {
-    const mazeVariables = JSON.parse(localStorage.getItem("mazeVariables"));
-    if (!mazeVariables) return
-    console.log(mazeVariables);
 
     let buttonArrVertical = mazeVariables.verticalWalls;
     let buttonArrHorizontal = mazeVariables.horizontalWalls;
 
     const lineScale = 0.4;
-    const tileSize = Math.min(box.clientWidth / (Number(mazeVariables.width) + lineScale), box.clientHeight / (Number(mazeVariables.height) + lineScale));
+    const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
     const lineWidth = tileSize * lineScale;
     const solutionLineWidth = (tileSize - lineWidth) * 0.4;
 
-    ctx.strokeStyle = '#222222';
+    canvas.width = box.clientWidth;
+    canvas.height = box.clientHeight;
+
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
+    ctx.strokeStyle = '#222';
 
     ctx.beginPath();
     ctx.moveTo(0 + lineWidth * 0.5,0);
     ctx.lineWidth = lineWidth;
-    ctx.lineTo(0 + lineWidth * 0.5, tileSize * mazeVariables.height + lineWidth * 0.5);
-    ctx.lineTo(tileSize * mazeVariables.width + lineWidth * 0.5, tileSize * mazeVariables.height + lineWidth * 0.5);
-    ctx.lineTo(tileSize * mazeVariables.width + lineWidth * 0.5,0 + lineWidth * 0.5);
+    ctx.lineTo(0 + lineWidth * 0.5, tileSize * stored.height + lineWidth * 0.5);
+    ctx.lineTo(tileSize * stored.width + lineWidth * 0.5, tileSize * stored.height + lineWidth * 0.5);
+    ctx.lineTo(tileSize * stored.width + lineWidth * 0.5,0 + lineWidth * 0.5);
     ctx.lineTo(0,0 + lineWidth * 0.5);
     ctx.stroke();
 
 
 
-    for (let i = 0; i < mazeVariables.horizontalWalls.length; i++){ // Vertical wall loop
+    for (let i = 0; i < stored.horizontalWalls.length; i++){ // Vertical wall loop
 
-        const xPos = Math.round((i % (mazeVariables.width-1)+1) * tileSize + lineWidth * 0.5);
-        const yPos = Math.round((Math.floor(i / (mazeVariables.width-1))) * tileSize);
+        const xPos = (i % (stored.width-1)+1) * tileSize + lineWidth * 0.5;
+        const yPos = (Math.floor(i / (stored.width-1))) * tileSize;
+
+        ctx.beginPath();
+        ctx.moveTo(xPos, yPos);
+        ctx.lineTo(xPos, yPos + tileSize + lineWidth);
+        ctx.strokeStyle = buttonArrHorizontal[i][0] === 1 ? '#222222' : '#22222200';
+        ctx.lineWidth = lineWidth;
+
+        ctx.stroke();
+
         if(buttonArrHorizontal[i][1] === 1) {
             ctx.beginPath();
             ctx.moveTo(xPos - tileSize * 0.5 - solutionLineWidth * 0.5, yPos + tileSize * 0.5 + lineWidth * 0.5);
             ctx.lineTo(xPos + tileSize * 0.5 + solutionLineWidth * 0.5, yPos + tileSize * 0.5 + lineWidth * 0.5);
-            ctx.strokeStyle = '#AA0000';
+            ctx.strokeStyle = '#61B4E8';
             ctx.lineWidth = solutionLineWidth;
 
             ctx.stroke();
         }
-        if (buttonArrHorizontal[i][0] !== 1) continue;
+    }
+
+    for (let i = 0; i < stored.verticalWalls.length; i++){ // Horizontal wall loop
+
+        const xPos = (Math.floor(i / (stored.height-1))) * tileSize;
+        const yPos = (i % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
+
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos, yPos + tileSize + lineWidth);
-        ctx.strokeStyle = '#222222';
+        ctx.lineTo(xPos + tileSize + lineWidth, yPos);
+        ctx.strokeStyle = buttonArrVertical[i][0] === 1 ? '#222222' : '#22222200';
         ctx.lineWidth = lineWidth;
 
         ctx.stroke();
 
-
-    }
-
-    for (let i = 0; i < mazeVariables.verticalWalls.length; i++){ // Horizontal wall loop
-
-        const xPos = Math.round((Math.floor(i / (mazeVariables.height-1))) * tileSize);
-        const yPos = Math.round((i % (mazeVariables.height-1)+1) * tileSize + lineWidth * 0.5);
         if(buttonArrVertical[i][1] === 1) {
             ctx.beginPath();
             ctx.moveTo(xPos + tileSize * 0.5 + lineWidth * 0.5, yPos - tileSize * 0.5 - solutionLineWidth * 0.5);
             ctx.lineTo(xPos + tileSize * 0.5 + lineWidth * 0.5, yPos + tileSize * 0.5 + solutionLineWidth * 0.5);
-            ctx.strokeStyle = '#AA0000';
+            ctx.strokeStyle = '#61B4E8';
             ctx.lineWidth = solutionLineWidth;
 
             ctx.stroke();
         }
-        if (buttonArrVertical[i][0] !== 1) continue;
-        ctx.beginPath();
-        ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos + tileSize + lineWidth, yPos);
-        ctx.strokeStyle = '#222222';
-        ctx.lineWidth = lineWidth;
-
-        ctx.stroke();
-
-
     }
+    ctx.beginPath();
+    ctx.moveTo(50,10);
+    ctx.lineTo(50,10+lineWidth);
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
 }
 
-function visualizeMaze() {
-    const box = document.getElementById("generatedBoks");
-    const canvas = document.getElementById("mazeCanvas");
-    const ctx = canvas.getContext("2d");
+function visualizeHeatmap(heatmapType) {
 
-    canvas.width = box.clientWidth;
-    canvas.height = box.clientHeight;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawMaze(canvas, box, ctx);
-}
-
-function visualizeHeatmap(resetType, proxType) {
     let heatmapArr;
-    let id = checkCookie("id", 1);
-    let heatmapVariables = {
-        "type":             2,
-        "id":               id,
-        "resetType":        resetType,
-        "proxType":         proxType,
-    };
-    let str = new URLSearchParams(Object.entries(heatmapVariables)).toString();
+    let str = new URLSearchParams(heatmapType).toString();
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888',
-        {method: 'POST',
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    fetch ('http://localhost:8888', 
+        {method: 'POST', 
+        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
         body: str
         })
     .then(result => result.json())
     .then(result => {
-        heatmapArr = result.heatIndex;
+        heatmapArr = result;
         console.log("response: ", heatmapArr);
-        drawHeatmap(heatmapArr);
     });
-}
-
-
-
-
-function drawHeatmap(heatmapArr) {
-    let mazeVariables = JSON.parse(localStorage.getItem("mazeVariables"));
+    
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    let buttonArrVertical = mazeVariables.verticalWalls;
-    let buttonArrHorizontal = mazeVariables.horizontalWalls;
-
-
-    const lineScale = 0.4;
-    const tileSize = Math.min(box.clientWidth / (Number(mazeVariables.width) + lineScale), box.clientHeight / (Number(mazeVariables.height) + lineScale));
-    const lineWidth = tileSize * lineScale;
-    const solutionLineWidth = (tileSize - lineWidth) * 0.4;
-
-    //const solutionLineWidth = (tileSize - lineWidth) * 0.4;
-
-    const squareWidth = tileSize - lineWidth;
-
-    //ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
+    
+    const tileSize = Math.min(box.clientWidth / stored.width, box.clientHeight / stored.height);
+    const lineWidth = tileSize * 0.5
+    const squareWidth = tileSize - lineWidth
 
 
-    for (let y = 0; y < mazeVariables.height; y++) { // Vertical wall loop
-        for (let x = 0; x < mazeVariables.width; x++) {
-            //console.log(x,y);
-            const xPos = (x * tileSize + lineWidth * 0.5);
-            const yPos = (y * tileSize + lineWidth * 0.5 +tileSize * 0.5);
+    for (let i = 0; i < stored.length; i++){ // Vertical wall loop
+        for (let j = 0; j < stored.height; j++) {
 
+            const xPos = i * tileSize + lineWidth * 0.5;
+            const yPos = j * tileSize + tileSize * 0.5;
+    
             ctx.beginPath();
             ctx.moveTo(xPos, yPos);
-            ctx.lineTo(xPos + tileSize, yPos);
-            // console.log(heatmapArr[y][x]);
-            ctx.strokeStyle = `rgba(155,0,255,${getAlpha(heatmapArr[y][x])})`
-            //ctx.strokeStyle = `rgba(255,${(heatmapArr[y][x])},255,1)`
-            ctx.lineWidth = tileSize;
-
-            //console.log(xPos/tileSize, yPos/tileSize);
-
+            ctx.lineTo(xPos + squareWidth, yPos);
+            ctx.strokeStyle = `rgba(255,155,0,${heatmapArr[i,j]})`
+            ctx.lineWidth = lineWidth;
+    
+            console.log(xPos/tileSize, yPos/tileSize);
+            
             ctx.stroke();
 
         }
@@ -226,13 +191,6 @@ function drawHeatmap(heatmapArr) {
     console.log("");
     console.log("");
 
-    drawMaze(canvas, box, ctx);
-}
-
-function getAlpha(int)
-{
-    if (int === 0) return 0;
-    return (int/255)+0.2;
 }
 
 /*

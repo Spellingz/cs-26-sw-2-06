@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-#include "Heatmap/heatmapGen.h"
-
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -67,10 +65,7 @@ typedef struct {
     const fileTypeInfoStruct *fileTypeInfo;
     char *jsonData;
     struct MHD_PostProcessor *postProcessor;
-    char requestType;
-    int id;
-    int resetType;
-    bool proxType;
+    bool requestType;
 } connection_info_struct;
 
 typedef struct {
@@ -194,8 +189,6 @@ static enum MHD_Result process_post (void *coninfo_cls,
         "wallIndex",
         "alterationType",
         "perfectMaze",
-        "resetType",
-        "proxType",
         NULL
     };
 
@@ -204,28 +197,12 @@ static enum MHD_Result process_post (void *coninfo_cls,
         return MHD_YES;
 
     // CONTINUOUSLY ADD CORRECT KEY DATAVALUES INTO jsonData IF CORRECT SIZE
-    if ((dataSize > 0) && (dataSize <= 100))
+    if ((dataSize > 0) && (dataSize <= 20))
     {
         if (0 == strcmp(key, "type"))
         {
-            sscanf(data, "%hhd", &con_info->requestType);
+            con_info->requestType = data[0]-48;
             return MHD_YES;
-        }
-        if (0 == strcmp(key, "id"))
-        {
-            sscanf(data, "%d", &con_info->id);
-        }
-        if (0 == strcmp(key, "resetType"))
-        {
-            sscanf(data, "%d", &con_info->resetType);
-            printf("Printing data: %s", data);
-            printf("\nPrinting reset type: %d", con_info->resetType);
-        }
-        if (0 == strcmp(key, "proxType"))
-        {
-            int temp;
-            sscanf(data, "%d", &temp);
-            con_info->proxType = temp;
         }
         // char _addString[strlen(key) + 10 + dataSize];
         // sprintf(_addString, "\"%s\": %s, ", key, data);
@@ -610,25 +587,18 @@ static enum MHD_Result answer_to_connection (void *cls,
             // Process data
             // void* request = transformRequest(con_info->jsonData, con_info->requestType);
             char* responseString;
-            if (con_info->requestType == 0)         // generationData
+            if (con_info->requestType == 0)     // generationData
             {
                 GenerationData request = TransformGenerationRequest(con_info->jsonData);
                 ExportData responseData = GenerateMaze(request);
                 responseString = GenerationExportDataToString(responseData);
                 FreeGenerationExportData(responseData);
             }
-            else if (con_info->requestType == 1) {  // alterationData
+            else {                          // alterationData
                 AlterationData request = TransformAlterationRequest(con_info->jsonData);
                 AlterationExportData responseData = AlterMaze(request);
                 responseString = AlterationExportDataToString(responseData);
                 FreeAlterationExportData(responseData);
-            }
-            else if (con_info->requestType == 2) {
-                printf("Sending heatmap request with reset type %d", con_info->resetType);
-                responseString = checkHeat(con_info->id, con_info->resetType, con_info->proxType);
-            }
-            else {
-                return respond_error(con, MHD_HTTP_BAD_REQUEST);
             }
 
             headersStruct headers = {

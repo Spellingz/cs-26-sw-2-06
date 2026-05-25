@@ -288,8 +288,8 @@ char* AlterationExportDataToString(AlterationExportData data) {
         strcat(responseString, _buffer);
     }
 
-    strcat(responseString, "]\n  \"solution\": [");
-    for (int i = 0; i < data.markedWallCount; i++) {
+    strcat(responseString, "],\n  \"solution\": [");
+    for (int i = 0; i < data.solutionCount; i++) {
         sprintf(_buffer, i != data.solutionCount - 1 ? "[%d, %ld], " : "[%d, %ld]",
                 data.solution[i].isHorizontal, data.solution[i].index);
         strcat(responseString, _buffer);

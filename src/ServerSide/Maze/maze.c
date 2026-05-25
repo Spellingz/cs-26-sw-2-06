@@ -212,7 +212,25 @@ int CommonAncestorDistance(const Maze maze, Point pointA, Point pointB) {
     return distanceMovedFromA;
 }
 
-int MarkRootPath(Maze maze, Point startPoint) {
+bool IsAncestorOf(Maze maze, Point point, Point ancestor) {
+    if (AreEqual(point, ancestor))
+        return true;
+
+    Direction neighbourDirections[4];
+    Point neighbourPoints[4];
+    LoadNeighbourPoints(point, neighbourPoints);
+    LoadNeighbourPathDirections(maze, point, neighbourDirections);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && IsAncestorOf(maze, neighbourPoints[i], ancestor)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int SetRootPathMarking(Maze maze, Point startPoint, Type type) {
+    Type oppositeType = type == AIR ? MARKED_AIR : AIR;
     int markedCount = 0;
     Direction neighbourDirections[4];
     Wall *neighbours[4];
@@ -222,10 +240,10 @@ int MarkRootPath(Maze maze, Point startPoint) {
     LoadNeighbourPoints(startPoint, neighbourPoints);
 
     for (int i = 0; i < 4; i++) {
-        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type == AIR) {
-            neighbours[i]->type = MARKED_AIR;
+        if (neighbourDirections[i] == INGOING_DIRECTIONS[i] && neighbours[i]->type == oppositeType) {
+            neighbours[i]->type = type;
             markedCount++;
-            markedCount += MarkRootPath(maze, neighbourPoints[i]);
+            markedCount += SetRootPathMarking(maze, neighbourPoints[i], type);
         }
     }
     return markedCount;
@@ -249,18 +267,18 @@ void FlipMarkedRootPath(Maze maze, Point startPoint) {
 }
 
 void MoveRoot(Maze maze, Point newRoot) {
-    MarkRootPath(maze, newRoot);
+    SetRootPathMarking(maze, newRoot, MARKED_AIR);
     FlipMarkedRootPath(maze, newRoot);
 }
 
 
 Maze* LoadMaze(int id) {
     char fileName[30];
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
+    sprintf(fileName, "../src/ServerSide/Mazes/%d.json", id);
 
     FILE* f = fopen(fileName, "r");
     if (!f) {
-        printf("\nno file found");
+        printf("no file found\n");
         return NULL;
     }
     Maze *maze = malloc(sizeof(Maze));
@@ -306,18 +324,24 @@ Maze* LoadMaze(int id) {
 }
 
 void SaveMaze(Maze maze, int id) {
-    char fileName[30];
+    char fileName[50];
     struct stat buffer;
-    if (stat("ServerSide/Mazes", &buffer) != 0) {
+    if (stat("../src/ServerSide/Mazes", &buffer) != 0) {
 #ifndef _WIN32
         int check = mkdir("ServerSide/Mazes", 0777);
 #else
         int check = mkdir("ServerSide/Mazes");
+        char buf[1024];
+
+        if (getcwd(buf, sizeof(buf)) != NULL) {
+            printf("\n\nCurrent working directory: %s\n\n", buf);
+        } else {
+            printf("no working directory");
+        }
 #endif
         if (!check) ; else return;
     }
-    sprintf(fileName, "ServerSide/Mazes/%d.json", id);
-
+    sprintf(fileName, "../src/ServerSide/Mazes/%d.json", id);
     FILE* f = fopen(fileName, "w");
     if (!f) return;
 

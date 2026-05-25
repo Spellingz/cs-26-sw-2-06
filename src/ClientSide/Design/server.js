@@ -337,54 +337,30 @@ function visualizeMaze() {
     ctx.stroke();
 }
 
-function visualizeHeatmap(heatmapType) {
-
+function visualizeHeatmap(resetType, proxType) {
     let heatmapArr;
-    let str = new URLSearchParams(heatmapType).toString();
+    let id = checkCookie("id", 1);
+    let heatmapVariables = {
+        "type":             2,
+        "id":               id,
+        "resetType":        resetType,
+        "proxType":         proxType,
+    };
+    let str = new URLSearchParams(Object.entries(heatmapVariables)).toString();
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888', 
-        {method: 'POST', 
-        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
-        body: str
+    fetch ('http://localhost:8888',
+        {method: 'POST',
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: str
         })
-    .then(result => result.json())
-    .then(result => {
-        heatmapArr = result;
-        console.log("response: ", heatmapArr);
-    });
-    
-    const box = document.getElementById("generatedBoks");
-    const canvas = document.getElementById("mazeCanvas");
-    const ctx = canvas.getContext("2d");
-    
-    const tileSize = Math.min(box.clientWidth / stored.width, box.clientHeight / stored.height);
-    const lineWidth = tileSize * 0.5
-    const squareWidth = tileSize - lineWidth
-
-
-    for (let i = 0; i < stored.length; i++){ // Vertical wall loop
-        for (let j = 0; j < stored.height; j++) {
-
-            const xPos = i * tileSize + lineWidth * 0.5;
-            const yPos = j * tileSize + tileSize * 0.5;
-    
-            ctx.beginPath();
-            ctx.moveTo(xPos, yPos);
-            ctx.lineTo(xPos + squareWidth, yPos);
-            ctx.strokeStyle = `rgba(255,155,0,${heatmapArr[i,j]})`
-            ctx.lineWidth = lineWidth;
-    
-            console.log(xPos/tileSize, yPos/tileSize);
-            
-            ctx.stroke();
-
-        }
-    }
-    console.log("");
-    console.log("");
-
+        .then(result => result.json())
+        .then(result => {
+            heatmapArr = result.heatIndex;
+            console.log("response: ", heatmapArr);
+            drawHeatmap(heatmapArr);
+        });
 }
 
 function checkCorrectSize(horiArr, vertArr){

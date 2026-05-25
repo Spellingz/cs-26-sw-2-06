@@ -166,6 +166,7 @@ AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, i
     TraverseBranch(*maze, newRoot, NULL, NULL, MarkWallInBranch, markedWalls, NULL, NULL);
     TraverseBranch(*maze, newRoot, ToggleWallMarkInBranch, NULL, NULL, NULL, NULL, NULL);
 
+    wall->isSolution = false;
     maze->status = MARKED;
     
     SaveMaze(*maze, id);
@@ -414,6 +415,8 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
     Point oldRootA = FindRoot(*maze, newRootA);
     Point oldRootB = FindRoot(*maze, newRootB);
 
+    printf("Roots (%d, %d), (%d, %d), (%d, %d), (%d, %d)\n", newRootA.x, newRootA.y, newRootB.x, newRootB.y, oldRootA.x, oldRootA.y, oldRootB.x, oldRootB.y);
+
     //If only one solution path enters/exits both roots of the maze it was split
     bool solutionWasSplit = SolutionNeighbourCount(*maze, oldRootA) == 1 &&
                             SolutionNeighbourCount(*maze, oldRootB) == 1;
@@ -423,6 +426,7 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
         //The paths between the old and new roots get their solution status flipped.
         FlipSolutionToRoot(*maze, newRootA);
         FlipSolutionToRoot(*maze, newRootB);
+        wall->isSolution = true;
     }
 
     //MoveRoot shenanigans:
@@ -574,7 +578,20 @@ void FlipMarkedSolutionToRoot(Maze maze, Point point) {
 }
 
 void FlipSolutionToRoot(Maze maze, Point point) {
-    SetPathToRoot(maze, point, MARKED_AIR);
+    int traversedPathIndex;
+
+    do {
+        Wall *neighbours[4];
+        Direction neighbourDirections[4];
+        LoadNeighbourWallPointers(maze, point, neighbours);
+        LoadNeighbourPathDirections(maze, point, neighbourDirections);
+
+        traversedPathIndex = StepTowardsRoot(neighbourDirections, &point);
+
+        if (traversedPathIndex != -1) {
+            neighbours[traversedPathIndex]->isSolution = !neighbours[traversedPathIndex]->isSolution;
+        }
+    } while (traversedPathIndex != -1);
 }
 
 

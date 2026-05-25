@@ -407,7 +407,7 @@ void PrintMaze(Maze maze) {
             printf("+");
             for(int j = 0; j < maze.size.x; j++, v++) {
                 Wall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v/maze.size.x];
-                printf(" %c", wall.type == WALL || wall.type == MARKED_WALL ? wall.isSolution ? '~' :  '-' : !wall.isSolution ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
+                printf("%c+", wall.type == WALL || wall.type == MARKED_WALL ? wall.isSolution ? '~' :  '-' : !wall.isSolution ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
                 // printf("%c+", wall.type == WALL ? '-' : wall.type == MARKED_WALL ? '~' : wall.type == AIR ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
             }
         }

@@ -7,8 +7,6 @@
 #include "../Maze/maze.h"
 #include "generateMaze.h"
 
-#include "../Heatmap/heatmapGen.h"
-
 
 typedef struct {
     char type;
@@ -351,7 +349,6 @@ GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, 
     //Indexes: 0: 0.35, 1: 0.74, 2: 1.12, 3: 1.37 etc
     // 0.73 is below index 1 0.74. So our chosen index is 1.
 
-    //int chosenIndex = rand()%*frontierSize;
     GenerationWall *poppedFrontier = frontier[chosenIndex]; //now the frontier with index 2 is the one to get removed
     //Moves the last element in the frontier to the deleted element's place
     frontier[chosenIndex] = frontier[--(*frontierSize)];
@@ -363,7 +360,6 @@ GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, 
 
 
 ExportData GenerateMaze(GenerationData data) {
-    double startTimer = clock();
     MazeSize size = {data.x_size, data.y_size};
     GenerationMaze *maze = FillWalls(size);
     if (!maze) return (ExportData){-1}; //crash
@@ -405,8 +401,6 @@ ExportData GenerateMaze(GenerationData data) {
     maze->openings[1] = (Point){maze->size.x - 1, maze->size.y - 1};
 
     MarkSolution(*maze, maze->openings[0], maze->openings[1]);
-    double midTimer = clock();
-    printf("\nMid Timer: %lf", (midTimer-startTimer)/CLOCKS_PER_SEC);
     AddLoops(*maze, data.loops);
 
 
@@ -423,8 +417,6 @@ ExportData GenerateMaze(GenerationData data) {
     };
 
     FreeMemory(maze, frontiers);
-    double endTimer = clock();
-    printf("\nEnd Timer: %lf", (endTimer-startTimer)/CLOCKS_PER_SEC);
     return exportMaze;
 }
 

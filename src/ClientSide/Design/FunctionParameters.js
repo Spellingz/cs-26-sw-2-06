@@ -3,10 +3,10 @@ function SizeParameter() {
     <div id="Boks">
             <div id="inputGroup" style="color: #000047;">
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">HEIGHT</p>
-                <input id="HeightInput" style="height: 25px; width: 150px;" />
+                <input id="HeightInput" oninput="this.value = this.value.replace(/[^0-9]/g, ''); SaveInformationInputSize()" style="height: 25px; width: 150px;" />
                 <br>
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">WIDTH</p>
-                <input id="WidthInput" style="height: 25px; width: 150px" />
+                <input id="WidthInput" oninput="this.value = this.value.replace(/[^0-9]/g, ''); SaveInformationInputSize()" style="height: 25px; width: 150px" />
                 <button id="confirm" onclick="SaveInformationInputSize()" style="margin-top: 70px;">CONFIRM</button>
             </div>
 
@@ -34,11 +34,15 @@ function SizeParameter() {
 //confirm button save information
 function SaveInformationInputSize () {
     let inputSizeHeight = document.getElementById('HeightInput').value;
-    console.log('saved percentage for Size Height input:', inputSizeHeight);
-    sessionStorage.setItem('inputSizeHeight', inputSizeHeight);
-
     let inputSizeWidth = document.getElementById('WidthInput').value;
-    console.log('saved percentage for Size Width input:', inputSizeWidth);
+
+    inputSizeHeight = inputSizeHeight == '' ? Number(0) : Number(inputSizeHeight);
+    inputSizeWidth = inputSizeWidth == '' ? Number(0) : Number(inputSizeWidth);
+
+    console.log('saved Size Width input:', inputSizeWidth);
+    console.log('saved Size Height input:', inputSizeHeight);
+
+    sessionStorage.setItem('inputSizeHeight', inputSizeHeight);
     sessionStorage.setItem('inputSizeWidth', inputSizeWidth);
 
 }

@@ -2,7 +2,8 @@ let maze = {
     horizontalWalls: [],
     verticalWalls: [],
     height: 0,
-    width: 0
+    width: 0,
+    perfectMaze: 0
 };
 
 function sendmazeinfo(){
@@ -13,12 +14,26 @@ function sendmazeinfo(){
     let loops           = sessionStorage.getItem('inputLoops')/100;
     let straightness    = sessionStorage.getItem('inputStraightness')/100;
 
+    height = height > 1000 ? (alert("height too big, default to 1000"), 100) : height;
+    height = height < 3 ? 3 : height
+    width = width > 1000 ? (alert("width too big, default to 1000"), 1000 ) : width;
+    width = width < 3 ? 3 : width
+    door = door > 1 ? 1 : door;
+    door = door < 0 ? 0 : door;
+    branches = branches > 1 ? 1 : branches;
+    branches = branches < 0 ? 0 : branches
+    loops = loops > 1 ? 1 : loops;
+    loops = loops < 0 ? 0 : loops;
+    straightness = straightness > 1 ? 1 : straightness;
+    straightness = straightness < 0 ? 0 : straightness;
+
     maze.height = height;
     maze.width = width;
 
     //setting up two arrays to store the cliked wall areas
     let verticalWallRects = [];
     let horizontalWallRects = [];
+    maze.perfectMaze = Number(loops == 0)
 
     let id = checkCookie("id", 1);
     console.log(id);
@@ -69,6 +84,7 @@ function mouseClickEvent(event) {
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
     console.log("click at:", event.offsetX, event.offsetY)
 
     const vertLength = maze.verticalWalls.length
@@ -117,7 +133,7 @@ function mouseClickEvent(event) {
         "isHorizontal":     Number(isHorizontal),
         "wallIndex":        convertedIndex,
         "alterationType":   0,
-        "perfectMaze":      1,
+        "perfectMaze":      stored.perfectMaze,
     };
     let str = new URLSearchParams(Object.entries(alterationVariables)).toString();
 
@@ -134,6 +150,7 @@ function mouseClickEvent(event) {
         // result.walls.forEach(wall => {
         //     let isHorizontal = wall[0];
         // });
+        if (result.succeeded == 0) {alert("YOU SHALL NOT PASS!"); return;}
 
         if (alterationVariables.isHorizontal)
             stored.horizontalWalls[convertedIndex][0] = Number(!stored.horizontalWalls[convertedIndex][0]);
@@ -159,25 +176,6 @@ function mouseClickEvent(event) {
 function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
     const stored = JSON.parse(localStorage.getItem("mazeVariables"))
     if (!stored) return
-
-
-    // if (1)
-    // {
-    //     console.log(wallConvertedIndex)
-    //     console.log(stored.horizontalWalls)
-    //     stored.horizontalWalls[wallConvertedIndex] = !stored.horizontalWalls[wallConvertedIndex]
-    //     console.log(stored.horizontalWalls)
-    // }
-    // else
-    // {
-    //     let x = stored.verticalWalls[wallConvertedIndex];
-    //     console.log(x)
-    //     x = !x
-    //     console.log(x)
-    //     // stored.verticalWalls[wallConvertedIndex][0] = !stored.verticalWalls[wallConvertedIndex][0]
-
-    // }
-
 
     if (!result.walls.length) // Maze successfully altered completely
     {
@@ -206,6 +204,7 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
     
 
     const lineScale = 0.4;
@@ -235,7 +234,8 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
             (yPos + tileSize + lineWidth) : yPos
         );
         ctx.strokeStyle = '#22aa22';
-        ctx.lineWidth = lineWidth;
+        ctx.lineWidth = lineWidth*0.5;
+        
         
         ctx.stroke()
 
@@ -252,6 +252,7 @@ function visualizeMaze() {
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
     
 
     let buttonArrVertical = stored.verticalWalls;
@@ -282,14 +283,15 @@ function visualizeMaze() {
 
     for (let i = 0; i < stored.horizontalWalls.length; i++){ // Vertical wall loop
 
-        const xPos = (i % (stored.width-1)+1) * tileSize + lineWidth * 0.5;
-        const yPos = (Math.floor(i / (stored.width-1))) * tileSize;
+        let xPos = (i % (stored.width-1)+1) * tileSize + lineWidth * 0.5;
+        let yPos = (Math.floor(i / (stored.width-1))) * tileSize;
+
 
         ctx.beginPath();
-        ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos, yPos + tileSize + lineWidth);
+        ctx.moveTo(Math.round(xPos), Math.ceil(yPos));
+        ctx.lineTo(Math.round(xPos), Math.floor(yPos + tileSize + lineWidth));
         ctx.strokeStyle = buttonArrHorizontal[i][0] === 1 ? '#222222' : '#22222200';
-        ctx.lineWidth = lineWidth;
+        ctx.lineWidth = Math.round(lineWidth);
 
         ctx.stroke();
 
@@ -306,14 +308,15 @@ function visualizeMaze() {
 
     for (let i = 0; i < stored.verticalWalls.length; i++){ // Horizontal wall loop
 
-        const xPos = (Math.floor(i / (stored.height-1))) * tileSize;
-        const yPos = (i % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
+        let xPos = (Math.floor(i / (stored.height-1))) * tileSize;
+        let yPos = (i % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
+
 
         ctx.beginPath();
-        ctx.moveTo(xPos, yPos);
-        ctx.lineTo(xPos + tileSize + lineWidth, yPos);
+        ctx.moveTo(Math.ceil(xPos), Math.round(yPos));
+        ctx.lineTo(Math.floor(xPos + tileSize + lineWidth), Math.round(yPos));
         ctx.strokeStyle = buttonArrVertical[i][0] === 1 ? '#222222' : '#22222200';
-        ctx.lineWidth = lineWidth;
+        ctx.lineWidth = Math.round(lineWidth);
 
         ctx.stroke();
 
@@ -327,12 +330,6 @@ function visualizeMaze() {
             ctx.stroke();
         }
     }
-    ctx.beginPath();
-    ctx.moveTo(50,10);
-    ctx.lineTo(50,10+lineWidth);
-    ctx.strokeStyle = '#ff0000';
-    ctx.lineWidth = lineWidth;
-    ctx.stroke();
 }
 
 function visualizeHeatmap(resetType, proxType) {
@@ -366,6 +363,7 @@ function drawHeatmap(heatmapArr) {
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     let buttonArrVertical = mazeVariables.verticalWalls;

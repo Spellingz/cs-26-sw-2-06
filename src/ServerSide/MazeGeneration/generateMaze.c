@@ -25,7 +25,7 @@ const GenerationWall DEFAULT_WALL = {
     .direction = 0,
     .closedSides = 0,
     .branchPotential = 0,
-    .corridorLength = 0
+    .corridorLength = 1
 };
 
 typedef struct {
@@ -69,7 +69,7 @@ void PrintGenerationMaze(GenerationMaze maze) {
 }
 
 void FreeMemory(GenerationMaze* maze, GenerationWall** frontiers) {
-    if (maze && maze->horizontalWalls) free(maze->horizontalWalls);
+    //if (maze && maze->horizontalWalls) free(maze->horizontalWalls);
     if (maze) free(maze);
     if (frontiers) free(frontiers);
 }
@@ -183,162 +183,47 @@ Maze GenerationMazeToMaze(GenerationMaze genMaze, bool isPerfect) {
 
 
 float *FrontierWeights(GenerationWall **frontier, int frontierSize, GenerationMaze maze,
-                       float straightnessPriority, float branchPriority) {
+                       float straightnessPriority, float branchPriority, int longestCorridor) {
     float *frontierWeights = malloc(sizeof(float) * frontierSize);
     //We create an array with weights for each frontier, its just as big as the frontier array and each matches
     if (frontierWeights == NULL) return NULL;
 
-    float branchPotential;
-    float straightnessPotential;
-
-    int max_len = 0;
-
-    for (int y = 0; y < maze.size.y; y++) {
-        //calculating max_len, problem with this is that it checks the WALLS, not the cells, so three cells open are seperated by 2 walls. We fix this later by just adding 1
-        int corridorLength = 0;
-
-        for (int x = 0; x < maze.size.x; x++) {
-            Point position = {x, y};
-            int index = GetRightWallIndex(position, maze.size);
-
-            if (index != -1 && maze.horizontalWalls[index].type == AIR) {
-                //After getting all neighbors we are checking if if the right side, cuz we are moving right, is open
-                corridorLength++; //if yes, corridorLength is increased
-            }
-            else if (corridorLength > max_len) {
-                max_len = corridorLength;
-            }
-        }
-    }
-
-    for (int x = 0; x < maze.size.x; x++) {
-        //same as before but now we are checking vertically instead
-        int corridorLength = 0;
-
-        for (int y = 0; y < maze.size.y; y++) {
-            Point position = {x, y};
-            int index = GetLowerWallIndex(position, maze.size);
-
-            if (index != -1 && maze.verticalWalls[index].type == AIR) {
-                corridorLength++;
-            }
-            else if (corridorLength > max_len) {
-                max_len = corridorLength;
-            }
-        }
-    }
-    max_len++;
-
 
     for (int i = 0; i < frontierSize; i++) {
-        //we use the get GetArrayIndex to get the index of our frontier
-        WallReference wallRef = GetArrayIndex(maze, frontier[i]);
 
-        //Then we get our position by using the PointPointedFrom function
-        Point position = PointPointedFrom(wallRef.isHorizontal, wallRef.index, maze.size, frontier[i]->direction);
-
-        GenerationWall *neighbors[4];
-        LoadNeighbourWalls(maze, position, neighbors);
-
-        //Calculating branching potential
-        int openNeighbours = 0;
-        for (int j = 0; j < 4; j++) { //We are counting all 4 neighbor walls to check how many are open and closed
-            if (neighbors[j] != NULL && neighbors[j]->type == AIR) {
-                openNeighbours++;
-            }
-        }
-
-        if (openNeighbours <= 1) //if its 1 or under its a dead end
-            branchPotential = 0;
-        else
-            branchPotential = 1;
-
-
-        //Calculate straightness potential
-        int corridorLength = 0;
-        bool hitWall = false;
-
-        int index = wallRef.index;
-        while (!hitWall) {
-            if (wallRef.isHorizontal && frontier[i]->direction == LEFT) {
-            // four copies of the same function, I know its inefficient but dont touch.
-                if ((index + 1) / (maze.size.x-1) == index / (maze.size.x-1) && maze.horizontalWalls[++index].type == AIR) {
-                    //we are checking if the next step is open, if yes, we keep going and counting
-                    corridorLength++;
-                }
-                else {
-                    hitWall = true; //once we hit a wall we stop
-                }
-            }
-
-            else if (wallRef.isHorizontal && frontier[i]->direction == RIGHT) {
-                if ((index - 1) / (maze.size.x-1) == index / (maze.size.x-1) && maze.horizontalWalls[--index].type == AIR) {
-                    corridorLength++;
-                }
-                else {
-                    hitWall = true;
-                }
-            }
-
-            else if (!wallRef.isHorizontal && frontier[i]->direction == UP) {
-                if ((index + 1) / (maze.size.y-1) == index / (maze.size.y-1) && maze.verticalWalls[++index].type == AIR) {
-                    corridorLength++;
-                }
-                else {
-                    hitWall = true;
-                }
-            }
-
-            else if (!wallRef.isHorizontal && frontier[i]->direction == DOWN) {
-                if ((index - 1) / (maze.size.y-1) == index / (maze.size.y-1) && maze.verticalWalls[--index].type == AIR) {
-                    corridorLength++;
-                }
-                else {
-                    hitWall = true;
-                }
-            }
-        }
-        // same issue with max_len, we are counting the walls, not the cells, so we have to +1
-        corridorLength++;
-
-        straightnessPotential = (float) corridorLength / (float) max_len;
+        float straightnessPotential = (float)frontier[i]->corridorLength / (float)longestCorridor;
 
         // our weight function = priority * potential + (priority - 1) * (potential - 1)
-        frontierWeights[i] = (straightnessPriority * straightnessPotential + (straightnessPriority - 1) * (straightnessPotential - 1)) *
-                             (branchPriority       * branchPotential +       (branchPriority - 1) *       (branchPotential - 1));
+        frontierWeights[i] = (straightnessPriority *  straightnessPotential + (straightnessPriority - 1) *  (straightnessPotential - 1)) *
+                             (branchPriority * frontier[i]->branchPotential + (branchPriority - 1) * (frontier[i]->branchPotential - 1));
     }
 
     return frontierWeights;
 }
 
 
-void SetCorridorLength(bool isHorizontal, int index, Direction direction, GenerationMaze maze) {
+void SetCorridorLength(GenerationMaze maze, bool isHorizontal, int index) {
     //Line as in collumn or row.
     int lineLength = isHorizontal ? maze.size.x : maze.size.y;
     int lineNumber = index / (lineLength - 1);
-    GenerationWall* line = isHorizontal ? maze.horizontalWalls : maze.verticalWalls;
+    GenerationWall* walls = isHorizontal ? maze.horizontalWalls : maze.verticalWalls;
     //Should we move forwards or backwards?
-    int stepOffset = direction == 1 ? 1 : -1;
+    int wallDirection = walls[index].direction == 1 ? 1 : -1;
 
-    short corridorLength = 1;
-    int otherEndIndex = index;
-    do {
-        otherEndIndex += stepOffset;
-        corridorLength++;
-        if (otherEndIndex / lineLength != lineNumber) {
-            //If we are on a different line number, we moved out of bounds.
-            line[index].corridorLength = corridorLength;
-            return;
-        }
-    } while (line[otherEndIndex].type == AIR);
-    //We reached a wall, and set its corridorLength to the new value
-    line[index].corridorLength = corridorLength;
-    line[otherEndIndex].corridorLength = corridorLength;
+    int pointedToIndex = index + wallDirection;
+    if (pointedToIndex / (lineLength - 1) == lineNumber) {
+        walls[pointedToIndex].corridorLength = walls[index].corridorLength + 1;
+    }
+
+    int otherEndIndex = index - wallDirection * walls[index].corridorLength;
+    if (otherEndIndex / (lineLength - 1) == lineNumber) {
+        walls[otherEndIndex].corridorLength = walls[index].corridorLength + 1;
+    }
 }
 
 GenerationWall *PopRandomFrontier(GenerationWall **frontier, int *frontierSize, GenerationMaze maze,
-                                  float straightnessPriority, float branchPriority) {
-    float *weights = FrontierWeights(frontier, *frontierSize, maze, straightnessPriority, branchPriority);
+                                  float straightnessPriority, float branchPriority, int longestCorridor) {
+    float *weights = FrontierWeights(frontier, *frontierSize, maze, straightnessPriority, branchPriority, longestCorridor);
 
     float total = 0.0f;
 
@@ -391,12 +276,14 @@ ExportData GenerateMaze(GenerationData data) {
 
     Point startPoint = (Point) {rand() % size.x, rand() % size.y};
     AddNeighboursToFrontier(frontiers, &frontierSize, *maze, startPoint);
+    int longestCorridor = 1;
 
     bool hasRemovedOneWall = false;
     while (frontierSize > 0) {
-        GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, data.straightness, data.branches); // change so the numbers are branch potential and straightness potential
+        GenerationWall *rndFrontier = PopRandomFrontier(frontiers, &frontierSize, *maze, data.straightness, data.branches, longestCorridor); // change so the numbers are branch potential and straightness potential
         //If both sides of the wall is in the closed maze, it is not actually a frontier, and should not be removed
         if (rndFrontier->closedSides >= 2) continue;
+        //printf("Popped frontier with length: %hd, branch: %hhd\n", rndFrontier->corridorLength, rndFrontier->branchPotential);
 
         //Gets the index of the wall in its corresponding array
         WallReference wallRef = GetArrayIndex(*maze, rndFrontier);
@@ -410,17 +297,22 @@ ExportData GenerateMaze(GenerationData data) {
             GenerationWall* neighbours[4];
             LoadNeighbourWalls(*maze, fromPoint, neighbours);
             for (int i = 0; i < 4; i++) {
-                neighbours[i]->branchPotential = 1;
+                if (neighbours[i])
+                    neighbours[i]->branchPotential = 1;
             }
         }
         hasRemovedOneWall = true;
 
+        SetCorridorLength(*maze, wallRef.isHorizontal, wallRef.index);
+        if (rndFrontier->corridorLength + 1 > longestCorridor)
+            longestCorridor = rndFrontier->corridorLength + 1;
 
         Point frontierPos = PointPointedTo(wallRef.isHorizontal, wallRef.index, size, rndFrontier->direction);
 
         AddNeighboursToFrontier(frontiers, &frontierSize, *maze, frontierPos);
 
         rndFrontier->type = AIR;
+        //PrintGenerationMaze(*maze);
     }
 
     maze->openings[0] = (Point) {0, 0};

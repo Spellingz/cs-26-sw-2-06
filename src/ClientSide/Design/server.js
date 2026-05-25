@@ -18,8 +18,6 @@ function sendmazeinfo(){
     height = height < 3 ? 3 : height
     width = width > 1000 ? (alert("width too big, default to 1000"), 1000 ) : width;
     width = width < 3 ? 3 : width
-    door = door > 1 ? 1 : door;
-    door = door < 0 ? 0 : door;
     branches = branches > 1 ? 1 : branches;
     branches = branches < 0 ? 0 : branches
     loops = loops > 1 ? 1 : loops;
@@ -263,11 +261,16 @@ function visualizeMaze() {
     const lineWidth = tileSize * lineScale;
     const solutionLineWidth = (tileSize - lineWidth) * 0.4;
 
-    canvas.width = box.clientWidth;
-    canvas.height = box.clientHeight;
 
+
+    canvas.width    = box.clientWidth;
+    canvas.height   = box.clientHeight;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
+    ctx.fillStyle = "#ffffffff";
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    ctx.stroke();
+
     ctx.strokeStyle = '#222';
 
     ctx.beginPath();

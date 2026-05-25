@@ -2,9 +2,7 @@
 
 GenerationData TransformGenerationRequest(char *uploadString) {
     GenerationData request;
-    // sscanf(uploadstring, "%d|%lf|%d|%d|%lf|%lf|%lf", &request.id, &request.door, &request.x_size, &request.y_size, &request.branches, &request.loops, &request.straightness);
-    sscanf(uploadString, "{(id, %d), (door, %lf), (x_size, %d), (y_size, %d), (branches, %lf), (loops, %lf), (straightness, %lf), }", &request.id, &request.door, &request.x_size, &request.y_size, &request.branches, &request.loops, &request.straightness);
-    // printf("scanf: %d\n", sscanf(uploadstring, "{(id, %d), (door, %lf), (x_size, %d), (y_size, %d), (branches, %lf), (loops, %lf), (straightness, %lf), }", &request.id, &request.door, &request.x_size, &request.y_size, &request.branches, &request.loops, &request.straightness));
+    sscanf(uploadString, "{(id, %d), (x_size, %d), (y_size, %d), (branches, %lf), (loops, %lf), (straightness, %lf), }", &request.id, &request.x_size, &request.y_size, &request.branches, &request.loops, &request.straightness);
     return request;
 }
 

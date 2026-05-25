@@ -1,63 +1,12 @@
-function DoorParameter() {
-    let html = `
-    <div id="Boks">
-
-        <div class="wrapper">
-            <h2 style="margin-right:20px; color: #000047;">DOOR SLIDER</h2>
-            <div class="container">
-                <div class="range-slider-container">
-                    <input id="rangeDoor" type="range" min="0" max="100" value="0">
-                    <div class="percentage">
-                        <span>0%</span>
-                    </div>
-                </div>
-            </div>
-            <button id="confirm" onclick="SaveInformationInputDoor()">CONFIRM</button>
-        </div>
-
-        <div id="InfoBoks">
-            <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the doors to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
-        </div>
-
-     </div>
-
-    `;
-    //making the id=boks show as the output, when the door button is clicked upon
-    const output = document.getElementById("output")
-    output.innerHTML = '';
-    output.insertAdjacentHTML('beforeend', html);
-
-    //for the slider
-    const rangeEl = document.querySelector('input');
-    const percentage = document.querySelector('.percentage');
-    const percentageSpan = document.querySelector('.percentage span');
-
-    rangeEl.addEventListener('input', function () {
-        const val = rangeEl.value;
-
-        percentage.style.left = `${rangeEl.value}%`;
-        percentageSpan.innerText = `${rangeEl.value}%`;
-    })
-    const savedDoor = sessionStorage.getItem('inputDoor');
-    if (savedDoor) document.getElementById('rangeDoor').value = savedDoor;
-}
-//confirm button save information
-function SaveInformationInputDoor () {
-    let inputDoor = document.getElementById('rangeDoor').value;
-    console.log('saved percentage for Door input:', inputDoor);
-    sessionStorage.setItem('inputDoor', inputDoor);
-}
-
 function SizeParameter() {
     let html = `
     <div id="Boks">
             <div id="inputGroup" style="color: #000047;">
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">HEIGHT</p>
-                <input id="HeightInput" style="height: 25px; width: 150px;" />
+                <input id="HeightInput" oninput="this.value = this.value.replace(/[^0-9]/g, ''); SaveInformationInputSize()" style="height: 25px; width: 150px;" />
                 <br>
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">WIDTH</p>
-                <input id="WidthInput" style="height: 25px; width: 150px" />
+                <input id="WidthInput" oninput="this.value = this.value.replace(/[^0-9]/g, ''); SaveInformationInputSize()" style="height: 25px; width: 150px" />
                 <button id="confirm" onclick="SaveInformationInputSize()" style="margin-top: 70px;">CONFIRM</button>
             </div>
 
@@ -85,11 +34,15 @@ function SizeParameter() {
 //confirm button save information
 function SaveInformationInputSize () {
     let inputSizeHeight = document.getElementById('HeightInput').value;
-    console.log('saved percentage for Size Height input:', inputSizeHeight);
-    sessionStorage.setItem('inputSizeHeight', inputSizeHeight);
-
     let inputSizeWidth = document.getElementById('WidthInput').value;
-    console.log('saved percentage for Size Width input:', inputSizeWidth);
+
+    inputSizeHeight = inputSizeHeight == '' ? Number(0) : Number(inputSizeHeight);
+    inputSizeWidth = inputSizeWidth == '' ? Number(0) : Number(inputSizeWidth);
+
+    console.log('saved Size Width input:', inputSizeWidth);
+    console.log('saved Size Height input:', inputSizeHeight);
+
+    sessionStorage.setItem('inputSizeHeight', inputSizeHeight);
     sessionStorage.setItem('inputSizeWidth', inputSizeWidth);
 
 }
@@ -214,7 +167,7 @@ function StraightnessParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the straightness to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the straightness to be. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
@@ -243,19 +196,7 @@ function StraightnessParameter() {
 function SaveInformationInputStraightness () {
     let inputStraightness = document.getElementById('rangeStraightness').value;
     sessionStorage.setItem('inputStraightness', inputStraightness);
-    console.log('ssaved percentage for Straightness input:', document.getElementById('rangeStraightness').value);
+    console.log('saved percentage for Straightness input:', document.getElementById('rangeStraightness').value);
 }
-
-
-//now we make sure that if the user push the start button that the input is reset
-function startbuttonReset () {
-    sessionStorage.clear('inputDoor', inputDoor);
-    sessionStorage.clear('inputSizeHeight', inputSizeHeight);
-    sessionStorage.clear('inputSizeWidth', inputSizeWidth);
-    sessionStorage.clear('inputBranches', inputBranches);
-    sessionStorage.clear('inputLoops', inputLoops);
-    sessionStorage.clear('inputStraightness', inputStraightness);
-}
-
 
 

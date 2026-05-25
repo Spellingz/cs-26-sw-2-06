@@ -19,7 +19,6 @@ typedef struct {
 
 typedef struct {
     int id;
-    double door;
     int x_size;
     int y_size;
     double branches;

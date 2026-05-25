@@ -9,14 +9,15 @@ set(SOURCES
         src/ServerSide/RequestManager/uploadstringToDataStruct.c
         src/ServerSide/MazeAlteration/changeMaze.c
         src/ServerSide/MazeGeneration/generateMaze.c
-        src/ServerSide/RequestManager/fileUnpacker.c
-        src/ServerSide/RequestManager/requestManager.c
         src/ServerSide/Maze/maze.c
         src/ServerSide/Heatmap/heatmapGen.c
 )
 
 add_executable(HTTP_test ${SOURCES})
 
+set_target_properties(HTTP_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
 
 target_link_libraries(HTTP_test PRIVATE microhttpd)
 IF (WIN32)

@@ -12,6 +12,7 @@ typedef struct GenerationWall {
     char type;
     char direction;
     bool isSolution;
+
     union {
         bool isLoop;
         char closedSides;
@@ -38,6 +39,7 @@ typedef struct {
 
 
 void AddLoops(GenerationMaze maze, double loopInput);
+
 void MarkSolution(GenerationMaze maze, Point start, Point goal);
 
 void PrintGenerationMaze(GenerationMaze maze) {
@@ -48,17 +50,32 @@ void PrintGenerationMaze(GenerationMaze maze) {
     for (int i = 0; i < maze.size.y * 2 - 1; i++) {
         if (i % 2 == 0) {
             printf("|");
-            for(int j = 0; j < maze.size.x - 1; j++, h++) {
+            for (int j = 0; j < maze.size.x - 1; j++, h++) {
                 GenerationWall wall = maze.horizontalWalls[h];
-                printf(" %c", wall.type ? '|' : wall.isSolution ? wall.direction ? '}' : '{': wall.direction ? '>' : '<');
+                printf(" %c", wall.type
+                                  ? '|'
+                                  : wall.isSolution
+                                        ? wall.direction
+                                              ? '}'
+                                              : '{'
+                                        : wall.direction
+                                              ? '>'
+                                              : '<');
             }
             printf(" |");
-        }
-        else {
+        } else {
             printf("+");
-            for(int j = 0; j < maze.size.x; j++, v++) {
-                GenerationWall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v/maze.size.x];
-                printf("%c+", wall.type ? '-' : wall.isSolution ? wall.direction ? 'Y' : 'A': wall.direction ? 'v' : '^');
+            for (int j = 0; j < maze.size.x; j++, v++) {
+                GenerationWall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v / maze.size.x];
+                printf("%c+", wall.type
+                                  ? '-'
+                                  : wall.isSolution
+                                        ? wall.direction
+                                              ? 'Y'
+                                              : 'A'
+                                        : wall.direction
+                                              ? 'v'
+                                              : '^');
             }
         }
         printf("\n");
@@ -83,7 +100,8 @@ GenerationMaze *FillWalls(MazeSize size) {
         return NULL;
     }
     //Allocating a memory block that can hold both arrays. This increases cache friendliness
-    GenerationWall *block = malloc(sizeof(GenerationWall) * wallCount.horizontal + sizeof(GenerationWall) * wallCount.vertical);
+    GenerationWall *block = malloc(
+        sizeof(GenerationWall) * wallCount.horizontal + sizeof(GenerationWall) * wallCount.vertical);
     if (!block) {
         FreeMemory(maze, NULL);
         return NULL;
@@ -96,7 +114,7 @@ GenerationMaze *FillWalls(MazeSize size) {
     for (int i = 0; i < maze->wallCount.horizontal; i++) {
         maze->horizontalWalls[i] = DEFAULT_WALL;
     }
-    for (int j = 0; j < maze->wallCount.vertical ; j++) {
+    for (int j = 0; j < maze->wallCount.vertical; j++) {
         maze->verticalWalls[j] = DEFAULT_WALL;
     }
     return maze;
@@ -139,38 +157,39 @@ WallReference GetArrayIndex(GenerationMaze maze, GenerationWall *frontierWall) {
     //If the pointer is between the first and last pointer in the vertical array
     if (frontierWall >= maze.verticalWalls && frontierWall < maze.verticalWalls + maze.wallCount.vertical)
         //Difference between the pointer and the address of the start of the array is the position in the array
-        return (WallReference) {false, (long)(frontierWall - maze.verticalWalls)};
+        return (WallReference){false, (long) (frontierWall - maze.verticalWalls)};
 
-    //If the pointer is between the first and last pointer in the horizontal array
+        //If the pointer is between the first and last pointer in the horizontal array
     else if (frontierWall >= maze.horizontalWalls && frontierWall < maze.horizontalWalls + maze.wallCount.horizontal)
-        //Difference between the pointer and the address of the start of the array is the position in the array
-        return (WallReference) {true, (long)(frontierWall - maze.horizontalWalls)};
+    //Difference between the pointer and the address of the start of the array is the position in the array
+        return (WallReference){true, (long) (frontierWall - maze.horizontalWalls)};
     else {
         printf("No Index Found!\n");
-        return (WallReference) {false, -1}; //FallBack
+        return (WallReference){false, -1}; //FallBack
     }
 }
 
-ExportWall *GenerationWallArrToExportWallArr(const GenerationWall* arr, int size) {
+ExportWall *GenerationWallArrToExportWallArr(const GenerationWall *arr, int size) {
     ExportWall *exportWallArr = malloc(sizeof(ExportWall) * size);
     if (!exportWallArr) return NULL;
     for (int i = 0; i < size; i++)
-        exportWallArr[i] = (ExportWall) {arr[i].type, arr[i].isSolution};
+        exportWallArr[i] = (ExportWall){arr[i].type, arr[i].isSolution};
     return exportWallArr;
 }
 
-Wall *GenerationWallArrToWallArr(const GenerationWall* generationWalls, Wall* walls, unsigned long size) {
+Wall *GenerationWallArrToWallArr(const GenerationWall *generationWalls, Wall *walls, unsigned long size) {
     for (int i = 0; i < size; i++)
-        walls[i] = (Wall) {generationWalls[i].type, generationWalls[i].direction, generationWalls[i].isSolution};
+        walls[i] = (Wall){generationWalls[i].type, generationWalls[i].direction, generationWalls[i].isSolution};
     return walls;
 }
 
 Maze GenerationMazeToMaze(GenerationMaze genMaze, bool isPerfect) {
-    Wall* wallBlock = malloc(sizeof(Wall) * (genMaze.wallCount.horizontal + genMaze.wallCount.vertical));
+    Wall *wallBlock = malloc(sizeof(Wall) * (genMaze.wallCount.horizontal + genMaze.wallCount.vertical));
     GenerationWallArrToWallArr(genMaze.horizontalWalls, &wallBlock[0], genMaze.wallCount.horizontal);
-    GenerationWallArrToWallArr(genMaze.verticalWalls, &wallBlock[genMaze.wallCount.horizontal], genMaze.wallCount.vertical);
+    GenerationWallArrToWallArr(genMaze.verticalWalls, &wallBlock[genMaze.wallCount.horizontal],
+                               genMaze.wallCount.vertical);
 
-    Maze maze = (Maze) {
+    Maze maze = (Maze){
         isPerfect ? PERFECT : NOT_PERFECT,
         wallBlock + 0,
         wallBlock + genMaze.wallCount.horizontal,
@@ -266,15 +285,15 @@ ExportData GenerateMaze(GenerationData data) {
     if (!maze) return (ExportData){-1}; //crash
 
     int frontierSize = 0;
-    GenerationWall** frontiers = malloc(
-        sizeof(GenerationWall*) * maze->wallCount.horizontal +
-        sizeof(GenerationWall*) * maze->wallCount.vertical);
+    GenerationWall **frontiers = malloc(
+        sizeof(GenerationWall *) * maze->wallCount.horizontal +
+        sizeof(GenerationWall *) * maze->wallCount.vertical);
     if (!frontiers) {
         FreeMemory(maze, frontiers);
         return (ExportData){-1}; //crash
     }
 
-    Point startPoint = (Point) {rand() % size.x, rand() % size.y};
+    Point startPoint = (Point){rand() % size.x, rand() % size.y};
     AddNeighboursToFrontier(frontiers, &frontierSize, *maze, startPoint);
     int longestCorridor = 1;
 
@@ -315,8 +334,8 @@ ExportData GenerateMaze(GenerationData data) {
         //PrintGenerationMaze(*maze);
     }
 
-    maze->openings[0] = (Point) {0, 0};
-    maze->openings[1] = (Point) {maze->size.x - 1, maze->size.y - 1};
+    maze->openings[0] = (Point){0, 0};
+    maze->openings[1] = (Point){maze->size.x - 1, maze->size.y - 1};
 
     MarkSolution(*maze, maze->openings[0], maze->openings[1]);
     AddLoops(*maze, data.loops);
@@ -326,10 +345,13 @@ ExportData GenerateMaze(GenerationData data) {
     if (properMaze.horizontalWalls) SaveMaze(properMaze, data.id);
     free(properMaze.horizontalWalls);
 
-    ExportWall* horizontalExportWalls = GenerationWallArrToExportWallArr(maze->horizontalWalls, maze->wallCount.horizontal);
-    ExportWall* verticalExportWalls = GenerationWallArrToExportWallArr(maze->verticalWalls, maze->wallCount.vertical);
+    ExportWall *horizontalExportWalls = GenerationWallArrToExportWallArr(
+        maze->horizontalWalls, maze->wallCount.horizontal);
+    ExportWall *verticalExportWalls = GenerationWallArrToExportWallArr(maze->verticalWalls, maze->wallCount.vertical);
 
-    ExportData exportMaze = {data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalExportWalls, verticalExportWalls};
+    ExportData exportMaze = {
+        data.id, maze->wallCount.horizontal, maze->wallCount.vertical, horizontalExportWalls, verticalExportWalls
+    };
 
     FreeMemory(maze, frontiers);
     return exportMaze;
@@ -359,10 +381,10 @@ void MarkSolution(GenerationMaze maze, Point start, Point goal) {
 }
 
 void AddLoops(GenerationMaze maze, double loopInput) {
-    int maxloopAttempts = (int)((maze.wallCount.horizontal + maze.wallCount.vertical) * loopInput);
-    int maxSmallLoops = (int)(maxloopAttempts * 0.6); // total amount of "small loops" allowed
-    int maxMidLoops = (int)(maxloopAttempts * 0.25);
-    int maxBigLoops = (int)(maxloopAttempts * 0.10);
+    int maxloopAttempts = (int) ((maze.wallCount.horizontal + maze.wallCount.vertical) * loopInput);
+    int maxSmallLoops = (int) (maxloopAttempts * 0.6); // total amount of "small loops" allowed
+    int maxMidLoops = (int) (maxloopAttempts * 0.25);
+    int maxBigLoops = (int) (maxloopAttempts * 0.10);
     int maxGiantLoops = maxloopAttempts - maxSmallLoops - maxMidLoops - maxBigLoops;
     int loopAmountSmall = 0;
     int loopAmountMid = 0;
@@ -382,24 +404,38 @@ void AddLoops(GenerationMaze maze, double loopInput) {
         maze.verticalWalls[i].isLoop = false;
     }
 
+    bool isHorizontal = true;
+
     for (int loopAttempts = 0; loopAttempts < maxloopAttempts; loopAttempts++) {
         GenerationWall *chosenWall;
-        int isHorizontal;
-        size_t wallIndex = rand() % (maze.wallCount.horizontal + maze.wallCount.vertical); // we create a random number that is at most as big as there are walls
-        //Exploiting the fact that horizontalWalls and verticalWalls are one contiguous block in memory, and treating them as one large array
-        if (maze.horizontalWalls[wallIndex].type == WALL) {
-            chosenWall = &maze.horizontalWalls[wallIndex]; // if the wall is NOT a loop already, and if its a wall, we remove it
-            isHorizontal = wallIndex < maze.wallCount.horizontal;
-            if (!isHorizontal) wallIndex -= maze.wallCount.horizontal;
-        }
-        else {
-            continue;
+
+
+        size_t wallIndex;
+
+        isHorizontal = !isHorizontal;
+        if (isHorizontal) {
+            wallIndex = rand() % (maze.wallCount.horizontal);
+
+            if (maze.horizontalWalls[wallIndex].type == WALL) {
+                chosenWall = &maze.horizontalWalls[wallIndex];
+            } else {
+                continue;
+            }
+        } else {
+            wallIndex = rand() % (maze.wallCount.vertical);
+
+            if (maze.verticalWalls[wallIndex].type == WALL) {
+                chosenWall = &maze.verticalWalls[wallIndex];
+            } else {
+                continue;
+            }
         }
 
         Point pointA = LeftUpperPoint(isHorizontal, wallIndex, maze.size); // we get the two cells next two our wall
         Point pointB = RightLowerPoint(isHorizontal, wallIndex, maze.size);
 
-        GenerationWall **ancestorsA = malloc(maze.size.x * maze.size.y * sizeof(Point)); // array to hold paths from start to root
+        GenerationWall **ancestorsA = malloc(maze.size.x * maze.size.y * sizeof(Point));
+        // array to hold paths from start to root
         int rootDistanceA = 0;
 
         int followedIndex;
@@ -408,17 +444,24 @@ void AddLoops(GenerationMaze maze, double loopInput) {
             LoadNeighbourWalls(maze, pointA, neighbours);
             Direction neighbourDirections[4];
             for (int i = 0; i < 4; i++) {
-                neighbourDirections[i] = neighbours[i] && neighbours[i]->type == AIR ? neighbours[i]->direction : -1;
+                if (neighbours[i] != NULL && neighbours[i]->type == AIR) {
+                    neighbourDirections[i] = neighbours[i]->direction;
+                    //so if it has a direction and is AIR, then we save it to directions
+                } else {
+                    neighbourDirections[i] = -1; //else we throw it away
+                }
             }
 
-            followedIndex = StepTowardsRoot(neighbourDirections, &pointA);
+            followedIndex = StepTowardsRoot(neighbourDirections, &pointA); //we get the correct direction and follow it
             if (followedIndex != -1) {
-                ancestorsA[rootDistanceA++] = neighbours[followedIndex];
+                //if we moved we store the wall we moved through in ancestors, and go again
+                ancestorsA[rootDistanceA] = neighbours[followedIndex];
+                rootDistanceA++;
             }
-        } while (followedIndex != -1);
+        } while (followedIndex != -1); //if we didnt find a legit direction to go, we stop
 
 
-        GenerationWall **ancestorsB = malloc(maze.size.x * maze.size.y * sizeof(Point)); // array to hold cells from start to root
+        GenerationWall **ancestorsB = malloc(maze.size.x * maze.size.y * sizeof(Point)); // same but for the other point
         int rootDistanceB = 0;
 
         do {
@@ -435,6 +478,7 @@ void AddLoops(GenerationMaze maze, double loopInput) {
             }
         } while (followedIndex != -1);
 
+
         int sharedPathLength = 0;
         while (sharedPathLength <= rootDistanceA && sharedPathLength <= rootDistanceB &&
                ancestorsA[rootDistanceA - sharedPathLength - 1] == ancestorsB[rootDistanceB - sharedPathLength - 1]) {
@@ -444,30 +488,27 @@ void AddLoops(GenerationMaze maze, double loopInput) {
         int loopSize = rootDistanceA + rootDistanceB - 2 * sharedPathLength + 1;
 
         bool loopSizeApproved = false;
-        if (loopSize >= smallMinSize && loopSize < midMinSize && loopAmountSmall < maxSmallLoops)
-        { // if our count is within small, then the wall is changed to air
-            loopAmountSmall++;                  // and we can move on, if not since there is too many small loops
-            loopSizeApproved = true;            // we just skip and try another one. Now that I am reading this
-                                                // myself, I realize that this whole thing of forcing there to be a
-                                                // a set number of small, mid, big and giant loops which is what caused
-                                                // this cursed function to be so long is pretty pointless since even
-                                                // if we just took random walls, it would spawn different sized loops
-                                                // anyway. So why the fuck did I make it like this. But I already spent
-                                                // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
-                                                // something about root and parents when making the loops, like going
-                                                // from parent back to root to make loops. Damn you Alex. Give me my
-                                                // weekend back.
-        }
-        else if (loopSize >= midMinSize && loopSize < bigMinSize && loopAmountMid < maxMidLoops)
-        { // same here with mid sized
+        if (loopSize >= smallMinSize && loopSize < midMinSize && loopAmountSmall < maxSmallLoops) {
+            // if our count is within small, then the wall is changed to air
+            loopAmountSmall++; // and we can move on, if not since there is too many small loops
+            loopSizeApproved = true; // we just skip and try another one. Now that I am reading this
+            // myself, I realize that this whole thing of forcing there to be a
+            // a set number of small, mid, big and giant loops which is what caused
+            // this cursed function to be so long is pretty pointless since even
+            // if we just took random walls, it would spawn different sized loops
+            // anyway. So why the fuck did I make it like this. But I already spent
+            // a weekend making it so DO NOT DELETE. Wait I remember, Alex said
+            // something about root and parents when making the loops, like going
+            // from parent back to root to make loops. Damn you Alex. Give me my
+            // weekend back.
+        } else if (loopSize >= midMinSize && loopSize < bigMinSize && loopAmountMid < maxMidLoops) {
+            // same here with mid sized
             loopAmountMid++;
             loopSizeApproved = true;
-        }
-        else if (loopSize >= bigMinSize && loopSize < giantMinSize && loopAmountBig < maxBigLoops) {
+        } else if (loopSize >= bigMinSize && loopSize < giantMinSize && loopAmountBig < maxBigLoops) {
             loopAmountBig++;
             loopSizeApproved = true;
-        }
-        else if (loopSize >= giantMinSize && loopAmountGiant < maxGiantLoops) {
+        } else if (loopSize >= giantMinSize && loopAmountGiant < maxGiantLoops) {
             loopAmountGiant++;
             loopSizeApproved = true;
         }

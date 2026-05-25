@@ -127,14 +127,6 @@ button:active {
     position: relative;
     display: block;
 }
-/*Slider range for door parameter*/
-#rangeDoor{
-    width: 100%;
-    position: absolute;
-    top: 0;
-    left: 0%;
-    transform: none;
-}
 /*Slider range for branches parameter*/
 #rangeBranches{
     width: 100%;

@@ -22,42 +22,42 @@
 
     <h1 id="Header" style="text-shadow: 2px 2px #8896a2; text-align: left; margin-left: 5%;">Maze Generator 2.0</h1>
 
-    <div id="wrapperFactors">
-        <div class="Factors" style="margin-left: 5%;">
-            <button id="Traps" onclick="trapsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">TRAPS</button>
-            <br><br>
-            <button id="Enemies" onclick="enemiesHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ENEMIES</button>
-            <br><br>
-            <button id="Items" onclick="itemsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">ITEMS</button>
-            <br><br>
-            <button id="Doors" onclick="doorsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DOORS</button>
-            <br><br>
-            <button id="SpecialWalls" onclick="specialWallsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">"SPECIAL" WALLS</button>
-        </div>
-        <div id= "output"></div>
-    </div>
+     <div id="wrapperFactors">
+         <div class="Factors" style="margin-left: 5%;">
+             <h3 id="heatMapHeader" style="margin-top: -5%; text-align: left; color: #000047;">HEAT MAPS:</h3>
+             <button id="Distance from Path" onclick="trapsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DISTANCE FROM PATH</button>
+             <br><br>
+             <button id="Distance from Start or End" onclick="enemiesHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DISTANCE FROM START OR END</button>
+             <br><br>
+             <button id="Distance from Start" onclick="itemsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">DISTANCE FROM START</button>
+             <br><br>
+             <button id="Proximity to Path" onclick="doorsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">PROXIMITY TO PATH</button>
+             <br><br>
+             <button id="Proximity to Start or End" onclick="specialWallsHeatMap()" style="background-color: #d4e4f1; height: 50px; width: 500px; border-color: #a1aeb8; border-radius: 12px; font-weight: bolder; font-size: large;">PROXIMITY TO START OR END</button>
+         </div>
+         <div id= "output"></div>
+     </div>
 
     <div id="modifi">
         <div id="ModificationButtons" style="margin-left: 5%;">
-            <button id="EditMode" onclick="editMode()" style="background-color: #d11010; border-color: #9f1010; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb; cursor: pointer;">EDIT MODE</button>
-            <button id="Eksport" onclick="exsport()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 250px; height: 50px; border-radius: 12px; color: #f0efeb;">GET CODE</button>
-            <button class="CreateMazeButton" style="background-color: #4a6275; border-color: #303f4b; height: 50px; width: 250px%; border-radius: 12px; font-size: 25px; color:#f0efeb;" onclick="sendmazeinfo()">
-                Create Maze
-            </button>
+            <h3 id="ModificationHeader" style="text-align: left; color: #000047;">ACTIONS:</h3>
+            <button class="CreateMazeButton" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; height: 50px; width: 166px; border-radius: 12px; color:#f0efeb;" onclick="sendmazeinfo()">CREATE NEW</button>
+            <button id="Eksport" onclick="exsport()" style="background-color: #4a6275; border-color: #303f4b; font-size: 20px; width: 166px; height: 50px; border-radius: 12px; color: #f0efeb;">GET CODE</button>
+            <button id="EditMode" onclick="editMode()" style="background-color: #d11010; border-color: #9f1010; font-size: 20px; width: 166px; height: 50px; border-radius: 12px; color: #f0efeb; cursor: pointer;">EDIT MODE</button>
         </div>
         <div id= "modificationOutput"></div>
     </div>
 
      <!--Connection to js.files-->
-     <script src="server.js"></script>
-     <script src="FunctionParameters.js"></script>
      <script src="FunctionMazeGenerated.js"></script>
+     <script src="FunctionParameters.js"></script>
      <script src="MoreAndAbout.js"></script>
+     <script src="server.js"></script>
 
     <div id="generatedOutput">
         <!--This is just to visualise the boks until the data is ready, then delete this below (ONLY "generatedBoks")-->
         <div id="generatedBoks">
-            <canvas id="mazeCanvas"></canvas>
+            <canvas id="mazeCanvas" onclick="mouseClickEvent(event)"></canvas>
         </div>
         <script>
             document.addEventListener("DOMContentLoaded", visualizeMaze);

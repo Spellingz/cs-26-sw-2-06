@@ -91,13 +91,9 @@ void MoveRootPerfect(Maze *maze, Point newRoot);
 void MoveRoot(Maze maze, Point newRoot);
 Point FindRoot(Maze maze, Point startPoint);
 int RootDistance(Maze maze, Point startPoint);
-int SetRootPathMarking(Maze maze, Point startPoint, Type type);
 
 //Other distance stuff
 int CommonAncestorDistance(Maze maze, Point pointA, Point pointB);
-
-//Ancestry path
-bool IsAncestorOf(Maze maze, Point point, Point ancestor);
 
 //Save/load
 Maze* LoadMaze(int id);

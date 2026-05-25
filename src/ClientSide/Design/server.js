@@ -412,6 +412,83 @@ function drawHeatmap(heatmapArr) {
     drawMaze(canvas, box, ctx);
 }
 
+function drawMaze(canvas, box, ctx) {
+    const mazeVariables = JSON.parse(localStorage.getItem("mazeVariables"));
+    if (!mazeVariables) return
+    console.log(mazeVariables);
+
+    let buttonArrVertical = mazeVariables.verticalWalls;
+    let buttonArrHorizontal = mazeVariables.horizontalWalls;
+
+    const lineScale = 0.4;
+    const tileSize = Math.min(box.clientWidth / (Number(mazeVariables.width) + lineScale), box.clientHeight / (Number(mazeVariables.height) + lineScale));
+    const lineWidth = tileSize * lineScale;
+    const solutionLineWidth = (tileSize - lineWidth) * 0.4;
+
+    ctx.strokeStyle = '#222222';
+
+    ctx.beginPath();
+    ctx.moveTo(0 + lineWidth * 0.5,0);
+    ctx.lineWidth = lineWidth;
+    ctx.lineTo(0 + lineWidth * 0.5, tileSize * mazeVariables.height + lineWidth * 0.5);
+    ctx.lineTo(tileSize * mazeVariables.width + lineWidth * 0.5, tileSize * mazeVariables.height + lineWidth * 0.5);
+    ctx.lineTo(tileSize * mazeVariables.width + lineWidth * 0.5,0 + lineWidth * 0.5);
+    ctx.lineTo(0,0 + lineWidth * 0.5);
+    ctx.stroke();
+
+
+
+    for (let i = 0; i < mazeVariables.horizontalWalls.length; i++){ // Vertical wall loop
+
+        const xPos = Math.round((i % (mazeVariables.width-1)+1) * tileSize + lineWidth * 0.5);
+        const yPos = Math.round((Math.floor(i / (mazeVariables.width-1))) * tileSize);
+        if(buttonArrHorizontal[i][1] === 1) {
+            ctx.beginPath();
+            ctx.moveTo(xPos - tileSize * 0.5 - solutionLineWidth * 0.5, yPos + tileSize * 0.5 + lineWidth * 0.5);
+            ctx.lineTo(xPos + tileSize * 0.5 + solutionLineWidth * 0.5, yPos + tileSize * 0.5 + lineWidth * 0.5);
+            ctx.strokeStyle = '#AA0000';
+            ctx.lineWidth = solutionLineWidth;
+
+            ctx.stroke();
+        }
+        if (buttonArrHorizontal[i][0] !== 1) continue;
+        ctx.beginPath();
+        ctx.moveTo(xPos, yPos);
+        ctx.lineTo(xPos, yPos + tileSize + lineWidth);
+        ctx.strokeStyle = '#222222';
+        ctx.lineWidth = lineWidth;
+
+        ctx.stroke();
+
+
+    }
+
+    for (let i = 0; i < mazeVariables.verticalWalls.length; i++){ // Horizontal wall loop
+
+        const xPos = Math.round((Math.floor(i / (mazeVariables.height-1))) * tileSize);
+        const yPos = Math.round((i % (mazeVariables.height-1)+1) * tileSize + lineWidth * 0.5);
+        if(buttonArrVertical[i][1] === 1) {
+            ctx.beginPath();
+            ctx.moveTo(xPos + tileSize * 0.5 + lineWidth * 0.5, yPos - tileSize * 0.5 - solutionLineWidth * 0.5);
+            ctx.lineTo(xPos + tileSize * 0.5 + lineWidth * 0.5, yPos + tileSize * 0.5 + solutionLineWidth * 0.5);
+            ctx.strokeStyle = '#AA0000';
+            ctx.lineWidth = solutionLineWidth;
+
+            ctx.stroke();
+        }
+        if (buttonArrVertical[i][0] !== 1) continue;
+        ctx.beginPath();
+        ctx.moveTo(xPos, yPos);
+        ctx.lineTo(xPos + tileSize + lineWidth, yPos);
+        ctx.strokeStyle = '#222222';
+        ctx.lineWidth = lineWidth;
+
+        ctx.stroke();
+
+
+    }
+}
+
 function checkCorrectSize(horiArr, vertArr){
     if (horiArr.length !== sessionStorage.getItem('inputSizeHeight') * (sessionStorage.getItem('inputSizeWidth') - 1)){
         window.alert(`Horrizontal length is not correct`);

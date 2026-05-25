@@ -44,7 +44,7 @@ void PrintMaze(Maze maze) {
             printf("|");
             for(int j = 0; j < maze.size.x - 1; j++, h++) {
                 Wall wall = maze.horizontalWalls[h];
-                printf(" %c", wall.type == WALL ? '|' : wall.type == MARKED_WALL ? 'I' : wall.type == AIR ? wall.direction ? '>' : '<' : wall.direction ? '}' : '{');
+                printf(" %c", wall.type == WALL || wall.type == MARKED_WALL ? wall.isSolution ? 'I' :  '|' : !wall.isSolution ? wall.direction ? '>' : '<' : wall.direction ? '}' : '{');
             }
             printf(" |");
         }
@@ -52,7 +52,8 @@ void PrintMaze(Maze maze) {
             printf("+");
             for(int j = 0; j < maze.size.x; j++, v++) {
                 Wall wall = maze.verticalWalls[(v % maze.size.x) * (maze.size.y - 1) + v/maze.size.x];
-                printf("%c+", wall.type == WALL ? '-' : wall.type == MARKED_WALL ? '~' : wall.type == AIR ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
+                printf(" %c", wall.type == WALL || wall.type == MARKED_WALL ? wall.isSolution ? '~' :  '-' : !wall.isSolution ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
+                // printf("%c+", wall.type == WALL ? '-' : wall.type == MARKED_WALL ? '~' : wall.type == AIR ? wall.direction ? 'v' : '^' : wall.direction ? 'Y' : 'A');
             }
         }
         printf("\n");
@@ -696,6 +697,7 @@ WallReference *FindSolution(Maze maze, size_t solutionCount) {
 
     WallReference *solution = malloc(sizeof(WallReference) * solutionCount);
     if (!solution) return NULL;
+    printf("\n\n\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n\n", (int)solutionCount);
 
     for (int i = 0; i < maze.wallCount.horizontal; i++) {
         if (maze.horizontalWalls[i].isSolution) solution[pathsAdded++] = (WallReference) {true, i};
@@ -708,6 +710,7 @@ WallReference *FindSolution(Maze maze, size_t solutionCount) {
 }
 
 AlterationExportData AddSolutionToExportData(Maze maze, AlterationExportData data) {
+    PrintMaze(maze);
     data.solutionCount = SolutionCount(maze);
     data.solution = FindSolution(maze, data.solutionCount);
     if (!data.solution) {

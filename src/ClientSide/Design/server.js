@@ -138,9 +138,9 @@ function mouseClickEvent(event) {
         // });
 
         if (alterationVariables.isHorizontal)
-            stored.horizontalWalls[convertedIndex] = !stored.horizontalWalls[convertedIndex];
+            stored.horizontalWalls[convertedIndex][0] = Number(!stored.horizontalWalls[convertedIndex][0]);
         else
-            stored.verticalWalls[convertedIndex] = !stored.verticalWalls[convertedIndex];
+            stored.verticalWalls[convertedIndex][0] = Number(!stored.verticalWalls[convertedIndex][0]);
         localStorage.setItem("mazeVariables", JSON.stringify(stored));
 
         visualizeMaze();
@@ -163,10 +163,22 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
     if (!stored) return
 
 
-    if (wallIsHorizontal)
-        stored.horizontalWalls[wallConvertedIndex] = !stored.horizontalWalls[wallConvertedIndex]
-    else
-        stored.verticalWalls[wallConvertedIndex] = !stored.verticalWalls[wallConvertedIndex]
+    // if (1)
+    // {
+    //     console.log(wallConvertedIndex)
+    //     console.log(stored.horizontalWalls)
+    //     stored.horizontalWalls[wallConvertedIndex] = !stored.horizontalWalls[wallConvertedIndex]
+    //     console.log(stored.horizontalWalls)
+    // }
+    // else
+    // {
+    //     let x = stored.verticalWalls[wallConvertedIndex];
+    //     console.log(x)
+    //     x = !x
+    //     console.log(x)
+    //     // stored.verticalWalls[wallConvertedIndex][0] = !stored.verticalWalls[wallConvertedIndex][0]
+
+    // }
 
 
     if (!result.walls.length) // Maze successfully altered completely
@@ -184,7 +196,7 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
             else
                 stored.verticalWalls[index][1] = 1;
         })
-        localStorage.setItem("mazeVaraibles", JSON.stringify(stored))
+        localStorage.setItem("mazeVariables", JSON.stringify(stored))
         visualizeMaze();
         return;
     }

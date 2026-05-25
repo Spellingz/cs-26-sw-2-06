@@ -184,7 +184,6 @@ static enum MHD_Result process_post (void *coninfo_cls,
     char *keyArray[] = {
         "type",
         "id",
-        "door",
         "x_size",
         "y_size",
         "branches",

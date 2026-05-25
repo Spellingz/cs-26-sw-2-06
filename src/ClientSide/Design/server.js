@@ -9,7 +9,6 @@ function sendmazeinfo(){
     // let door = document.getElementById('rangeDoor').value;
     let height          = sessionStorage.getItem('inputSizeHeight');
     let width           = sessionStorage.getItem('inputSizeWidth');
-    let door            = sessionStorage.getItem('inputDoor')/100;
     let branches        = sessionStorage.getItem('inputBranches')/100;
     let loops           = sessionStorage.getItem('inputLoops')/100;
     let straightness    = sessionStorage.getItem('inputStraightness')/100;
@@ -26,7 +25,6 @@ function sendmazeinfo(){
     let mazeVariables = {
         "type":             0,
         "id":               id,
-        "door":             door,
         "x_size":           width,
         "y_size":           height,
         "branches":         branches,

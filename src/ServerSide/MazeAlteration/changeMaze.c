@@ -32,11 +32,16 @@ void ToggleWallMarkInBranch(Maze maze, WallReference wallRef, void* returnValue)
 void CountMarkableWallInBranch(Maze maze, WallReference wallRef, void* count);
 void MarkWallInBranch(Maze maze, WallReference wallRef, void* markedWalls);
 void CountAntiRootInBranch(Maze maze, Point point, void* count);
-void RecordAntiRootInBranch(Maze maze, Point point, void* antiRoots);
+void RecordAntiRootInBranch(Maze maze, Point point, void* arrAndCounter);
 
 const AlterationExportData ALTERATION_EXPORT_FAILURE = {false, 0, NULL, 0, NULL};
 const AlterationExportData ALTERATION_EXPORT_NO_MARKS = {true, 0, NULL, -1, NULL};
 
+
+typedef struct ArrAndCounter {
+    void* arr;
+    int counter;
+} ArrAndCounter;
 
 AlterationExportData AlterMaze(AlterationData data) {
     Maze* maze = LoadMaze(data.id);
@@ -66,6 +71,7 @@ AlterationExportData AlterMaze(AlterationData data) {
                 maze->status == MARKED && wall->type == WALL ||
                 maze->status == MARKED && wall->type == AIR) {
                 printf("Denied\n");
+                FreeMaze(maze);
                 return ALTERATION_EXPORT_FAILURE;
             }
 
@@ -163,7 +169,7 @@ AlterationExportData AddWallPerfect(Maze *maze, bool isHorizontal, long index, i
         FreeMaze(maze);
         return ALTERATION_EXPORT_FAILURE;
     }
-    TraverseBranch(*maze, newRoot, NULL, NULL, MarkWallInBranch, markedWalls, NULL, NULL);
+    TraverseBranch(*maze, newRoot, NULL, NULL, MarkWallInBranch, &(ArrAndCounter) {markedWalls, 0}, NULL, NULL);
     TraverseBranch(*maze, newRoot, ToggleWallMarkInBranch, NULL, NULL, NULL, NULL, NULL);
 
     wall->isSolution = false;
@@ -275,8 +281,8 @@ AlterationExportData AddWallNonPerfect(Maze *maze, bool isHorizontal, long index
         return ALTERATION_EXPORT_FAILURE;
     }
 
-    TraverseBranch(*maze, rootA, NULL, NULL, NULL, NULL, RecordAntiRootInBranch, branchAAntiRoots);
-    TraverseBranch(*maze, rootB, NULL, NULL, NULL, NULL, RecordAntiRootInBranch, branchBAntiRoots);
+    TraverseBranch(*maze, rootA, NULL, NULL, NULL, NULL, RecordAntiRootInBranch, &(ArrAndCounter){branchAAntiRoots, 0});
+    TraverseBranch(*maze, rootB, NULL, NULL, NULL, NULL, RecordAntiRootInBranch, &(ArrAndCounter){branchBAntiRoots, 0});
 
     bool foundAntiRoot = false;
     Point antiRoot;
@@ -415,11 +421,11 @@ AlterationExportData RemoveMarkedWallPerfect(Maze *maze, bool isHorizontal, long
     Point oldRootA = FindRoot(*maze, newRootA);
     Point oldRootB = FindRoot(*maze, newRootB);
 
-    printf("Roots (%d, %d), (%d, %d), (%d, %d), (%d, %d)\n", newRootA.x, newRootA.y, newRootB.x, newRootB.y, oldRootA.x, oldRootA.y, oldRootB.x, oldRootB.y);
 
     //If only one solution path enters/exits both roots of the maze it was split
-    bool solutionWasSplit = SolutionNeighbourCount(*maze, oldRootA) == 1 &&
-                            SolutionNeighbourCount(*maze, oldRootB) == 1;
+    bool oldRootAIsSolution = SolutionNeighbourCount(*maze, oldRootA) == 1 || AreEqual(oldRootA, maze->openings[0]) || AreEqual(oldRootA, maze->openings[1]);
+    bool oldRootBIsSolution = SolutionNeighbourCount(*maze, oldRootB) == 1 || AreEqual(oldRootB, maze->openings[0]) || AreEqual(oldRootB, maze->openings[1]);
+    bool solutionWasSplit = oldRootAIsSolution && oldRootBIsSolution;
 
 
     if (solutionWasSplit) {
@@ -665,14 +671,9 @@ Type GetPointPathType(Maze maze, Point point) {
     return -1;
 }
 
-void MarkWallInBranch(Maze maze, WallReference wallRef, void* markedWalls) {
-    static int markedWallCount;
-    static WallReference* lastArray = NULL;
-    //Reset the counter if a new array is given as input.
-    if (lastArray != (WallReference*) markedWalls) {
-        lastArray = (WallReference*) markedWalls;
-        markedWallCount = 0;
-    }
+void MarkWallInBranch(Maze maze, WallReference wallRef, void* arrAndCounter) {
+    int* markedWallCount = &((struct ArrAndCounter*) arrAndCounter)->counter;
+    WallReference* markedWalls = ((struct ArrAndCounter*) arrAndCounter)->arr;
 
     Wall *wallArr = wallRef.isHorizontal ? maze.horizontalWalls : maze.verticalWalls;
     Wall *wall = &wallArr[wallRef.index];
@@ -685,9 +686,10 @@ void MarkWallInBranch(Maze maze, WallReference wallRef, void* markedWalls) {
         Type point1PathType = GetPointPathType(maze, point1);
         Type point2PathType = GetPointPathType(maze, point2);
 
-        if (point1PathType != -1 && point2PathType != -1 && point1PathType != point2PathType) {
+        if (point1PathType != -1 && point1PathType != point2PathType ||
+            point2PathType != -1 && point1PathType != point2PathType) {
             //Store and mark the wall.
-            ((WallReference*) markedWalls)[markedWallCount++] = wallRef;
+            markedWalls[(*markedWallCount)++] = wallRef;
             wall->type = MARKED_WALL;
         }
     }
@@ -706,7 +708,8 @@ void CountMarkableWallInBranch(Maze maze, WallReference wallRef, void* count) {
         Type point1PathType = GetPointPathType(maze, point1);
         Type point2PathType = GetPointPathType(maze, point2);
 
-        if (point1PathType != -1 && point2PathType != -1 && point1PathType != point2PathType) {
+        if (point1PathType != -1 && point1PathType != point2PathType ||
+            point2PathType != -1 && point1PathType != point2PathType) {
             (*(int*)count)++;
         }
     }
@@ -725,14 +728,9 @@ void CountAntiRootInBranch(Maze maze, Point point, void* count) {
         (*(int*)count)++;
 }
 
-void RecordAntiRootInBranch(Maze maze, Point point, void* antiRoots) {
-    static int antiRootCount;
-    static Wall* lastArray = NULL;
-    //Reset the counter if a new array is given as input.
-    if (lastArray != antiRoots) {
-        lastArray = antiRoots;
-        antiRootCount = 0;
-    }
+void RecordAntiRootInBranch(Maze maze, Point point, void* arrAndCounter) {
+    int* antiRootCount = &((struct ArrAndCounter*) arrAndCounter)->counter;
+    Point* antiRoots = ((struct ArrAndCounter*) arrAndCounter)->arr;
 
     Direction neighbourDirections[4];
     LoadNeighbourPathDirections(maze, point, neighbourDirections);
@@ -743,7 +741,7 @@ void RecordAntiRootInBranch(Maze maze, Point point, void* antiRoots) {
             ingoingDirectionCount++;
     }
     if (ingoingDirectionCount >= 2)
-        ((Point*)antiRoots)[antiRootCount++] = point;
+        antiRoots[(*antiRootCount)++] = point;
 }
 
 void TraverseBranch(Maze maze, Point point,
@@ -793,7 +791,6 @@ WallReference *FindSolution(Maze maze, size_t solutionCount) {
 
     WallReference *solution = malloc(sizeof(WallReference) * solutionCount);
     if (!solution) return NULL;
-    printf("\n\n\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n\n", (int)solutionCount);
 
     for (int i = 0; i < maze.wallCount.horizontal; i++) {
         if (maze.horizontalWalls[i].isSolution) solution[pathsAdded++] = (WallReference) {true, i};
@@ -806,7 +803,6 @@ WallReference *FindSolution(Maze maze, size_t solutionCount) {
 }
 
 AlterationExportData AddSolutionToExportData(Maze maze, AlterationExportData data) {
-    PrintMaze(maze);
     data.solutionCount = SolutionCount(maze);
     data.solution = FindSolution(maze, data.solutionCount);
     if (!data.solution) {

@@ -324,13 +324,13 @@ Maze* LoadMaze(int id) {
 }
 
 void SaveMaze(Maze maze, int id) {
-    char fileName[50];
+    char fileName[100];
     struct stat buffer;
     if (stat("../src/ServerSide/Mazes", &buffer) != 0) {
 #ifndef _WIN32
         int check = mkdir("ServerSide/Mazes", 0777);
 #else
-        int check = mkdir("ServerSide/Mazes");
+        int failed = mkdir("ServerSide/Mazes");
         char buf[1024];
 
         if (getcwd(buf, sizeof(buf)) != NULL) {
@@ -339,7 +339,7 @@ void SaveMaze(Maze maze, int id) {
             printf("no working directory");
         }
 #endif
-        if (!check) ; else return;
+        if (failed) return;
     }
     sprintf(fileName, "../src/ServerSide/Mazes/%d.json", id);
     FILE* f = fopen(fileName, "w");

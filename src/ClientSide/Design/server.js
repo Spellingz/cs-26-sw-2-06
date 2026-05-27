@@ -1,4 +1,5 @@
 let isEditMode = false;
+let waitingForChangeResponse = false;
 
 let maze = {
     horizontalWalls: [],
@@ -77,6 +78,7 @@ function saveVisualData() {
 
 
 function mouseClickEvent(event) {
+    if(waitingForChangeResponse) return;
     const stored = JSON.parse(localStorage.getItem("mazeVariables"));
     if (!stored) return
     console.log(stored);
@@ -140,6 +142,7 @@ function mouseClickEvent(event) {
 
     console.log("body input string: '" + str + "'");
 
+    waitingForChangeResponse = true;
     fetch ('http://localhost:8080',
         {method: 'POST',
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
@@ -150,6 +153,7 @@ function mouseClickEvent(event) {
         // result.walls.forEach(wall => {
         //     let isHorizontal = wall[0];
         // });
+        waitingForChangeResponse = false;
         if (result.succeeded == 0) {alert("YOU SHALL NOT PASS!"); return;}
 
         if (alterationVariables.isHorizontal)

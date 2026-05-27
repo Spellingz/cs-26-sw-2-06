@@ -50,7 +50,7 @@ const fileTypeInfoStruct SUPPORTED_FILE_TYPES[SUPPORTED_FILE_TYPE_COUNT] = {
     {JPG, ".jpg", "image/jpeg"}
 };
 
-#define PORT 8888
+#define PORT 8080
 #define MAX_ANSWER_SIZE 512
 
 int idCounter = 0;

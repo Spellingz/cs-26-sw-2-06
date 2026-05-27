@@ -51,7 +51,7 @@ function sendmazeinfo(){
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888',
+    fetch ('http://localhost:8080',
         {method: 'POST',
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: str
@@ -140,7 +140,7 @@ function mouseClickEvent(event) {
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888',
+    fetch ('http://localhost:8080',
         {method: 'POST',
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: str
@@ -262,7 +262,7 @@ function visualizeMaze() {
     canvas.height   = box.clientHeight;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height); // reset canvas pixels
-    ctx.fillStyle = "#ffffffff";
+    ctx.fillStyle = "#f0efeb";
     ctx.fillRect(0,0,canvas.width,canvas.height)
     ctx.stroke();
 
@@ -280,7 +280,7 @@ function visualizeMaze() {
             ctx.beginPath();
             ctx.moveTo(0, i * tileSize + lineWidth * 0.5);
             ctx.lineWidth = lineWidth * 0.6;
-            ctx.lineTo(stored.height * tileSize, i * tileSize + lineWidth * 0.5);
+            ctx.lineTo(stored.width * tileSize, i * tileSize + lineWidth * 0.5);
             ctx.stroke();
         }
     }
@@ -365,7 +365,7 @@ function visualizeHeatmap(resetType, proxType) {
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888',
+    fetch ('http://localhost:8080',
         {method: 'POST',
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: str

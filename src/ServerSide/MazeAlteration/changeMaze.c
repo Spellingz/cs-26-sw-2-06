@@ -19,6 +19,7 @@ int MarkedNeighbourPathCount(Maze maze, Point point);
 void FlipSolutionToRoot(Maze maze, Point point);
 void SetSolutionToRoot(Maze maze, Point point, bool value);
 void UnsetSolutionAndMarkUntilMarkedPath(Maze maze, Point point);
+void MarkBranchUntilMarkedOrSolution(Maze maze, Point point);
 int SolutionDistance(Maze maze, Point point);
 size_t SolutionCount(Maze maze);
 WallReference *FindSolution(Maze maze, size_t solutionCount);
@@ -198,6 +199,7 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
     Point point2 = RightLowerPoint(isHorizontal, index, maze->size);
 
     if (AreEqual(FindRoot(*maze, point1), FindRoot(*maze, point2))) {
+        //Since the roots are the same, we are adding a loop
         //If point 2 is an ancestor of point 1, the wall must point from point 2. Otherwise it would create a cycle.
         if (IsAncestorOf(*maze, point1, point2))
             wall->direction = 0; //Left/up to point 1
@@ -221,6 +223,25 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
             SetSolutionToRoot(*maze, point1, true);
             SetSolutionToRoot(*maze, point2, true);
             wall->isSolution = true;
+            wall->type = AIR;
+
+            MoveRoot(*maze, maze->openings[0]);
+            SetRootPathMarking(*maze, maze->openings[1], MARKED_AIR);
+            MarkBranchUntilMarkedOrSolution(*maze, point1);
+            MarkBranchUntilMarkedOrSolution(*maze, point2);
+            SetRootPathMarking(*maze, maze->openings[1], AIR);
+
+
+            //Then we find points that are on the solution path and try to follow and fix marked paths from there.
+            for (int y = 0; y < maze->size.y; y++) {
+                for (int x = 0; x < maze->size.x; x++) {
+                    Point currentPoint = (Point){x, y};
+                    if (SolutionNeighbourCount(*maze, currentPoint) > 0) {
+                        MarkSolutionLoop(*maze, currentPoint, 0);
+                    }
+                }
+            }
+            UnmarkMazeWalls(*maze);
         }
     }
     else {
@@ -518,6 +539,20 @@ void UnsetSolutionAndMarkUntilMarkedPath(Maze maze, Point point) {
     }
 }
 
+void MarkBranchUntilMarkedOrSolution(Maze maze, Point point) {
+    Wall* neighbourWalls[4];
+    Point neighbourPoints[4];
+    LoadNeighbourWallPointers(maze, point, neighbourWalls);
+    LoadNeighbourPoints(point, neighbourPoints);
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourWalls[i] && neighbourWalls[i]->type == AIR && !neighbourWalls[i]->isSolution) {
+            neighbourWalls[i]->type = MARKED_AIR;
+            MarkBranchUntilMarkedOrSolution(maze, neighbourPoints[i]);
+        }
+    }
+}
+
 int SolutionNeighbourCount(const Maze maze, Point point) {
     int count = 0;
     Wall *neighbours[4];
@@ -769,7 +804,7 @@ void TraverseBranch(Maze maze, Point point,
                            OnNotPathTraverse, onNotPathTraverseReturn,
                            PointFunction,     pointFunctionReturn);
         }
-        else if (OnNotPathTraverse != NULL) {
+        else if (neighbourIndices[i] != -1 && OnNotPathTraverse != NULL) {
             OnNotPathTraverse(maze, (WallReference) {i < 2, neighbourIndices[i]}, onNotPathTraverseReturn);
         }
     }

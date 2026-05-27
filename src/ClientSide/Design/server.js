@@ -162,13 +162,6 @@ function mouseClickEvent(event) {
 
         visualizeChange(alterationVariables.isHorizontal, convertedIndex, result);
     });
-
-    ctx.beginPath();
-    ctx.moveTo(event.offsetX, event.offsetY-2);
-    ctx.lineTo(event.offsetX, event.offsetY+2);
-    ctx.strokeStyle = '#0000ff';
-    ctx.lineWidth = 15;
-    ctx.stroke();
 }
 
 // walls[index] = [Wall? isSolution?]
@@ -274,11 +267,11 @@ function visualizeMaze() {
     ctx.stroke();
 
     if(isEditMode) {
-        ctx.strokeStyle = '#aaa';
+        ctx.strokeStyle = '#ccc';
         for(let i = 0; i < stored.width; i++) {
             ctx.beginPath();
             ctx.moveTo(i * tileSize + lineWidth * 0.5,0);
-            ctx.lineWidth = lineWidth;
+            ctx.lineWidth = lineWidth * 0.6;
             ctx.lineTo(i * tileSize + lineWidth * 0.5, stored.height * tileSize);
             ctx.stroke();
         }
@@ -286,7 +279,7 @@ function visualizeMaze() {
         for(let i = 0; i < stored.height; i++) {
             ctx.beginPath();
             ctx.moveTo(0, i * tileSize + lineWidth * 0.5);
-            ctx.lineWidth = lineWidth;
+            ctx.lineWidth = lineWidth * 0.6;
             ctx.lineTo(stored.height * tileSize, i * tileSize + lineWidth * 0.5);
             ctx.stroke();
         }

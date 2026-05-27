@@ -19,7 +19,7 @@ int MarkedNeighbourPathCount(Maze maze, Point point);
 void FlipSolutionToRoot(Maze maze, Point point);
 void SetSolutionToRoot(Maze maze, Point point, bool value);
 void UnsetSolutionAndMarkUntilMarkedPath(Maze maze, Point point);
-void MarkBranchUntilMarkedOrSolution(Maze maze, Point point);
+void MarkBranch(Maze maze, Point point);
 int SolutionDistance(Maze maze, Point point);
 size_t SolutionCount(Maze maze);
 WallReference *FindSolution(Maze maze, size_t solutionCount);
@@ -31,7 +31,7 @@ void TraverseBranch(Maze maze, Point point,
                     void (*PointFunction)    (Maze, Point, void*),         void* pointFunctionReturn);
 void ToggleWallMarkInBranch(Maze maze, WallReference wallRef, void* returnValue);
 void CountMarkableWallInBranch(Maze maze, WallReference wallRef, void* count);
-void MarkWallInBranch(Maze maze, WallReference wallRef, void* markedWalls);
+void MarkWallInBranch(Maze maze, WallReference wallRef, void* arrAndCounter);
 void CountAntiRootInBranch(Maze maze, Point point, void* count);
 void RecordAntiRootInBranch(Maze maze, Point point, void* arrAndCounter);
 
@@ -227,8 +227,8 @@ AlterationExportData RemoveWallNonPerfect(Maze *maze, bool isHorizontal, long in
 
             MoveRoot(*maze, maze->openings[0]);
             SetRootPathMarking(*maze, maze->openings[1], MARKED_AIR);
-            MarkBranchUntilMarkedOrSolution(*maze, point1);
-            MarkBranchUntilMarkedOrSolution(*maze, point2);
+            MarkBranch(*maze, point1);
+            MarkBranch(*maze, point2);
             SetRootPathMarking(*maze, maze->openings[1], AIR);
 
 
@@ -504,22 +504,34 @@ bool MarkSolutionLoop(Maze maze, Point point, int waysToReachSolution) {
     LoadNeighbourWallPointers(maze, point, neighbourWalls);
     LoadNeighbourPoints(point, neighbourPoints);
 
+    bool neighbourFlips[4] = {false};
     for (int i = 0; i < 4; i++) {
-        //Marked paths represent potential solutions that have not been checked yet in this iteration.
+        //Marked paths represent potential solutions that have not been checked yet in this search.
+        //We unmark marked neighbours to not reach this point again in this search.
         if (neighbourWalls[i] && neighbourWalls[i]->type == MARKED_AIR) {
-            //We check and therefore unmark this path
             neighbourWalls[i]->type = AIR;
+            neighbourFlips[i] = true;
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourFlips[i]) {
             if (MarkSolutionLoop(maze, neighbourPoints[i], 1) == true) {
                 //The neighbour could reach the solution in another way than the one we came through.
                 waysToReachSolution++;
                 neighbourWalls[i]->isSolution = true;
+                //We will not flip it back to 'maybe' when we are done here
+                neighbourFlips[i] = false;
             }
-            else
-                //We are done with the path, and it did not find a way to the solution. We set its status back to 'maybe'
-                //by marking it.
-                neighbourWalls[i]->type = MARKED_AIR;
         }
     }
+
+    for (int i = 0; i < 4; i++) {
+        if (neighbourFlips[i])
+            //We flip unsuccessful searches back
+            neighbourWalls[i]->type = MARKED_AIR;
+    }
+
     //If we could reach the solution in another way than we came from we return true.
     return waysToReachSolution >= 2;
 }
@@ -539,16 +551,16 @@ void UnsetSolutionAndMarkUntilMarkedPath(Maze maze, Point point) {
     }
 }
 
-void MarkBranchUntilMarkedOrSolution(Maze maze, Point point) {
+void MarkBranch(Maze maze, Point point) {
     Wall* neighbourWalls[4];
     Point neighbourPoints[4];
     LoadNeighbourWallPointers(maze, point, neighbourWalls);
     LoadNeighbourPoints(point, neighbourPoints);
 
     for (int i = 0; i < 4; i++) {
-        if (neighbourWalls[i] && neighbourWalls[i]->type == AIR && !neighbourWalls[i]->isSolution) {
+        if (neighbourWalls[i] && neighbourWalls[i]->type == AIR) {
             neighbourWalls[i]->type = MARKED_AIR;
-            MarkBranchUntilMarkedOrSolution(maze, neighbourPoints[i]);
+            MarkBranch(maze, neighbourPoints[i]);
         }
     }
 }

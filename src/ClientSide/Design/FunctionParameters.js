@@ -13,10 +13,10 @@ function SizeParameter() {
             <div id="InfoBoks" style="color: #000047;">
                 <h3>INFORMATION:</h3>
                 <p style="margin-right:20px;">Please input your desired value for the size of the maze</p>
-                <p style="font-weight: bolder;">Max Height: ???</p>
-                <p style="font-weight: bolder;">Max Width: ???</p>
-                <p style="font-weight: bolder;">Min Height: ???</p>
-                <p style="font-weight: bolder;">Min Width: ???</p>
+                <p style="font-weight: bolder;">Max Height: 250</p>
+                <p style="font-weight: bolder;">Max Width: 250</p>
+                <p style="font-weight: bolder;">Min Height: 3</p>
+                <p style="font-weight: bolder;">Min Width: 3</p>
             </div>
     </div>
     `;

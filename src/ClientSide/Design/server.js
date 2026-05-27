@@ -17,9 +17,9 @@ function sendmazeinfo(){
     let loops           = sessionStorage.getItem('inputLoops')/100;
     let straightness    = sessionStorage.getItem('inputStraightness')/100;
 
-    height = height > 1000 ? (alert("height too big, default to 1000"), 100) : height;
+    height = height > 250 ? (alert("Height too big, defaulting to 250"), 250) : height;
     height = height < 3 ? 3 : height
-    width = width > 1000 ? (alert("width too big, default to 1000"), 1000 ) : width;
+    width = width > 250 ? (alert("Width too big, defaulting to 250"), 250) : width;
     width = width < 3 ? 3 : width
     branches = branches > 1 ? 1 : branches;
     branches = branches < 0 ? 0 : branches

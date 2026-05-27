@@ -44,7 +44,7 @@ GenerationData TransformGenerationRequest(char *uploadString) {
     if (!AddDoubleToData(&uploadString, "loops", &request.loops)) return INVALID_GENERATION_DATA;
     if (!AddDoubleToData(&uploadString, "straightness", &request.straightness)) return INVALID_GENERATION_DATA;
 
-    if (request.x_size < 3 || request.y_size < 3 || request.x_size > 1000 || request.y_size > 1000 ||
+    if (request.x_size < 3 || request.y_size < 3 || request.x_size > 250 || request.y_size > 250 ||
         request.branches < 0 || request.branches > 1 || request.loops < 0 || request.loops > 1 ||
         request.straightness < 0 || request.straightness > 1)
         return INVALID_GENERATION_DATA;

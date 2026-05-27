@@ -13,7 +13,7 @@ typedef struct {
     int id;
     bool perfectMaze;
     bool isHorizontal;
-    long wallIndex;
+    int wallIndex;
     enum alterationType alterationType;
 } AlterationData;
 

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "Heatmap/heatmapGen.h"
 
@@ -152,6 +153,41 @@ void readFile(FILE* f, char* buffer) {
     }
 }
 
+bool CheckKeys(char* jsonData, int type) {
+    const char* keys[][10] = {
+        {"id", "x_size", "y_size", "branches", "loops", "straightness", NULL},
+        {"id", "isHorizontal", "wallIndex", "alterationType", "perfectMaze", NULL},
+        {"id", NULL}
+    };
+    if (jsonData[0] != '{')
+        return false;
+    jsonData += strlen("{");
+
+    if (type < 0 || type > 2)
+        return false;
+
+    for (int i = 0; keys[type][i] != NULL; i++) {
+        char format[30];
+        format[0] = '\0';
+        sprintf(format, " (%s, %%f), ", keys[type][i]);
+
+        if (sscanf(jsonData, format) != 1) {
+            if (VERBOSITY >= WARNINGS) printf("Could not find key with format %s\nString is %s\n", format, jsonData);
+            return false;
+        }
+        while (jsonData[0] != ')')
+            jsonData++;
+        jsonData += strlen(", ");
+    }
+    while (isspace(jsonData[0])) {
+        jsonData++;
+    }
+    if (jsonData[0] != '}') {
+        if (VERBOSITY >= WARNINGS) printf("Too many arguments in post: %s\n", jsonData);
+        return false;
+    }
+    return true;
+}
 
 ///////////////
 // FIND KEY ///
@@ -216,15 +252,19 @@ static enum MHD_Result process_post (void *coninfo_cls,
         }
         if (0 == strcmp(key, "resetType"))
         {
-            sscanf(data, "%d", &con_info->resetType);
-            printf("Printing data: %s", data);
-            printf("\nPrinting reset type: %d", con_info->resetType);
+            char* end;
+            con_info->resetType = (bool) strtol(data, &end, 10);
+            if (data == end)
+                con_info->resetType = 0;
+            return MHD_YES;
         }
         if (0 == strcmp(key, "proxType"))
         {
-            int temp;
-            sscanf(data, "%d", &temp);
-            con_info->proxType = temp;
+            char* end;
+            con_info->proxType = (bool) strtol(data, &end, 10);
+            if (data == end)
+                con_info->proxType = 0;
+            return MHD_YES;
         }
         // char _addString[strlen(key) + 10 + dataSize];
         // sprintf(_addString, "\"%s\": %s, ", key, data);
@@ -604,7 +644,7 @@ static enum MHD_Result answer_to_connection (void *cls,
         else if (con_info->jsonData != NULL) // IF ALL UPLOAD DATA HAS BEEN PROCESSED
         {
             strcat(con_info->jsonData, "}");
-            // Don't Respond - save data
+            if (!CheckKeys(con_info->jsonData, con_info->requestType)) return respond_error(con, MHD_HTTP_BAD_REQUEST);
             if(VERBOSITY == ALL) printf("\n\nPOST SUCCESS!\n\n");
 
             // Process data
@@ -613,12 +653,14 @@ static enum MHD_Result answer_to_connection (void *cls,
             if (con_info->requestType == 0)         // generationData
             {
                 GenerationData request = TransformGenerationRequest(con_info->jsonData);
+                if (request.x_size == -1) return respond_error(con, MHD_HTTP_BAD_REQUEST);
                 ExportData responseData = GenerateMaze(request);
                 responseString = GenerationExportDataToString(responseData);
                 FreeGenerationExportData(responseData);
             }
             else if (con_info->requestType == 1) {  // alterationData
                 AlterationData request = TransformAlterationRequest(con_info->jsonData);
+                if (request.alterationType == -1) return respond_error(con, MHD_HTTP_BAD_REQUEST);
                 AlterationExportData responseData = AlterMaze(request);
                 responseString = AlterationExportDataToString(responseData);
                 FreeAlterationExportData(responseData);

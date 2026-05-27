@@ -7,7 +7,7 @@ function SizeParameter() {
                 <br>
                 <p style="font-weight: bolder; font-size: large; margin-right:20px;">WIDTH</p>
                 <input id="WidthInput" oninput="this.value = this.value.replace(/[^0-9]/g, ''); SaveInformationInputSize()" style="height: 25px; width: 150px" />
-                <button id="confirm" onclick="SaveInformationInputSize()" style="margin-top: 70px;">CONFIRM</button>
+                <button id="confirm" onclick="SaveInformationInputSize()" style="margin-top: 60px;">CONFIRM</button>
             </div>
 
             <div id="InfoBoks" style="color: #000047;">

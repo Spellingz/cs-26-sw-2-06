@@ -516,7 +516,8 @@ static enum MHD_Result answer_to_connection (void *cls,
             if (VERBOSITY == ALL) printf("fileOpened\n");
 
             length = sizeOfFile(f);
-            page = malloc ((length +1)* sizeof(char));
+            printf("%d", (int)length);
+            page = malloc ((length)* sizeof(char));
 
             if (!page) {
                 fclose(f);
@@ -526,8 +527,8 @@ static enum MHD_Result answer_to_connection (void *cls,
 
             if (SERVERTYPE == 1)
             {
-                fread(page, 1, length, f);
-                page[length] = '\0';
+                fread(page, 1, length-1, f);
+                page[length-1] = '\0';
             }
             else
                 readTextFile(f, page);

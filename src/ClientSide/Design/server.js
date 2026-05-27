@@ -209,16 +209,17 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
     const lineWidth = tileSize * lineScale;
     const solutionLineWidth = (tileSize - lineWidth) * 0.4;
 
+
     result.walls.forEach(wall => {
         //isHorizontal?
         let xPos, yPos;
         if (wall[0])
-        {
+        { // Horizontal
             xPos = (wall[1] % (stored.width-1)+1) * tileSize + lineWidth*0.5;
             yPos = Math.floor(wall[1] / (stored.width-1)) * tileSize + lineWidth * 0.25;
 
-        } else {
-            xPos = (Math.floor(wall[1] / (stored.height-1))) * tileSize + lineWidth * 0.25;
+        } else { // not horizontal
+            xPos = (Math.floor(wall[1] / (stored.height-1))) * tileSize;
             yPos = (wall[1] % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
         }
 
@@ -238,6 +239,30 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
 
     })
 
+    // "Mark" selected wall
+    let xPos, yPos;
+    if (wallIsHorizontal) 
+    {
+        xPos = (wallConvertedIndex % (stored.width-1)+1) * tileSize + lineWidth*0.5,
+        yPos = Math.floor(wallConvertedIndex / (stored.width-1)) * tileSize
+    }
+    else
+    {
+        xPos = (Math.floor(wallConvertedIndex / (stored.height-1))) * tileSize,
+        yPos = (wallConvertedIndex % (stored.height-1)+1) * tileSize + lineWidth * 0.5
+    }
+    console.log(xPos, yPos)
+
+    ctx.beginPath();
+    ctx.moveTo(xPos,yPos)
+    ctx.lineTo(
+            (wallIsHorizontal) ? xPos : (xPos + tileSize + lineWidth),
+            (wallIsHorizontal) ? (yPos + tileSize + lineWidth) : yPos
+    )
+    ctx.strokeStyle = '#88ff22'
+    ctx.lineWidth = lineWidth*0.5
+    ctx.stroke()
+    
 }
 
 

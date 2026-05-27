@@ -195,8 +195,8 @@ button:active {
 }
 #generatedBoks {
     z-index: 400;
-    width: min(1000px, calc(1000vw - 40px));
-    height: 1000px;
+    width: min(600px, calc(600vw - 40px));
+    height: 600px;
     background-color: transparent;
     padding: 0px;
     box-sizing: border-box;

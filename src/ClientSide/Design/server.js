@@ -1,3 +1,5 @@
+let isEditMode = false;
+
 let maze = {
     horizontalWalls: [],
     verticalWalls: [],
@@ -49,9 +51,9 @@ function sendmazeinfo(){
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888', 
-        {method: 'POST', 
-        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
+    fetch ('http://localhost:8888',
+        {method: 'POST',
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: str
         // body: 'type=0&id=12345678&door=0&x_size=3&y_size=3&branches=0.60&loops=0.0&straightness=0.54'
         })
@@ -92,15 +94,15 @@ function mouseClickEvent(event) {
     const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
     const lineWidth = tileSize * lineScale;
 
-    const xPos = (event.offsetX / tileSize) 
-    const yPos = (event.offsetY / tileSize) 
+    const xPos = (event.offsetX / tileSize)
+    const yPos = (event.offsetY / tileSize)
 
 
     const xLineIndex = Math.floor(xPos)-1
-    const isHorizontal = (xPos - (xLineIndex +1)) < lineScale 
+    const isHorizontal = (xPos - (xLineIndex +1)) < lineScale
 
     const yLineIndex = Math.floor(yPos)-1
-    const isVertical= (yPos - (yLineIndex +1)) < lineScale 
+    const isVertical= (yPos - (yLineIndex +1)) < lineScale
 
     console.log("is?", isHorizontal, isVertical)
     console.log("calculated index from click:", xPos, yPos)
@@ -108,7 +110,7 @@ function mouseClickEvent(event) {
 
     if ((isVertical && isHorizontal) || (!isVertical && !isHorizontal))
         return;
-    if ((isHorizontal && (xLineIndex < 0 || xLineIndex > stored.width ))  
+    if ((isHorizontal && (xLineIndex < 0 || xLineIndex > stored.width ))
         || (isVertical && (yLineIndex < 0 || yLineIndex > stored.height )))
         return;
 
@@ -138,9 +140,9 @@ function mouseClickEvent(event) {
 
     console.log("body input string: '" + str + "'");
 
-    fetch ('http://localhost:8888', 
-        {method: 'POST', 
-        headers: {"Content-Type": "application/x-www-form-urlencoded"}, 
+    fetch ('http://localhost:8888',
+        {method: 'POST',
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: str
         })
     .then(result => result.json())
@@ -195,15 +197,15 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
         return;
     }
 
-    
+
     // 'Mark' changes needed to be made
 
-    
+
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
-    
+
 
     const lineScale = 0.4;
     const tileSize = Math.min(box.clientWidth / (Number(stored.width) + lineScale), box.clientHeight / (Number(stored.height) + lineScale));
@@ -226,15 +228,15 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
         ctx.beginPath();
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(
-            wall[0] ? 
-                xPos : (xPos + tileSize + lineWidth), 
-            wall[0] ? 
+            wall[0] ?
+                xPos : (xPos + tileSize + lineWidth),
+            wall[0] ?
             (yPos + tileSize + lineWidth) : yPos
         );
         ctx.strokeStyle = '#22aa22';
         ctx.lineWidth = lineWidth*0.5;
-        
-        
+
+
         ctx.stroke()
 
     })
@@ -246,12 +248,12 @@ function visualizeMaze() {
     const stored = JSON.parse(localStorage.getItem("mazeVariables"));
     if (!stored) return
     console.log(stored);
-    
+
     const box = document.getElementById("generatedBoks");
     const canvas = document.getElementById("mazeCanvas");
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
-    
+
 
     let buttonArrVertical = stored.verticalWalls;
     let buttonArrHorizontal = stored.horizontalWalls;
@@ -270,6 +272,25 @@ function visualizeMaze() {
     ctx.fillStyle = "#ffffffff";
     ctx.fillRect(0,0,canvas.width,canvas.height)
     ctx.stroke();
+
+    if(isEditMode) {
+        ctx.strokeStyle = '#aaa';
+        for(let i = 0; i < stored.width; i++) {
+            ctx.beginPath();
+            ctx.moveTo(i * tileSize + lineWidth * 0.5,0);
+            ctx.lineWidth = lineWidth;
+            ctx.lineTo(i * tileSize + lineWidth * 0.5, stored.height * tileSize);
+            ctx.stroke();
+        }
+
+        for(let i = 0; i < stored.height; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * tileSize + lineWidth * 0.5);
+            ctx.lineWidth = lineWidth;
+            ctx.lineTo(stored.height * tileSize, i * tileSize + lineWidth * 0.5);
+            ctx.stroke();
+        }
+    }
 
     ctx.strokeStyle = '#222';
 
@@ -290,11 +311,14 @@ function visualizeMaze() {
         let yPos = (Math.floor(i / (stored.width-1))) * tileSize;
 
 
-        ctx.beginPath();
-        ctx.moveTo(Math.round(xPos), Math.ceil(yPos));
-        ctx.lineTo(Math.round(xPos), Math.floor(yPos + tileSize + lineWidth));
-        ctx.strokeStyle = buttonArrHorizontal[i][0] === 1 ? '#222222' : '#22222200';
-        ctx.lineWidth = Math.round(lineWidth);
+        if(buttonArrHorizontal[i][0] === 1) {
+            ctx.beginPath();
+            ctx.moveTo(Math.round(xPos), Math.ceil(yPos));
+            ctx.lineTo(Math.round(xPos), Math.floor(yPos + tileSize + lineWidth));
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = Math.round(lineWidth);
+        }
+
 
         ctx.stroke();
 
@@ -511,8 +535,8 @@ function setCookie(cookieName, cookieValue, expireIn = 400) {
     let expiryDate = "";
     if (expireIn != 0) {
         const date = new Date();
-        date.setTime(d.getTime() + (expireIn*1000*60*60*24)) // converts expireIn value from days to milliseconds and adds it to current time
-        expiryDate = "expires=" + d.toUTCString(); // converts expiry date into UTC format
+        date.setTime(date.getTime() + (expireIn*1000*60*60*24)) // converts expireIn value from days to milliseconds and adds it to current time
+        expiryDate = "expires=" + date.toUTCString(); // converts expiry date into UTC format
     }
     document.cookie = cookieName + "=" + (cookieValue || "") + expiryDate + ";path=/"
 }
@@ -565,12 +589,12 @@ function exsport() {
     if (!stored) return
     console.log(stored);
 
-    
+
     const JSONToFile = (obj, filename) => {
         const blob = new Blob([JSON.stringify(obj, null, 2)], {
         type: 'text/plain',
     });
-  
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

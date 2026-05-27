@@ -66,7 +66,7 @@ function BranchesParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the branches to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">This controls how many branches and dead ends are in the maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
         </div>
 
      </div>
@@ -116,7 +116,7 @@ function LoopsParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the loops to weight in you maze. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">This controls the amount of loops. If you set the amount of loops to zero, you will get a special edit mode, that helps you avoid loops and unreachable tiles.</p>
         </div>
 
      </div>
@@ -167,7 +167,7 @@ function StraightnessParameter() {
 
         <div id="InfoBoks">
             <h3>INFORMATION:</h3>
-            <p style="margin-right:20px; color: #000047;">Please input your desired percentage, that you want the straightness to be. <br> When you are satisfied with your choice, click on the confirm button.</p>
+            <p style="margin-right:20px; color: #000047;">This controls how straight the hallways in the maze will be. <br> When you are satisfied with your choice, click the confirm button.</p>
         </div>
 
      </div>

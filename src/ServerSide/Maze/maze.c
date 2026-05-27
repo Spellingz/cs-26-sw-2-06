@@ -328,7 +328,7 @@ void SaveMaze(Maze maze, int id) {
     struct stat buffer;
     if (stat("../src/ServerSide/Mazes", &buffer) != 0) {
 #ifndef _WIN32
-        int check = mkdir("ServerSide/Mazes", 0777);
+        int failed = mkdir("ServerSide/Mazes", 0777);
 #else
         int failed = mkdir("ServerSide/Mazes");
         char buf[1024];

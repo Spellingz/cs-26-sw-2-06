@@ -211,10 +211,10 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
         if (wall[0])
         {
             xPos = (wall[1] % (stored.width-1)+1) * tileSize + lineWidth*0.5;
-            yPos = Math.floor(wall[1] / (stored.width-1)) * tileSize;
+            yPos = Math.floor(wall[1] / (stored.width-1)) * tileSize + lineWidth * 0.25;
 
         } else {
-            xPos = (Math.floor(wall[1] / (stored.height-1))) * tileSize;
+            xPos = (Math.floor(wall[1] / (stored.height-1))) * tileSize + lineWidth * 0.25;
             yPos = (wall[1] % (stored.height-1)+1) * tileSize + lineWidth * 0.5;
         }
 
@@ -222,9 +222,9 @@ function visualizeChange(wallIsHorizontal, wallConvertedIndex, result) {
         ctx.moveTo(xPos, yPos);
         ctx.lineTo(
             wall[0] ?
-                xPos : (xPos + tileSize + lineWidth),
+                xPos : (xPos + tileSize + lineWidth * 0.5),
             wall[0] ?
-            (yPos + tileSize + lineWidth) : yPos
+            (yPos + tileSize + lineWidth * 0.5) : yPos
         );
         ctx.strokeStyle = '#22aa22';
         ctx.lineWidth = lineWidth*0.5;

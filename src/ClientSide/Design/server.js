@@ -28,12 +28,15 @@ function sendmazeinfo(){
     straightness = straightness > 1 ? 1 : straightness;
     straightness = straightness < 0 ? 0 : straightness;
 
+    sessionStorage.setItem("inputSizeHeight", height);
+    sessionStorage.setItem('inputSizeWidth', width);
+    sessionStorage.setItem('inputBranches', branches * 100);
+    sessionStorage.setItem('inputLoops', loops * 100);
+    sessionStorage.setItem('inputStraightness', straightness * 100);
+
     maze.height = height;
     maze.width = width;
 
-    //setting up two arrays to store the cliked wall areas
-    let verticalWallRects = [];
-    let horizontalWallRects = [];
     maze.perfectMaze = Number(loops == 0)
 
     let id = checkCookie("id", 1);
@@ -57,7 +60,7 @@ function sendmazeinfo(){
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: str
         // body: 'type=0&id=12345678&door=0&x_size=3&y_size=3&branches=0.60&loops=0.0&straightness=0.54'
-        })
+    })
     .then(result => result.json())
     .then(result => {
         maze.id = result.id;
@@ -543,7 +546,7 @@ function drawMaze(canvas, box, ctx) {
 
 function checkCorrectSize(horiArr, vertArr){
     if (horiArr.length !== sessionStorage.getItem('inputSizeHeight') * (sessionStorage.getItem('inputSizeWidth') - 1)){
-        window.alert(`Horrizontal length is not correct`);
+        window.alert(`Horizontal length is not correct`);
     } else if (vertArr.length !== sessionStorage.getItem('inputSizeWidth') * (sessionStorage.getItem('inputSizeHeight') - 1)) {
         window.alert(`Vertical length is not correct`);
     }

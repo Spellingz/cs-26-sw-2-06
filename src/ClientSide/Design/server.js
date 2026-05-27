@@ -79,6 +79,7 @@ function saveVisualData() {
 
 function mouseClickEvent(event) {
     if(waitingForChangeResponse) return;
+    if(!isEditMode) return;
     const stored = JSON.parse(localStorage.getItem("mazeVariables"));
     if (!stored) return
     console.log(stored);

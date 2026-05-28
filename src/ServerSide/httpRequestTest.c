@@ -253,7 +253,7 @@ static enum MHD_Result process_post (void *coninfo_cls,
         if (0 == strcmp(key, "resetType"))
         {
             char* end;
-            con_info->resetType = (bool) strtol(data, &end, 10);
+            con_info->resetType = strtol(data, &end, 10);
             if (data == end)
                 con_info->resetType = 0;
             return MHD_YES;

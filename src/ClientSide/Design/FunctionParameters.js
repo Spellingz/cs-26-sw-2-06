@@ -55,7 +55,7 @@ function BranchesParameter() {
             <h2 style="margin-right:20px; color: #000047;">BRANCHES SLIDER</h2>
             <div class="container">
                 <div class="range-slider-container">
-                    <input id="rangeBranches" type="range" min="0" max="100" value="0">
+                    <input id="rangeBranches" type="range" oninput="SaveInformationInputBranches()" min="0" max="100" value="0">
                     <div class="percentage">
                         <span>0%</span>
                     </div>
@@ -105,7 +105,7 @@ function LoopsParameter() {
             <h2 style="margin-right:20px; color: #000047;">LOOPS SLIDER</h2>
             <div class="container">
                 <div class="range-slider-container">
-                    <input id="rangeLoops" type="range" min="0" max="100" value="0">
+                    <input id="rangeLoops" type="range" oninput="SaveInformationInputLoops()" min="0" max="100" value="0">
                     <div class="percentage">
                         <span>0%</span>
                     </div>
@@ -156,7 +156,7 @@ function StraightnessParameter() {
             <h2 style="margin-right:20px; color: #000047;">STRAIGHTNESS SLIDER</h2>
             <div class="container">
                 <div class="range-slider-container">
-                    <input id="rangeStraightness" type="range" min="0" max="100" value="0">
+                    <input id="rangeStraightness" type="range" oninput="SaveInformationInputStraightness()" min="0" max="100" value="0">
                     <div class="percentage">
                         <span>0%</span>
                     </div>

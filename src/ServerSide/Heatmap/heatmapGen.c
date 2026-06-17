@@ -28,8 +28,8 @@ tæl antal skridt fra mainpath/root, som gives videre når recursion sker
 når et felt rammes, tjekker om det er nået før
 	hvis nej gem antal skridt fra main i felt globalt
 	hvis ja tjek om antal skridt er højere eller lavere end eget
-		hvis nej gå videre
-		hvis ja stop med at gå
+		hvis højere overskriv antal skridt og gå videre
+		hvis lavere stop recursion
 */
 
 void mazeStepper(int currentPosX, int currentPosY, int stepCount, Maze *maze, int resetType) {
